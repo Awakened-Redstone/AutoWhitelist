@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "autowhitelist",
+  "version": "${version}",
+  "name": "AutoWhitelist",
+  "description": "description",
+  "authors": [
+    "AwakenedRedstone"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/autowhitelist/icon.png",
+  "environment": "server",
+  "entrypoints": {
+    "main": [
+      "com.awakenedredstone.autowhitelist.AutoWhitelist"
+    ],
+    "server": [
+      "com.awakenedredstone.autowhitelist.server.AutoWhitelistServer"
+    ]
+  },
+  "mixins": [
+    "autowhitelist.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.11.2",
+    "fabric": "*",
+    "minecraft": ">=1.17-alpha.21.8.b"
+  }
+}
