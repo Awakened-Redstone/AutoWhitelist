@@ -58,8 +58,9 @@ public class Bot extends ListenerAdapter {
         embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title);
         embedBuilder.setDescription(message);
-        embedBuilder.setFooter("*Minecraft PhoenixSC Edition*");
+        embedBuilder.setFooter("Minecraft PhoenixSC Edition");
         MessageAction messageAction = channel.sendMessage(embedBuilder.build());
+        messageAction.queue();
     }
 
     private void sendTempFeedbackMessage(MessageChannel channel, String title, String message, int seconds) {
@@ -136,21 +137,22 @@ public class Bot extends ListenerAdapter {
 
     private void updateWhitelist() {
         List<String> ids = new SQLite().getIds();
+        List<MemberPlayer> memberList = new SQLite().getMembers();
         Guild guild = jda.getGuildById(serverId);
         if (guild == null) {
             AutoWhitelist.logger.error("Failed to get discord server, got null");
             return;
         }
         guild.loadMembers().onSuccess(members -> {
-            List<User> users = members.stream().map(Member::getUser).filter(member -> ids.contains(member.getId())).collect(Collectors.toList());
+            List<Member> users = members.stream().filter(member -> ids.contains(member.getId())).collect(Collectors.toList());
 
-            for (User user : users) {
+            for (Member user : users) {
 
-                List<MemberPlayer> players = new SQLite().getMembers().stream().filter(player -> user.getId().equals(player.getUserId())).collect(Collectors.toList());
+                List<MemberPlayer> players = memberList.stream().filter(player -> user.getId().equals(player.getUserId())).collect(Collectors.toList());
                 MemberPlayer player = players.get(0);
 
                 List<String> roles = getMemberRoles();
-                List<Role> userRoles = user.getJDA().getRoles().stream().filter((role) -> roles.contains(role.getId())).collect(Collectors.toList());
+                List<Role> userRoles = user.getRoles().stream().filter((role) -> roles.contains(role.getId())).collect(Collectors.toList());
                 if (userRoles.size() >= 1) {
                     int higher = 0;
                     Role best = null;
@@ -168,8 +170,7 @@ public class Bot extends ListenerAdapter {
                         JsonArray jsonArray = entry.getValue().getAsJsonArray();
                         for (JsonElement value : jsonArray) {
                             if (value.getAsString().equals(best.getId())) {
-                                if (!new SQLite().getIds().contains(user.getId())) {
-
+                                if (ids.contains(user.getId()) && !player.getTeam().equals(entry.getKey())) {
                                     try {
                                         new SQLite().updateData(user.getId(), getUsername(player.getProfile().getId().toString()), player.getProfile().getId().toString(), entry.getKey());
                                     } catch (IOException e) {
@@ -191,17 +192,17 @@ public class Bot extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent e) {
-        if (e.isWebhookMessage() || e.getAuthor().isBot()) return;
+        if (e.isWebhookMessage() || e.getAuthor().isBot() || e.getChannelType() != ChannelType.TEXT) return;
         if (!e.getMessage().getContentRaw().startsWith(prefix + "register")) return;
-        User _author = e.getAuthor();
-        JDA author = e.getAuthor().getJDA();
+        Member author = e.getMember();
+        if (author == null) { sendFeedbackMessage(e.getChannel(), "Something went wrong.", "Sorry I could not get your discord user. With so you haven't been added to the server."); return; }
         Message _message = e.getMessage();
         String message = _message.getContentRaw();
         message = message.replaceFirst(prefix + "register ", "");
         String[] values = message.split(" ");
 
         {
-            if (new SQLite().getIds().contains(_author.getId())) {
+            if (new SQLite().getIds().contains(author.getId())) {
                 sendFeedbackMessage(e.getChannel(), "You only can register one account", "You can't have more than one Minecraft account registered.");
                 return;
             }
@@ -238,7 +239,7 @@ public class Bot extends ListenerAdapter {
                 JsonArray jsonArray = entry.getValue().getAsJsonArray();
                 for (JsonElement value : jsonArray) {
                     if (value.getAsString().equals(best.getId())) {
-                        if (!new SQLite().getIds().contains(_author.getId())) {
+                        if (!new SQLite().getIds().contains(author.getId())) {
                             try {
                                 List<GameProfile> players = new SQLite().getPlayers();
                                 if (players.stream().map(GameProfile::getName).anyMatch(username -> username.equals(values[0])) && players.stream().map(GameProfile::getId).anyMatch(uuid -> {
@@ -257,7 +258,7 @@ public class Bot extends ListenerAdapter {
                                     return;
                                 }
 
-                                new SQLite().addMember(_author.getId(), values[0], getUUID(values[0]), entry.getKey());
+                                new SQLite().addMember(author.getId(), values[0], getUUID(values[0]), entry.getKey());
                                 sendFeedbackMessage(e.getChannel(), "Welcome to the group!", "Your Minecraft account has been added to the database and soon you will be able to join the server.");
                             } catch (IOException exception) {
                                 sendFeedbackMessage(e.getChannel(), "Something really bad happened.", "I was unable to get your UUID, due to that issue I couldn't add you to the server, please inform a moderator or PhoenixSC.");
@@ -272,7 +273,7 @@ public class Bot extends ListenerAdapter {
                 }
             }
         } else {
-            sendFeedbackMessage(e.getChannel(), "Sorry, but I couldn't accept your request.", "It seams that you don't have the required subscription/member level or don't have your Twitch/Youtube account linked to your discord.");
+            sendFeedbackMessage(e.getChannel(), "Sorry, but I couldn't accept your request.", "It seams that you don't have the required subscription/member level or don't have your Twitch/Youtube account linked to your Discord account.");
         }
         AutoWhitelist.updateWhitelist();
     }
@@ -293,7 +294,7 @@ public class Bot extends ListenerAdapter {
             String jsonText = readAll(rd);
             JsonParser parser = new JsonParser();
             JsonElement json = parser.parse(jsonText);
-            if (json.getAsJsonObject().get("id") == null)
+            if (json.isJsonNull() || json.getAsJsonObject().get("id") == null)
                 throw new InvalidResultException("Invalid username:" + username);
             String _uuid = json.getAsJsonObject().get("id").getAsString();
             if (_uuid.length() != 32) throw new InvalidResultException("Invalid UUID string:" + _uuid);

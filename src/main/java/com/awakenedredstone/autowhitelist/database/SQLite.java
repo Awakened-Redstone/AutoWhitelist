@@ -147,6 +147,23 @@ public class SQLite {
         }
     }
 
+    public MemberPlayer getMemberByNick(String nickname) {
+        if (connection == null) {
+            AutoWhitelist.logger.error("Connection to database not existent. Unable to query data.");
+            return null;
+        }
+        try {
+            PreparedStatement statement = connection.prepareStatement("SELECT * FROM `data` WHERE \"USERNAME\"=?");
+            statement.setString(1, nickname);
+            ResultSet results = statement.executeQuery();
+            results.next();
+            return new MemberPlayer(new GameProfile(UUID.fromString(results.getString("UUID")), results.getString("USERNAME")), results.getString("TEAM"), results.getString("ID"));
+        } catch (SQLException e) {
+            AutoWhitelist.logger.error("Failed to get the data from the database!", e);
+            return null;
+        }
+    }
+
     public void addMember(String id, String username, String uuid, String team) {
         if (connection == null) {
             AutoWhitelist.logger.error("Connection to database not existent. Unable to query data.");

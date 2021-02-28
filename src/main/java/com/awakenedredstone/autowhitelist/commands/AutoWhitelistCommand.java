@@ -3,6 +3,7 @@ package com.awakenedredstone.autowhitelist.commands;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.bot.Bot;
 import com.awakenedredstone.autowhitelist.database.SQLite;
+import com.awakenedredstone.autowhitelist.util.MemberPlayer;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -26,24 +27,25 @@ public class AutoWhitelistCommand {
         }).then(CommandManager.literal("reload").executes((source) -> {
             executeReload(source.getSource());
             return 0;
-        })).then(CommandManager.literal("remove").then(CommandManager.argument("target", EntityArgumentType.player()).suggests((commandContext, suggestionsBuilder) -> {
+        })).then(CommandManager.literal("remove").then(CommandManager.argument("target", StringArgumentType.word()).suggests((commandContext, suggestionsBuilder) -> {
             List<GameProfile> players = new SQLite().getPlayers();
             return CommandSource.suggestMatching(players.stream().map(GameProfile::getName), suggestionsBuilder);
         }).executes((commandContext) -> {
-            return executeAdd((ServerCommandSource) commandContext.getSource(), EntityArgumentType.getPlayer(commandContext, "target"));
+            return executeAdd((ServerCommandSource) commandContext.getSource(), StringArgumentType.getString(commandContext, "target"));
         }))));
     }
 
-    private static int executeAdd(ServerCommandSource source, ServerPlayerEntity target) {
-        GameProfile profile = target.getGameProfile();
-        boolean success = new SQLite().removeMemberByNick(profile.getName());
+    private static int executeAdd(ServerCommandSource source, String target) {
+        MemberPlayer member = new SQLite().getMemberByNick(target);
+        GameProfile profile = member.getProfile();
+        boolean success = new SQLite().removeMemberByNick(target);
         if (success)
             AutoWhitelist.removePlayer(profile);
         if (success) {
-            source.sendFeedback(new LiteralText(String.format("Removed %s from the database. Whitelist has been updated.", target.getName())), true);
+            source.sendFeedback(new LiteralText(String.format("Removed %s from the database. Whitelist has been updated.", target)), true);
             return 1;
         } else {
-            source.sendFeedback(new LiteralText(String.format("Failed to remove %s from the database.", target.getName())), true);
+            source.sendFeedback(new LiteralText(String.format("Failed to remove %s from the database.", target)), true);
             return 0;
         }
     }
