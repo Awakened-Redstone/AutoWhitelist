@@ -53,7 +53,7 @@ public class AutoWhitelist implements ModInitializer {
         try {
             for (String username : playerManager.getWhitelistedNames()) {
                 GameProfile profile = new GameProfile(UUID.fromString(getUUID(username)), username);
-                if (!usernames.contains(username) && !Arrays.stream(playerManager.getOpNames()).collect(Collectors.toList()).contains(username)) {
+                if (!usernames.contains(username) && !playerManager.isOperator(profile)) {
                     whitelist.remove(new WhitelistEntry(profile));
                 }
             }
