@@ -38,6 +38,10 @@ public class AutoWhitelist implements ModInitializer {
         for (Map.Entry<String, JsonElement> entry : AutoWhitelist.config.getConfigs().get("whitelist").getAsJsonObject().entrySet()) {
             Scoreboard scoreboard = server.getScoreboard();
             Team team = scoreboard.getTeam(entry.getKey());
+            if (team == null) {
+                logger.error("Could not update whitelist, got null Team!");
+                return;
+            }
             List<String> invalidPlayers = team.getPlayerList().stream().filter(player -> {
                 try {
                     GameProfile profile = new GameProfile(UUID.fromString(getUUID(player)), player);

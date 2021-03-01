@@ -19,6 +19,9 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.scoreboard.Team;
+import net.minecraft.server.WhitelistEntry;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -241,27 +245,25 @@ public class Bot extends ListenerAdapter {
                     if (value.getAsString().equals(best.getId())) {
                         if (!new SQLite().getIds().contains(author.getId())) {
                             try {
+                                String uuid = getUUID(values[0]);
                                 List<GameProfile> players = new SQLite().getPlayers();
-                                if (players.stream().map(GameProfile::getName).anyMatch(username -> username.equals(values[0])) && players.stream().map(GameProfile::getId).anyMatch(uuid -> {
-                                    try {
-                                        return uuid.toString().equals(getUUID(values[0]));
-                                    } catch (IOException exception) {
-                                        sendFeedbackMessage(e.getChannel(), "Something really bad happened.", "I was unable to get your UUID, due to that issue I couldn't add you to the server, please inform a moderator or PhoenixSC.");
-                                        AutoWhitelist.logger.error("Failed to get UUID.", exception);
-                                        return false;
-                                    } catch (InvalidResultException exception) {
-                                        sendFeedbackMessage(e.getChannel(), "Something went wrong.", "Seams that the username you inserted is not of an original Minecraft Java Edition account or the Mojang API is down. Please check if your username is correct, if it is than try again later.");
-                                        return false;
-                                    }
-                                })) {
+                                if (players.stream().map(GameProfile::getName).anyMatch(username -> username.equals(values[0])) && players.stream().map(GameProfile::getId).anyMatch(uuid_ -> uuid_.toString().equals(uuid))) {
                                     sendFeedbackMessage(e.getChannel(), "This account is already registered.", "The username you inserted is already registered in the database.");
                                     return;
                                 }
 
-                                new SQLite().addMember(author.getId(), values[0], getUUID(values[0]), entry.getKey());
+                                new SQLite().addMember(author.getId(), values[0], uuid, entry.getKey());
+                                AutoWhitelist.server.getPlayerManager().getWhitelist().add(new WhitelistEntry(new GameProfile(UUID.fromString(uuid), values[0])));
+                                Scoreboard scoreboard = AutoWhitelist.server.getScoreboard();
+                                Team team = scoreboard.getTeam(entry.getKey());
+                                if (team == null) {
+                                    sendFeedbackMessage(e.getChannel(), "Something really bad happened.", "I could not get the team equivalent to your member level, due to this issue I couldn't add you to the server, please inform a moderator or PhoenixSC.");
+                                    return;
+                                }
+                                scoreboard.addPlayerToTeam(values[0], team);
                                 sendFeedbackMessage(e.getChannel(), "Welcome to the group!", "Your Minecraft account has been added to the database and soon you will be able to join the server.");
                             } catch (IOException exception) {
-                                sendFeedbackMessage(e.getChannel(), "Something really bad happened.", "I was unable to get your UUID, due to that issue I couldn't add you to the server, please inform a moderator or PhoenixSC.");
+                                sendFeedbackMessage(e.getChannel(), "Something really bad happened.", "I was unable to get your UUID, due to this issue I couldn't add you to the server, please inform a moderator or PhoenixSC.");
                                 AutoWhitelist.logger.error("Failed to get UUID.", exception);
                                 return;
                             } catch (InvalidResultException exception) {
@@ -275,7 +277,6 @@ public class Bot extends ListenerAdapter {
         } else {
             sendFeedbackMessage(e.getChannel(), "Sorry, but I couldn't accept your request.", "It seams that you don't have the required subscription/member level or don't have your Twitch/Youtube account linked to your Discord account.");
         }
-        AutoWhitelist.updateWhitelist();
     }
 
     private List<String> getMemberRoles() {
