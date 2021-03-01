@@ -108,7 +108,7 @@ public class Bot extends ListenerAdapter {
             jda.getPresence().setActivity(Activity.playing("on the Member Server"));
             instance = this;
         } catch (LoginException e) {
-            AutoWhitelist.logger.error("Failed to start bot, got an Exception", e);
+            AutoWhitelist.logger.error("Failed to start bot, please verify the token.");
         }
     }
 
