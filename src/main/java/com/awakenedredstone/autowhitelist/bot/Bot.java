@@ -135,8 +135,6 @@ public class Bot extends ListenerAdapter {
             new SQLite().removeMemberById(player.getUserId());
             AutoWhitelist.removePlayer(player.getProfile());
         }
-
-        AutoWhitelist.updateWhitelist();
     }
 
     private void updateWhitelist() {
