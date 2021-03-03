@@ -37,6 +37,12 @@ dependencies {
         exclude module: 'opus-java'
     }
 
+    compile("org.apache.logging.log4j:log4j-slf4j-impl:2.8.1")
+    compile("org.xerial:sqlite-jdbc:3.34.0")
+    compile('net.dv8tion:JDA:4.2.0_229') {
+        exclude module: 'opus-java'
+    }
+
 
 }
 
