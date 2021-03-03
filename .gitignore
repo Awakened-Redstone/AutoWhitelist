@@ -118,3 +118,4 @@ run/
 !gradle-wrapper.jar
 /config.json
 /users.db
+/auto-whitelist.json
