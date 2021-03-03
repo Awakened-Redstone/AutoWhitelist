@@ -1,16 +1,19 @@
 package com.awakenedredstone.autowhitelist.config;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
+import com.awakenedredstone.autowhitelist.json.JsonHelper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
-import java.io.File;
+import java.io.*;
+import java.util.stream.Collectors;
 
 public class Config {
 
     private JsonObject config;
+    private ConfigData configData;
     private final File configFile = new File(getConfigDirectory(), "auto-whitelist.json");
 
     public File getConfigDirectory() {
@@ -19,21 +22,23 @@ public class Config {
 
     public void loadConfigs() {
         if (configFile.exists() && configFile.isFile() && configFile.canRead()) {
-            JsonElement element = JsonHelper.parseJsonFile(configFile);
-
-            if (element != null && element.isJsonObject()) {
-                config = element.getAsJsonObject();
+            try (BufferedReader reader = new BufferedReader(new FileReader(configFile))) {
+                String json = reader.lines().collect(Collectors.joining("\n"));
+                StringReader stringReader = new StringReader(json);
+                configData = AutoWhitelist.GSON.fromJson(stringReader, ConfigData.class);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
 
     public JsonObject generateDefaultConfig() {
         JsonObject json = new JsonObject();
-        json.add("whitelist-auto-update-delay-seconds", new JsonPrimitive(60L));
+        json.add("whitelistAutoUpdateDelaySeconds", new JsonPrimitive(60L));
         json.add("prefix", new JsonPrimitive("np!"));
-        json.add("token", new JsonPrimitive("bot-token"));
-        json.add("application-id", new JsonPrimitive("application-id"));
-        json.add("discord-server-id", new JsonPrimitive("discord-server-id"));
+        json.add("token", new JsonPrimitive("discord-token"));
+        json.add("applicationId", new JsonPrimitive("application-id"));
+        json.add("discordServerId", new JsonPrimitive("discord-server-id"));
         JsonObject whitelistJson = JsonHelper.getNestedObject(json, "whitelist", true);
         if (whitelistJson == null) {
             AutoWhitelist.logger.error("Something went wrong when generating the default config file!");
@@ -58,5 +63,9 @@ public class Config {
 
     public JsonObject getConfigs() {
         return config;
+    }
+
+    public ConfigData getConfigData() {
+        return configData;
     }
 }
