@@ -31,15 +31,9 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    include("org.apache.logging.log4j:log4j-slf4j-impl:2.8.1")
-    include("org.xerial:sqlite-jdbc:3.34.0")
-    include('net.dv8tion:JDA:4.2.0_229') {
-        exclude module: 'opus-java'
-    }
-
-    compile("org.apache.logging.log4j:log4j-slf4j-impl:2.8.1")
-    compile("org.xerial:sqlite-jdbc:3.34.0")
-    compile('net.dv8tion:JDA:4.2.0_229') {
+    implementation include("org.apache.logging.log4j:log4j-slf4j-impl:2.8.1")
+    implementation include("org.xerial:sqlite-jdbc:3.34.0")
+    implementation include('net.dv8tion:JDA:4.2.0_229') {
         exclude module: 'opus-java'
     }
 
