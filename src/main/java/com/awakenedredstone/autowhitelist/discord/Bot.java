@@ -1,4 +1,4 @@
-package com.awakenedredstone.autowhitelist.bot;
+package com.awakenedredstone.autowhitelist.discord;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.database.SQLite;
@@ -44,14 +44,14 @@ public class Bot extends ListenerAdapter {
 
     private static Bot instance;
 
-    private static ScheduledFuture<?> scheduledUpdate;
+    static ScheduledFuture<?> scheduledUpdate;
 
-    private static JDA jda = null;
+    static JDA jda = null;
     private static String token = AutoWhitelist.config.getConfigs().get("token").getAsString();
     private static String appId = AutoWhitelist.config.getConfigs().get("application-id").getAsString();
-    private static String serverId = AutoWhitelist.config.getConfigs().get("discord-server-id").getAsString();
-    private static String prefix = AutoWhitelist.config.getConfigs().get("prefix").getAsString();
-    private static long updateDelay = AutoWhitelist.config.getConfigs().get("whitelist-auto-update-delay-seconds").getAsLong();
+    static String serverId = AutoWhitelist.config.getConfigs().get("discord-server-id").getAsString();
+    static String prefix = AutoWhitelist.config.getConfigs().get("prefix").getAsString();
+    static long updateDelay = AutoWhitelist.config.getConfigs().get("whitelist-auto-update-delay-seconds").getAsLong();
 
     public Bot() {
         init();
@@ -94,30 +94,30 @@ public class Bot extends ListenerAdapter {
         serverId = AutoWhitelist.config.getConfigs().get("discord-server-id").getAsString();
         prefix = AutoWhitelist.config.getConfigs().get("prefix").getAsString();
         updateDelay = AutoWhitelist.config.getConfigs().get("whitelist-auto-update-delay-seconds").getAsLong();
-        source.sendFeedback(new LiteralText("Restarting the bot."), true);
+        source.sendFeedback(new LiteralText("Restarting the discord."), true);
         scheduledUpdate.cancel(true);
         jda.shutdown();
         init();
-        source.sendFeedback(new LiteralText("Discord bot starting."), true);
+        source.sendFeedback(new LiteralText("Discord discord starting."), true);
     }
 
     private void init() {
         try {
             jda = JDABuilder.createDefault(token).enableIntents(GatewayIntent.GUILD_MEMBERS).setMemberCachePolicy(MemberCachePolicy.ALL).build();
-            jda.addEventListener(this);
+            jda.addEventListener(new BotEventListener());
             jda.getPresence().setActivity(Activity.playing("on the Member Server"));
             instance = this;
         } catch (LoginException e) {
-            AutoWhitelist.logger.error("Failed to start bot, please verify the token.");
+            AutoWhitelist.logger.error("Failed to start discord, please verify the token.");
         }
     }
 
-    @Override
+    /*@Override
     public void onReady(@NotNull ReadyEvent e) {
         AutoWhitelist.logger.info("Bot started. Parsing registered users.");
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
         scheduledUpdate = scheduler.scheduleWithFixedDelay(this::updateWhitelist, 0, updateDelay, TimeUnit.SECONDS);
-    }
+    }*/
 
     @Override
     public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent e) {

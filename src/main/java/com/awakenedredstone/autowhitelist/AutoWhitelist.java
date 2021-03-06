@@ -1,9 +1,12 @@
 package com.awakenedredstone.autowhitelist;
 
 import com.awakenedredstone.autowhitelist.config.Config;
-import com.awakenedredstone.autowhitelist.config.JsonHelper;
+import com.awakenedredstone.autowhitelist.config.ConfigData;
+import com.awakenedredstone.autowhitelist.json.JsonHelper;
 import com.awakenedredstone.autowhitelist.database.SQLite;
 import com.awakenedredstone.autowhitelist.util.MemberPlayer;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
@@ -22,11 +25,17 @@ import java.util.stream.Collectors;
 
 public class AutoWhitelist implements ModInitializer {
 
-    public static final Config config = new Config();
-    private static final File configFile = new File(config.getConfigDirectory(), "AutoWhitelist.json");
     public static MinecraftServer server;
 
+    public static final Config config = new Config();
     public static final Logger logger = LogManager.getLogger("AutoWhitelist");
+    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+
+    private static final File configFile = new File(config.getConfigDirectory(), "AutoWhitelist.json");
+
+    public static ConfigData getConfigData() {
+        return config.getConfigData();
+    }
 
     public static void updateWhitelist() {
         logger.info("Updating whitelist.");
