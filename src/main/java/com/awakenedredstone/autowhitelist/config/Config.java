@@ -14,7 +14,7 @@ public class Config {
 
     private JsonObject config;
     private ConfigData configData;
-    private final File configFile = new File(getConfigDirectory(), "auto-whitelist.json");
+    private final File configFile = new File(getConfigDirectory(), "AutoWhitelist.json");
 
     public File getConfigDirectory() {
         return new File(".", "config");
@@ -36,8 +36,8 @@ public class Config {
         JsonObject json = new JsonObject();
         json.add("whitelistAutoUpdateDelaySeconds", new JsonPrimitive(60L));
         json.add("prefix", new JsonPrimitive("np!"));
-        json.add("token", new JsonPrimitive("discord-token"));
-        json.add("applicationId", new JsonPrimitive("application-id"));
+        json.add("token", new JsonPrimitive("bot-token"));
+        json.add("clientId", new JsonPrimitive("client-id"));
         json.add("discordServerId", new JsonPrimitive("discord-server-id"));
         JsonObject whitelistJson = JsonHelper.getNestedObject(json, "whitelist", true);
         if (whitelistJson == null) {

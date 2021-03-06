@@ -31,7 +31,7 @@ public class AutoWhitelist implements ModInitializer {
     public static final Logger logger = LogManager.getLogger("AutoWhitelist");
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    private static final File configFile = new File(config.getConfigDirectory(), "auto-whitelist.json");
+    private static final File configFile = new File(config.getConfigDirectory(), "AutoWhitelist.json");
 
     public static ConfigData getConfigData() {
         return config.getConfigData();

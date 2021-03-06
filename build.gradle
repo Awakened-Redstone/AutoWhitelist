@@ -1,17 +1,6 @@
-buildscript {
-    repositories {
-        jcenter()
-        maven {
-            name = "Fabric"
-            url = "https://maven.fabricmc.net/"
-        }
-    }
-    dependencies {
-        classpath 'net.fabricmc:fabric-loom:0.6-SNAPSHOT'
-    }
+plugins {
+    id "fabric-loom" version "0.6-SNAPSHOT"
 }
-
-apply plugin: "fabric-loom"
 
 repositories {
     mavenCentral()
@@ -31,23 +20,23 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    implementation 'com.google.code.gson:gson:2.8.6'
-
-    compile "org.apache.logging.log4j:log4j-slf4j-impl:2.8.1"
-    compile "org.xerial:sqlite-jdbc:3.34.0"
-    compile('net.dv8tion:JDA:4.2.0_229') {
+    implementation include("org.xerial:sqlite-jdbc:3.34.0")
+    implementation include('net.dv8tion:JDA:4.2.0_231') {
         exclude module: 'opus-java'
     }
 
-}
-
-task incrementBuildNumber {
-    doFirst {
-        config.build_number = (config.build_number.toString().toInteger()) + 1
-        configFile.withWriter {
-            config.toProperties().store(it, "")
-        }
+    include "net.sf.trove4j:trove4j:3.0.3"
+    include 'org.slf4j:slf4j-nop:1.7.25'
+    include 'org.slf4j:slf4j-api:1.7.25'
+    include 'org.apache.commons:commons-collections4:4.1'
+    include 'com.neovisionaries:nv-websocket-client:2.10'
+    include 'com.squareup.okhttp3:okhttp:3.13.0'
+    include 'com.squareup.okio:okio:1.17.2'
+    include 'com.fasterxml.jackson.core:jackson-databind:2.10.1'
+    include 'com.fasterxml.jackson.core:jackson-annotations:2.10.1'
+    include 'com.fasterxml.jackson.core:jackson-core:2.10.1'
     }
+
 }
 
 compileJava {
@@ -79,10 +68,10 @@ tasks.withType(JavaCompile) {
 // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
 // if it is present.
 // If you remove this task, sources will not be generated.
-task sourcesJar(type: Jar, dependsOn: classes) {
+/*task sourcesJar(type: Jar, dependsOn: classes) {
     classifier = "sources"
     from sourceSets.main.allSource
-}
+}*/
 
 jar {
     from "LICENSE"
