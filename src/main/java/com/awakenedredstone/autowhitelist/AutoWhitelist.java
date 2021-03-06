@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class AutoWhitelist implements ModInitializer {
 
     public static final Config config = new Config();
-    private static final File configFile = new File(config.getConfigDirectory(), "auto-whitelist.json");
+    private static final File configFile = new File(config.getConfigDirectory(), "AutoWhitelist.json");
     public static MinecraftServer server;
 
     public static final Logger logger = LogManager.getLogger("AutoWhitelist");

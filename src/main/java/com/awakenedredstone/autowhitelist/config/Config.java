@@ -11,7 +11,7 @@ import java.io.File;
 public class Config {
 
     private JsonObject config;
-    private final File configFile = new File(getConfigDirectory(), "auto-whitelist.json");
+    private final File configFile = new File(getConfigDirectory(), "AutoWhitelist.json");
 
     public File getConfigDirectory() {
         return new File(".", "config");
