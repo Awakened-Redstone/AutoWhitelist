@@ -212,7 +212,7 @@ public class Bot extends ListenerAdapter {
 
         {
             if (values.length != 1) {
-                sendFeedbackMessage(e.getChannel(), "Invalid command usage.", String.format("Please not that the command is `%sregister <minecraft nickname> <uuid>`\nExample: `%sregister Notch`", prefix, prefix));
+                sendFeedbackMessage(e.getChannel(), "Invalid command usage.", String.format("Please note that the command is `%sregister <minecraft username>`\nExample: `%sregister Notch`", prefix, prefix));
                 return;
             } else if (values[0].length() > 16 || values[0].length() < 3) {
                 sendFeedbackMessage(e.getChannel(), "Invalid nickname.", "The nickname you inserted is either too big or too small.");
@@ -220,7 +220,7 @@ public class Bot extends ListenerAdapter {
             }
         }
 
-        sendTempFeedbackMessage(e.getChannel(), "Command feedback.", "Your request has been received and is being processed, if you don't get another feedback message in the next minute than please contact a moderator.", 10);
+        sendTempFeedbackMessage(e.getChannel(), "Command feedback.", "Your request has been received and is being processed, if you don't get another feedback message in the next minute than please contact a moderator.", 7);
 
         List<String> roles = getMemberRoles();
         List<Role> userRoles = author.getRoles().stream().filter((role) -> roles.contains(role.getId())).collect(Collectors.toList());
