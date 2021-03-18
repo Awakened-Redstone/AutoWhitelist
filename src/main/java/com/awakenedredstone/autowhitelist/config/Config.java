@@ -1,17 +1,22 @@
 package com.awakenedredstone.autowhitelist.config;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
+import com.awakenedredstone.autowhitelist.json.JsonHelper;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import net.minecraft.text.LiteralText;
 
-import java.io.File;
+import java.io.*;
+import java.nio.file.Files;
+import java.util.stream.Collectors;
 
 public class Config {
 
-    private JsonObject config;
+    private ConfigData configData;
     private final File configFile = new File(getConfigDirectory(), "AutoWhitelist.json");
+    private final int configVersion = 2;
 
     public File getConfigDirectory() {
         return new File(".", "config");
@@ -19,24 +24,49 @@ public class Config {
 
     public void loadConfigs() {
         if (configFile.exists() && configFile.isFile() && configFile.canRead()) {
-            JsonElement element = JsonHelper.parseJsonFile(configFile);
+            try (BufferedReader reader = new BufferedReader(new FileReader(configFile))) {
+                String json = reader.lines().collect(Collectors.joining("\n"));
+                StringReader stringReader = new StringReader(json);
 
-            if (element != null && element.isJsonObject()) {
-                config = element.getAsJsonObject();
+                JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
+                if (jsonObject.get("version") == null || jsonObject.get("version").getAsInt() != configVersion) {
+                    Files.copy(configFile.toPath(), new File(getConfigDirectory(), "AutoWhitelist_old.json").toPath());
+                    JsonObject newJson = new JsonObject();
+
+                    newJson.add("version", new JsonPrimitive(configVersion));
+                    newJson.add("whitelistScheduledVerificationSeconds", jsonObject.get("whitelist-auto-update-delay-seconds"));
+                    newJson.add("prefix", jsonObject.get("prefix"));
+                    newJson.add("token", jsonObject.get("token"));
+                    newJson.add("clientId", jsonObject.get("application-id"));
+                    newJson.add("discordServerId", jsonObject.get("discord-server-id"));
+                    newJson.add("whitelist", jsonObject.get("whitelist"));
+
+                    JsonHelper.writeJsonToFile(newJson, configFile);
+                }
+
+                configData = AutoWhitelist.GSON.fromJson(stringReader, ConfigData.class);
+
+                if (configData.whitelistScheduledVerificationSeconds < 30) {
+                    AutoWhitelist.LOGGER.warn("Whitelist scheduled verification time is really low. It is not recommended to have it lower than 30 seconds, since it can affect the server performance.");
+                    AutoWhitelist.server.getCommandSource().sendFeedback(new LiteralText("Whitelist scheduled verification time is really low. It is not recommended to have it lower than 30 seconds, since it can affect the server performance."), true);
+                }
+            } catch (IOException e) {
+                AutoWhitelist.LOGGER.error(e);
             }
         }
     }
 
     public JsonObject generateDefaultConfig() {
         JsonObject json = new JsonObject();
-        json.add("whitelist-auto-update-delay-seconds", new JsonPrimitive(60L));
+        json.add("version", new JsonPrimitive(configVersion));
+        json.add("whitelistScheduledVerificationSeconds", new JsonPrimitive(60L));
         json.add("prefix", new JsonPrimitive("np!"));
         json.add("token", new JsonPrimitive("bot-token"));
-        json.add("application-id", new JsonPrimitive("application-id"));
-        json.add("discord-server-id", new JsonPrimitive("discord-server-id"));
+        json.add("clientId", new JsonPrimitive("client-id"));
+        json.add("discordServerId", new JsonPrimitive("discord-server-id"));
         JsonObject whitelistJson = JsonHelper.getNestedObject(json, "whitelist", true);
         if (whitelistJson == null) {
-            AutoWhitelist.logger.error("Something went wrong when generating the default config file!");
+            AutoWhitelist.LOGGER.error("Something went wrong when generating the default config file!");
             return json;
         }
 
@@ -56,7 +86,8 @@ public class Config {
         return json;
     }
 
-    public JsonObject getConfigs() {
-        return config;
+    public ConfigData getConfigData() {
+        return configData;
     }
 }
+

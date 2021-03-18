@@ -1,7 +1,9 @@
-package com.awakenedredstone.autowhitelist.config;
+package com.awakenedredstone.autowhitelist.json;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.google.gson.*;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -9,9 +11,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class JsonHelper {
+import static com.awakenedredstone.autowhitelist.AutoWhitelist.GSON;
 
-    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+public class JsonHelper {
 
     @Nullable
     public static JsonElement parseJsonFile(File file) {
@@ -27,7 +29,7 @@ public class JsonHelper {
 
                 return element;
             } catch (Exception e) {
-                AutoWhitelist.logger.error("Failed to parse the JSON file '{}'", fileName, e);
+                AutoWhitelist.LOGGER.error("Failed to parse the JSON file '{}'", fileName, e);
             }
         }
 
@@ -44,14 +46,14 @@ public class JsonHelper {
 
             return true;
         } catch (IOException e) {
-            AutoWhitelist.logger.warn("Failed to write JSON data to file '{}'", file.getAbsolutePath(), e);
+            AutoWhitelist.LOGGER.warn("Failed to write JSON data to file '{}'", file.getAbsolutePath(), e);
         } finally {
             try {
                 if (writer != null) {
                     writer.close();
                 }
             } catch (Exception e) {
-                AutoWhitelist.logger.warn("Failed to close JSON file", e);
+                AutoWhitelist.LOGGER.warn("Failed to close JSON file", e);
             }
         }
 

@@ -1,124 +1,136 @@
 package com.awakenedredstone.autowhitelist;
 
 import com.awakenedredstone.autowhitelist.config.Config;
-import com.awakenedredstone.autowhitelist.config.JsonHelper;
-import com.awakenedredstone.autowhitelist.database.SQLite;
-import com.awakenedredstone.autowhitelist.util.MemberPlayer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import com.awakenedredstone.autowhitelist.config.ConfigData;
+import com.awakenedredstone.autowhitelist.json.JsonHelper;
+import com.awakenedredstone.autowhitelist.lang.JigsawLanguage;
+import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
+import com.awakenedredstone.autowhitelist.server.AutoWhitelistServer;
+import com.awakenedredstone.autowhitelist.util.ExtendedGameProfile;
+import com.awakenedredstone.autowhitelist.util.InvalidTeamNameException;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.Team;
-import net.minecraft.server.*;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerManager;
+import net.minecraft.server.WhitelistEntry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static com.awakenedredstone.autowhitelist.lang.JigsawLanguage.translations;
 
 public class AutoWhitelist implements ModInitializer {
 
-    public static final Config config = new Config();
-    private static final File configFile = new File(config.getConfigDirectory(), "AutoWhitelist.json");
+    public static Thread scheduledUpdateThread;
+
     public static MinecraftServer server;
 
-    public static final Logger logger = LogManager.getLogger("AutoWhitelist");
+    public static final Config config = new Config();
+    public static final Logger LOGGER = LogManager.getLogger("AutoWhitelist");
+    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+
+    private static final File configFile = new File(config.getConfigDirectory(), "AutoWhitelist.json");
+
+    public static ConfigData getConfigData() {
+        return config.getConfigData();
+    }
 
     public static void updateWhitelist() {
-        logger.info("Updating whitelist.");
         PlayerManager playerManager = server.getPlayerManager();
-        Whitelist whitelist = playerManager.getWhitelist();
-        List<String> usernames = new SQLite().getUsernames();
+        ExtendedWhitelist whitelist = (ExtendedWhitelist) playerManager.getWhitelist();
+        Scoreboard scoreboard = server.getScoreboard();
 
+        Collection<? extends WhitelistEntry> entries = whitelist.getEntries();
 
-        for (Map.Entry<String, JsonElement> entry : AutoWhitelist.config.getConfigs().get("whitelist").getAsJsonObject().entrySet()) {
-            Scoreboard scoreboard = server.getScoreboard();
-            Team team = scoreboard.getTeam(entry.getKey());
+        List<GameProfile> profiles = entries.stream().map(v -> {
+            ((ServerConfigEntryMixin<?>) v).callGetKey();
+            return (GameProfile) ((ServerConfigEntryMixin<?>) v).getKey();
+        }).collect(Collectors.toList());
+
+        for (GameProfile profile : profiles) {
+            GameProfile profile1 = server.getUserCache().getByUuid(profile.getId());
+            try {
+                if (profile1 == null) {
+                    removePlayer((ExtendedGameProfile) profile);
+                    continue;
+                }
+            } catch (ClassCastException ignored) {
+                whitelist.remove(profile);
+                scoreboard.clearPlayerTeam(profile.getName());
+                continue;
+            }
+
+            if (!profile.getName().equals(profile1.getName())) {
+                try {
+                    ExtendedGameProfile isExtended = (ExtendedGameProfile) profile;
+                    whitelist.remove(isExtended);
+                    whitelist.add(new ExtendedWhitelistEntry(new ExtendedGameProfile(profile1.getId(), profile1.getName(), isExtended.getTeam(), isExtended.getDiscordId())));
+                } catch (ClassCastException ignored) {
+                    whitelist.remove(profile);
+                    whitelist.add(new WhitelistEntry(profile1));
+                }
+            }
+        }
+
+        List<ExtendedGameProfile> extendedProfiles = profiles.stream().map(v -> {
+            try {
+                return (ExtendedGameProfile) v;
+            } catch (ClassCastException e) {
+                return null;
+            }
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+
+        getConfigData().whitelist.keySet().forEach(teamName -> {
+            Team team = scoreboard.getTeam(teamName);
             if (team == null) {
-                logger.error("Could not update whitelist, got null Team!");
+                LOGGER.error("Could not check for invalid players on team \"{}\", got \"null\" when trying to get \"net.minecraft.scoreboard.Team\" from \"{}\"", teamName, teamName, new InvalidTeamNameException("Tried to get \"net.minecraft.scoreboard.Team\" from \"" + teamName + "\" but got \"null\"."));
                 return;
             }
             List<String> invalidPlayers = team.getPlayerList().stream().filter(player -> {
-                try {
-                    GameProfile profile = new GameProfile(UUID.fromString(getUUID(player)), player);
-                    return !usernames.contains(player) && !playerManager.isOperator(profile);
-                } catch (Exception e) {
-                    logger.error("Failed to update whitelist!", e);
-                    return false;
-                }
+                GameProfile profile = profiles.stream().filter(v -> v.getName().equals(player)).findFirst().orElse(null);
+                if (profile == null) return true;
+                return !whitelist.isAllowed(profile);
             }).collect(Collectors.toList());
             invalidPlayers.forEach(player -> scoreboard.removePlayerFromTeam(player, team));
-        }
+        });
 
-        try {
-            for (String username : playerManager.getWhitelistedNames()) {
-                GameProfile profile = new GameProfile(UUID.fromString(getUUID(username)), username);
-                if (!usernames.contains(username) && !playerManager.isOperator(profile)) {
-                    whitelist.remove(new WhitelistEntry(profile));
-                }
-            }
-        } catch (Exception e) {
-            logger.error("Failed to update whitelist!", e);
-            return;
-        }
-
-        Scoreboard scoreboard = server.getScoreboard();
-        for (MemberPlayer player : new SQLite().getMembers()) {
+        for (ExtendedGameProfile player : extendedProfiles) {
+            if (player == null) continue;
             Team team = scoreboard.getTeam(player.getTeam());
+
             if (team == null) {
-                logger.error("Could not update whitelist, got null Team!");
+                LOGGER.error("Could not check team information of \"{}\", got \"null\" when trying to get \"net.minecraft.scoreboard.Team\" from \"{}\"", player.getName(), player.getTeam(), new InvalidTeamNameException("Tried to get \"net.minecraft.scoreboard.Team\" from \"" + player.getTeam() + "\" but got \"null\"."));
                 return;
             }
-            if (!whitelist.isAllowed(player.getProfile())) {
-                whitelist.add(new WhitelistEntry(player.getProfile()));
-            }
-            if (scoreboard.getPlayerTeam(player.getProfile().getName()) != team) {
-                scoreboard.addPlayerToTeam(player.getProfile().getName(), team);
+            if (scoreboard.getPlayerTeam(player.getName()) != team) {
+                scoreboard.clearPlayerTeam(player.getName());
+                scoreboard.addPlayerToTeam(player.getName(), team);
             }
         }
-        logger.info("Whitelist update complete.");
+
+        server.kickNonWhitelistedPlayers(server.getCommandSource());
     }
 
-    public static void removePlayer(GameProfile player) {
+    public static void removePlayer(ExtendedGameProfile player) {
         if (server.getPlayerManager().getWhitelist().isAllowed(player)) {
-            server.getPlayerManager().getWhitelist().remove(new WhitelistEntry(player));
+            server.getPlayerManager().getWhitelist().remove(new ExtendedWhitelistEntry(player));
             Scoreboard scoreboard = server.getScoreboard();
             scoreboard.clearPlayerTeam(player.getName());
         }
-    }
-
-    private static String getUUID(String username) throws Exception {
-        URL url = new URL(String.format("https://api.mojang.com/users/profiles/minecraft/%s", username));
-
-        try (InputStream is = url.openStream()) {
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
-            String jsonText = readAll(rd);
-            JsonParser parser = new JsonParser();
-            JsonElement json = parser.parse(jsonText);
-            String _uuid = json.getAsJsonObject().get("id").getAsString();
-            if (_uuid.length() != 32) throw new IllegalArgumentException("Invalid UUID string:" + _uuid);
-            String[] split = new String[]{_uuid.substring(0, 8), _uuid.substring(8, 12), _uuid.substring(12, 16), _uuid.substring(16, 20), _uuid.substring(20, 32)};
-            StringBuilder uuid_ = new StringBuilder(36);
-            uuid_.append(split[0]).append("-");
-            uuid_.append(split[1]).append("-");
-            uuid_.append(split[2]).append("-");
-            uuid_.append(split[3]).append("-");
-            uuid_.append(split[4]);
-            return uuid_.toString();
-        }
-    }
-
-    private static String readAll(Reader rd) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        int cp;
-        while ((cp = rd.read()) != -1) {
-            sb.append((char) cp);
-        }
-        return sb.toString();
     }
 
     @Override
@@ -130,7 +142,28 @@ public class AutoWhitelist implements ModInitializer {
             }
         }
         config.loadConfigs();
+    }
 
+    public static void reloadTranslations() {
+        try {
+            translations.clear();
+            {
+                InputStream inputStream = AutoWhitelistServer.class.getResource("/messages.json").openStream();
+                JigsawLanguage.load(inputStream, translations::put);
+            }
+            File file = new File(config.getConfigDirectory(), "AutoWhitelist-assets/messages.json");
+            File folder = new File(config.getConfigDirectory(), "AutoWhitelist-assets");
+            if (!folder.exists()) {
+                folder.mkdir();
+            }
+            if (!file.exists()) {
+                Files.copy(AutoWhitelistServer.class.getResource("/messages.json").openStream(), file.toPath());
+            }
+
+            InputStream inputStream = Files.newInputStream(file.toPath());
+            JigsawLanguage.load(inputStream, translations::put);
+        } catch (IOException ignored) {
+        }
     }
 
 }
