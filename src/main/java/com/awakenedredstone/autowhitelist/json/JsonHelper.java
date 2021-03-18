@@ -29,7 +29,7 @@ public class JsonHelper {
 
                 return element;
             } catch (Exception e) {
-                AutoWhitelist.logger.error("Failed to parse the JSON file '{}'", fileName, e);
+                AutoWhitelist.LOGGER.error("Failed to parse the JSON file '{}'", fileName, e);
             }
         }
 
@@ -46,14 +46,14 @@ public class JsonHelper {
 
             return true;
         } catch (IOException e) {
-            AutoWhitelist.logger.warn("Failed to write JSON data to file '{}'", file.getAbsolutePath(), e);
+            AutoWhitelist.LOGGER.warn("Failed to write JSON data to file '{}'", file.getAbsolutePath(), e);
         } finally {
             try {
                 if (writer != null) {
                     writer.close();
                 }
             } catch (Exception e) {
-                AutoWhitelist.logger.warn("Failed to close JSON file", e);
+                AutoWhitelist.LOGGER.warn("Failed to close JSON file", e);
             }
         }
 

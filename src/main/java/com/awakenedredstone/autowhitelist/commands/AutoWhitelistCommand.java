@@ -2,53 +2,62 @@ package com.awakenedredstone.autowhitelist.commands;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.discord.Bot;
-import com.awakenedredstone.autowhitelist.database.SQLite;
-import com.awakenedredstone.autowhitelist.util.MemberPlayer;
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.StringArgumentType;
-import net.minecraft.command.CommandSource;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
 
-import java.util.List;
+import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 
 public class AutoWhitelistCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("auto-whitelist").requires((source) -> {
             return source.hasPermissionLevel(4);
-        }).then(CommandManager.literal("reload").executes((source) -> {
+        }).then((CommandManager.literal("reload").executes((source) -> {
             executeReload(source.getSource());
             return 0;
-        })).then(CommandManager.literal("remove").then(CommandManager.argument("target", StringArgumentType.word()).suggests((commandContext, suggestionsBuilder) -> {
-            List<GameProfile> players = new SQLite().getPlayers();
-            return CommandSource.suggestMatching(players.stream().map(GameProfile::getName), suggestionsBuilder);
-        }).executes((commandContext) -> {
-            return executeAdd((ServerCommandSource) commandContext.getSource(), StringArgumentType.getString(commandContext, "target"));
+        })).then(CommandManager.literal("bot").executes((source) -> {
+            executeSpecificReload(source.getSource(), ReloadableObjects.BOT);
+            return 0;
+        })).then(CommandManager.literal("config").executes((source) -> {
+            executeSpecificReload(source.getSource(), ReloadableObjects.CONFIG);
+            return 0;
+        })).then(CommandManager.literal("translations").executes((source) -> {
+            executeSpecificReload(source.getSource(), ReloadableObjects.TRANSLATIONS);
+            return 0;
         }))));
     }
 
-    private static int executeAdd(ServerCommandSource source, String target) {
-        MemberPlayer member = new SQLite().getMemberByNick(target);
-        GameProfile profile = member.getProfile();
-        boolean success = new SQLite().removeMemberByNick(target);
-        if (success)
-            AutoWhitelist.removePlayer(profile);
-        if (success) {
-            source.sendFeedback(new LiteralText(String.format("Removed %s from the database. Whitelist has been updated.", target)), true);
-            return 1;
-        } else {
-            source.sendFeedback(new LiteralText(String.format("Failed to remove %s from the database.", target)), true);
-            return 0;
+    public static void executeReload(ServerCommandSource source) {
+        source.sendFeedback(new LiteralText("Reloading AutoWhitelist configurations, please wait."), true);
+
+        analyzeTimings("Config#loadConfigs", AutoWhitelist.config::loadConfigs);
+        analyzeTimings("AutoWhitelist#reloadTranslations", AutoWhitelist::reloadTranslations);
+        source.sendFeedback(new LiteralText("Restarting bot, please wait."), true);
+        analyzeTimings("Bot#reloadBot", () -> Bot.getInstance().reloadBot(source));
+    }
+
+    public static void executeSpecificReload(ServerCommandSource source, ReloadableObjects type) {
+        switch (type) {
+            case BOT:
+                source.sendFeedback(new LiteralText("Restarting bot, please wait."), true);
+                analyzeTimings("Bot#reloadBot", () -> Bot.getInstance().reloadBot(source));
+                break;
+            case CONFIG:
+                source.sendFeedback(new LiteralText("Reloading configurations."), true);
+                analyzeTimings("Config#loadConfigs", AutoWhitelist.config::loadConfigs);
+                break;
+            case TRANSLATIONS:
+                source.sendFeedback(new LiteralText("Reloading translations."), true);
+                analyzeTimings("AutoWhitelist#reloadTranslations", AutoWhitelist::reloadTranslations);
+                break;
         }
     }
 
-    public static void executeReload(ServerCommandSource source) {
-        AutoWhitelist.logger.warn("Reloading configurations, please wait.");
-        source.sendFeedback(new LiteralText("Reloading AutoWhitelist configurations, please wait."), true);
-        AutoWhitelist.config.loadConfigs();
-        Bot.getInstance().reloadBot(source);
+    private enum ReloadableObjects {
+        BOT,
+        CONFIG,
+        TRANSLATIONS
     }
 }

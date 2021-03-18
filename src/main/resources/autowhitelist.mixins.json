@@ -4,6 +4,8 @@
   "package": "com.awakenedredstone.autowhitelist.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "PlayerManagerMixin",
+    "ServerConfigEntryMixin"
   ],
   "client": [
   ],
