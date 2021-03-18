@@ -5,6 +5,7 @@ plugins {
 repositories {
     mavenCentral()
     jcenter()
+    maven { url 'https://jitpack.io' }
 }
 
 archivesBaseName = project.archives_base_name
@@ -18,15 +19,22 @@ dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    //modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    include(modImplementation(fabricApi.module("fabric-lifecycle-events-v1", project.fabric_version)))
+    include(modImplementation(fabricApi.module("fabric-api-base", project.fabric_version)))
 
     implementation include("org.xerial:sqlite-jdbc:3.34.0")
+    implementation include("com.jagrosh:jda-utilities-command:3.0.5")
+    implementation include("com.jagrosh:jda-utilities-commons:3.0.5")
+    implementation include("com.jagrosh:jda-utilities-menu:3.0.5")
+    implementation include("com.jagrosh:jda-utilities-examples:3.0.5")
+    implementation include("com.jagrosh:jda-utilities-doc:3.0.5")
     implementation include('net.dv8tion:JDA:4.2.0_231') {
         exclude module: 'opus-java'
     }
+    implementation include('org.apache.logging.log4j:log4j-slf4j-impl:2.8.1')
 
     include "net.sf.trove4j:trove4j:3.0.3"
-    include 'org.slf4j:slf4j-nop:1.7.25'
     include 'org.slf4j:slf4j-api:1.7.25'
     include 'org.apache.commons:commons-collections4:4.1'
     include 'com.neovisionaries:nv-websocket-client:2.10'
