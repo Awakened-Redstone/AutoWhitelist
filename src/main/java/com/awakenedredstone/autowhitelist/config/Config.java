@@ -48,7 +48,9 @@ public class Config {
 
                 if (configData.whitelistScheduledVerificationSeconds < 30) {
                     AutoWhitelist.LOGGER.warn("Whitelist scheduled verification time is really low. It is not recommended to have it lower than 30 seconds, since it can affect the server performance.");
-                    AutoWhitelist.server.getCommandSource().sendFeedback(new LiteralText("Whitelist scheduled verification time is really low. It is not recommended to have it lower than 30 seconds, since it can affect the server performance."), true);
+                    try {
+                        AutoWhitelist.server.getCommandSource().sendFeedback(new LiteralText("Whitelist scheduled verification time is really low. It is not recommended to have it lower than 30 seconds, since it can affect the server performance."), true);
+                    } catch (NullPointerException ignored) {}
                 }
             } catch (IOException e) {
                 AutoWhitelist.LOGGER.error(e);
