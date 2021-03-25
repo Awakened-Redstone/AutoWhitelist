@@ -25,6 +25,7 @@ public class AutoWhitelistServer implements DedicatedServerModInitializer {
     @Override
     public void onInitializeServer() {
         ServerLifecycleEvents.SERVER_STARTING.register(server -> AutoWhitelistCommand.register(server.getCommandManager().getDispatcher()));
+        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, serverResourceManager, success) -> AutoWhitelistCommand.register(server.getCommandManager().getDispatcher()));
         ServerLifecycleEvents.SERVER_STOPPING.register((server -> Bot.stopBot()));
         ServerLifecycleEvents.SERVER_STARTED.register((server -> {
             AutoWhitelist.server = server;
