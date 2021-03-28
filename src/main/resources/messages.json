@@ -15,7 +15,7 @@
   "command.register.invalid_username.message.too_short": "The username you inserted is too small, a **Minecraft Java Edition** username has to be at least 3 characters long.",
 
   "command.register.fail.not_allowed.title": "Sorry, but I couldn't accept your request.",
-  "command.register.fail.not_allowed.message": "It seams that you don't have the required subscription/member level or don't have your Twitch/Youtube account linked to your Discord account.",
+  "command.register.fail.not_allowed.message": "It seems that you don't have the required subscription/member level or don't have your Twitch/Youtube account linked to your Discord account.",
   "command.register.fail.account_data": "I couldn't get the public account data of \"%s\". Is it a valid **Minecraft Java Edition** username?\n_It is only possible to register Minecraft Java Edition accounts._",
 
 
