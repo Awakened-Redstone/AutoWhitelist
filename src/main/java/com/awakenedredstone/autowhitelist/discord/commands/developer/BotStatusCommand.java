@@ -18,7 +18,6 @@ public class BotStatusCommand extends DeveloperCommand {
 
     @Override
     protected void execute(CommandEvent event) {
-        if (event.getChannelType() != ChannelType.PRIVATE) return;
         analyzeTimings("BotStatusCommand#execute", () -> {
 
             EmbedBuilder embedBuilder = new EmbedBuilder();
@@ -31,7 +30,7 @@ public class BotStatusCommand extends DeveloperCommand {
                         "\n" + "**Rest ping:** " + restPing  + " ms";
 
                 embedBuilder.addField("Discord timings", output, false);
-                event.getChannel().sendMessage(embedBuilder.build()).queue();
+                event.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
             });
         });
     }

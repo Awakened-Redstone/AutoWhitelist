@@ -36,14 +36,14 @@ public class ExtendedWhitelistEntry extends WhitelistEntry {
         if (json.has("uuid") && json.has("name") && json.has("discordId") && json.has("team")) {
             String string = json.get("uuid").getAsString();
 
-            UUID uUID2;
+            UUID uuid;
             try {
-                uUID2 = UUID.fromString(string);
+                uuid = UUID.fromString(string);
             } catch (Throwable var4) {
                 return null;
             }
 
-            return new ExtendedGameProfile(uUID2, json.get("name").getAsString(), json.get("team").getAsString(), json.get("discordId").getAsString());
+            return new ExtendedGameProfile(uuid, json.get("name").getAsString(), json.get("team").getAsString(), json.get("discordId").getAsString());
         } else {
             return null;
         }

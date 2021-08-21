@@ -1,6 +1,6 @@
 {
   "command.register.success.title": "Welcome to the group!",
-  "command.register.success.message": "Your Minecraft account has been added to the whitelist.\nPlease remember that snapshots are buggy and unstable, so **please** verify before reporting them.\n\n_Please don't mess with what PhoenixSC is working on, you can get your entry removed._",
+  "command.register.success.message": "Your Minecraft account has been added to the whitelist.\nPlease verify before reporting bugs, it probably isn't caused by the mod.\n\n_Please remember that you can always get your entry removed if you break any rule._",
   "command.register.last_steps.title": "Finishing some last things.",
   "command.register.last_steps.message": "You request has been accepted.\nPlease wait while I add you to the server whitelist.\nI'll let you know when everything is done.",
   "command.register.username_already_registered.title": "This username is already registered.",
@@ -23,7 +23,7 @@
   "command.few_args.title": "Not enough arguments.",
   "command.few_args.message": "You didn't put the minimum amount of arguments required.\nCheck the help command to see the command usage.",
   "command.too_many_args.title": "Too many arguments.",
-  "command.too_many_args.message": "You put too many arguments on the command.\nCheck the help command to see the command usage.",
+  "command.too_many_args.message": "You have put too many arguments on the command.\nCheck the help command to see the command usage.",
   "command.feedback.received.title": "Command feedback.",
   "command.feedback.received.message": "Your request has been received and is being processed, if you don't get another feedback message in the next minute than please contact a moderator.",
 

@@ -47,6 +47,7 @@ public class BotEventListener extends ListenerAdapter {
         CommandClientBuilder builder = new CommandClientBuilder();
         builder.setPrefix(prefix);
         builder.setOwnerId("387745099204919297");
+        builder.setCoOwnerIds(AutoWhitelist.getConfigData().owners);
         builder.setHelpConsumer(generateHelpConsumer());
         builder.addCommands(
                 new RegisterCommand(),

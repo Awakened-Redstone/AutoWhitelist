@@ -2,7 +2,6 @@ package com.awakenedredstone.autowhitelist.server;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.commands.AutoWhitelistCommand;
-import com.awakenedredstone.autowhitelist.database.SQLite;
 import com.awakenedredstone.autowhitelist.discord.Bot;
 import com.awakenedredstone.autowhitelist.lang.JigsawLanguage;
 import net.fabricmc.api.DedicatedServerModInitializer;
@@ -29,8 +28,6 @@ public class AutoWhitelistServer implements DedicatedServerModInitializer {
         ServerLifecycleEvents.SERVER_STOPPING.register((server -> Bot.stopBot()));
         ServerLifecycleEvents.SERVER_STARTED.register((server -> {
             AutoWhitelist.server = server;
-            new SQLite().connect();
-
             try {
                 {
                     InputStream inputStream = AutoWhitelistServer.class.getResource("/messages.json").openStream();

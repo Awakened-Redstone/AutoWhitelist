@@ -5,8 +5,6 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.minecraft.util.math.MathHelper;
-import oshi.SystemInfo;
-import oshi.hardware.Processor;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -24,7 +22,6 @@ public class StatusCommand extends DeveloperCommand {
 
     @Override
     protected void execute(CommandEvent event) {
-        if (event.getChannelType() != ChannelType.PRIVATE) return;
         analyzeTimings("StatusCommand#execute", () -> {
             Runtime runtime = Runtime.getRuntime();
 

@@ -1,19 +1,22 @@
 plugins {
-    id "fabric-loom" version "0.6-SNAPSHOT"
+    id "fabric-loom" version "0.8-SNAPSHOT"
 }
 
 repositories {
     mavenCentral()
     jcenter()
-    maven { url 'https://jitpack.io' }
+    maven {
+      name 'm2-dv8tion'
+      url 'https://m2.dv8tion.net/releases'
+    }
 }
 
 archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = 16
+targetCompatibility = 16
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -29,15 +32,15 @@ dependencies {
     implementation include("com.jagrosh:jda-utilities-menu:3.0.5")
     implementation include("com.jagrosh:jda-utilities-examples:3.0.5")
     implementation include("com.jagrosh:jda-utilities-doc:3.0.5")
-    implementation include('net.dv8tion:JDA:4.2.0_231') {
+    implementation include('net.dv8tion:JDA:4.3.0_310') {
         exclude module: 'opus-java'
     }
-    implementation include('org.apache.logging.log4j:log4j-slf4j-impl:2.8.1')
+    //implementation include('org.apache.logging.log4j:log4j-slf4j-impl:2.14.1')
 
     include "net.sf.trove4j:trove4j:3.0.3"
-    include 'org.slf4j:slf4j-api:1.7.25'
+    //include 'org.slf4j:slf4j-api:1.7.25'
     include 'org.apache.commons:commons-collections4:4.1'
-    include 'com.neovisionaries:nv-websocket-client:2.10'
+    include 'com.neovisionaries:nv-websocket-client:2.14'
     include 'com.squareup.okhttp3:okhttp:3.13.0'
     include 'com.squareup.okio:okio:1.17.2'
     include 'com.fasterxml.jackson.core:jackson-databind:2.10.1'
@@ -52,16 +55,11 @@ compileJava {
 }
 
 processResources {
-    inputs.property "version", project.version
+	inputs.property "version", project.version
 
-    from(sourceSets.main.resources.srcDirs) {
-        include "fabric.mod.json"
-        expand "version": project.version
-    }
-
-    from(sourceSets.main.resources.srcDirs) {
-        exclude "fabric.mod.json"
-    }
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
 }
 
 // ensure that the encoding is set to UTF-8, no matter what the system default is

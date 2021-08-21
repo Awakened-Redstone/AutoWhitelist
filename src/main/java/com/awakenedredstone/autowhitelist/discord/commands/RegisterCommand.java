@@ -20,10 +20,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.LiteralText;
 import com.awakenedredstone.autowhitelist.lang.TranslatableText;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.awakenedredstone.autowhitelist.discord.Bot.whitelistDataMap;
@@ -105,7 +102,7 @@ public class RegisterCommand extends Command {
                 {
 
                 }
-                GameProfile profile = server.getUserCache().findByName(arg);
+                GameProfile profile = server.getUserCache().findByName(arg).orElse(null);
                 if (profile == null) {
                     BotHelper.sendFeedbackMessage(channel, new TranslatableText("command.fail.title"), new TranslatableText("command.register.fail.account_data", arg), BotHelper.MessageType.ERROR);
                     return;

@@ -12,7 +12,7 @@ import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 public class AutoWhitelistCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("auto-whitelist").requires((source) -> {
+        dispatcher.register(CommandManager.literal("autowhitelist").requires((source) -> {
             return source.hasPermissionLevel(4);
         }).then((CommandManager.literal("reload").executes((source) -> {
             executeReload(source.getSource());
