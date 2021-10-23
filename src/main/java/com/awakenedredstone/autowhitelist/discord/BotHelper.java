@@ -1,5 +1,6 @@
 package com.awakenedredstone.autowhitelist.discord;
 
+import com.awakenedredstone.autowhitelist.lang.TranslatableText;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
@@ -18,7 +19,7 @@ public class BotHelper extends Bot {
         embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
-        embedBuilder.setFooter("Minecraft PhoenixSC Edition");
+        embedBuilder.setFooter(String.valueOf(new TranslatableText("command.feedback.message.signature")));
         MessageAction messageAction = channel.sendMessage(embedBuilder.build());
         messageAction.queue();
     }
@@ -28,7 +29,7 @@ public class BotHelper extends Bot {
         embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
-        embedBuilder.setFooter("Minecraft PhoenixSC Edition");
+        embedBuilder.setFooter(String.valueOf(new TranslatableText("command.feedback.message.signature")));
         embedBuilder.setColor(type.hexColor);
         MessageAction messageAction = channel.sendMessage(embedBuilder.build());
         messageAction.queue();
@@ -49,7 +50,7 @@ public class BotHelper extends Bot {
         embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
-        embedBuilder.setFooter("Minecraft PhoenixSC Edition");
+        embedBuilder.setFooter(String.valueOf(new TranslatableText("command.feedback.message.signature")));
         return new MessageBuilder(embedBuilder.build()).build();
     }
 
@@ -58,7 +59,7 @@ public class BotHelper extends Bot {
         embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
-        embedBuilder.setFooter("Minecraft PhoenixSC Edition");
+        embedBuilder.setFooter(String.valueOf(new TranslatableText("command.feedback.message.signature")));
         embedBuilder.setColor(type.hexColor);
         return new MessageBuilder(embedBuilder.build()).build();
     }
