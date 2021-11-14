@@ -50,7 +50,7 @@ public class BotHelper extends Bot {
         embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
-        embedBuilder.setFooter(Text.getString(new TranslatableText("command.feedback.message.signature")));
+        embedBuilder.setFooter(new TranslatableText("command.feedback.message.signature").getString());
         return new MessageBuilder(embedBuilder.build()).build();
     }
 
