@@ -23,13 +23,11 @@ public class ServerStatusCommand extends DeveloperCommand {
 
     @Override
     protected void execute(CommandEvent event) {
-        if (event.getChannelType() != ChannelType.PRIVATE) return;
-
         analyzeTimings("ServerStatusCommand#execute", () -> {
             MinecraftServer server = AutoWhitelist.server;
             PlayerManager playerManager = server.getPlayerManager();
 
-            long l = Util.getMeasuringTimeMs() - server.getServerStartTime();
+            long l = Util.getMeasuringTimeMs() - server.getTimeReference();
             double MSPT = MathHelper.average(server.lastTickLengths) * 1.0E-6D;
             double TPS = 1000.0D / Math.max(50, MSPT);
             double MAX_POSSIBLE_TPS = 1000.0D / MSPT;

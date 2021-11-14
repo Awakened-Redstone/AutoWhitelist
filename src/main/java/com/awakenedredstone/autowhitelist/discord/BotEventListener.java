@@ -15,6 +15,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.examples.command.PingCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.ReadyEvent;
@@ -46,9 +47,11 @@ public class BotEventListener extends ListenerAdapter {
         CommandClientBuilder builder = new CommandClientBuilder();
         builder.setPrefix(prefix);
         builder.setOwnerId("387745099204919297");
+        builder.setCoOwnerIds(AutoWhitelist.getConfigData().owners);
         builder.setHelpConsumer(generateHelpConsumer());
         builder.addCommands(
                 new RegisterCommand(),
+                new PingCommand(),
 
                 //Developer commands
                 new ServerStatusCommand(),
@@ -76,7 +79,7 @@ public class BotEventListener extends ListenerAdapter {
             Command.Category category;
             List<MessageEmbed.Field> fields = new ArrayList<>();
             for (Command command : event.getClient().getCommands()) {
-                if (!command.isHidden() && (!command.isOwnerCommand() || event.isOwner())) {
+                if ((!command.isHidden() && !command.isOwnerCommand()) || event.isOwner()) {
 
                     String command_ = "\n`" +
                             event.getClient().getPrefix() +
@@ -104,9 +107,11 @@ public class BotEventListener extends ListenerAdapter {
                     commands = "";
                     commands += "\n" + field.getValue();
                     lastName = field.getName();
-                } else {
+                } else if (fields.size() > 1) {
                     commands += field.getValue();
                     lastName = field.getName();
+                } else {
+                    mergedFields.add(new MessageEmbed.Field(field.getName(), field.getValue(), false));
                 }
             }
 

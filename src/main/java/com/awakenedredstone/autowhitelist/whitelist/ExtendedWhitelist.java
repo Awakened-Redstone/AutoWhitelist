@@ -20,6 +20,7 @@ public class ExtendedWhitelist extends Whitelist {
         super(file);
     }
 
+    @SuppressWarnings("ConstantConditions")
     protected ServerConfigEntry<GameProfile> fromJson(JsonObject json) {
         ExtendedWhitelistEntry entry = new ExtendedWhitelistEntry(json);
         try {

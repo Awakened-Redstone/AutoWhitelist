@@ -5,8 +5,6 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.minecraft.util.math.MathHelper;
-import oshi.SystemInfo;
-import oshi.hardware.Processor;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -24,7 +22,6 @@ public class StatusCommand extends DeveloperCommand {
 
     @Override
     protected void execute(CommandEvent event) {
-        if (event.getChannelType() != ChannelType.PRIVATE) return;
         analyzeTimings("StatusCommand#execute", () -> {
             Runtime runtime = Runtime.getRuntime();
 
@@ -32,15 +29,7 @@ public class StatusCommand extends DeveloperCommand {
             embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
             embedBuilder.setTitle("Status Log");
 
-            long[] processorsLoad;
-            try {
-                processorsLoad = Arrays.stream(new SystemInfo().getHardware().getProcessors()).map(Processor::getLoad).mapToLong(v -> v.longValue() * 100L).toArray();
-            } catch (UnsupportedOperationException exception) {
-                processorsLoad = new long[]{-1};
-            }
-            String output1 = "" +
-                    "\n" + "**CPU: **" + (processorsLoad[0] != -1L ? MathHelper.average(processorsLoad) + "%" : "Unknown") +
-                    "\n" + "**RAM: **" + (runtime.totalMemory() - runtime.freeMemory()) / 1024L / 1024L + "MB / " + runtime.totalMemory() / 1024L / 1024L + "MB" + String.format(" (%s%% free)", Runtime.getRuntime().freeMemory() * 100L / Runtime.getRuntime().maxMemory());
+            String output1 = "**RAM: **" + (runtime.totalMemory() - runtime.freeMemory()) / 1024L / 1024L + "MB / " + runtime.totalMemory() / 1024L / 1024L + "MB" + String.format(" (%s%% free)", Runtime.getRuntime().freeMemory() * 100L / Runtime.getRuntime().maxMemory());
 
             embedBuilder.setDescription(output1);
 

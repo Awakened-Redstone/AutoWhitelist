@@ -35,8 +35,6 @@ import static com.awakenedredstone.autowhitelist.lang.JigsawLanguage.translation
 
 public class AutoWhitelist implements ModInitializer {
 
-    public static Thread scheduledUpdateThread;
-
     public static MinecraftServer server;
 
     public static final Config config = new Config();
@@ -62,7 +60,7 @@ public class AutoWhitelist implements ModInitializer {
         }).collect(Collectors.toList());
 
         for (GameProfile profile : profiles) {
-            GameProfile profile1 = server.getUserCache().getByUuid(profile.getId());
+            GameProfile profile1 = server.getUserCache().getByUuid(profile.getId()).orElse(null);
             try {
                 if (profile1 == null) {
                     removePlayer((ExtendedGameProfile) profile);

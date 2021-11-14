@@ -5,7 +5,8 @@ import java.util.Map;
 
 public class ConfigData {
 
-    public long whitelistScheduledVerificationSeconds;
+    public short whitelistScheduledVerificationSeconds;
+    public String[] owners;
     public String prefix;
     public String token;
     public String clientId;
