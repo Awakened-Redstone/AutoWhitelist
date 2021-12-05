@@ -26,6 +26,7 @@
   "command.too_many_args.message": "You have put too many arguments on the command.\nCheck the help command to see the command usage.",
   "command.feedback.received.title": "Command feedback.",
   "command.feedback.received.message": "Your request has been received and is being processed, if you don't get another feedback message in the next minute than please contact a moderator.",
+  "command.feedback.message.signature": "Minecraft PhoenixSC Edition",
 
   "bot.activity.type": "DEFAULT",
   "bot.activity.message": "on the Member Server"
