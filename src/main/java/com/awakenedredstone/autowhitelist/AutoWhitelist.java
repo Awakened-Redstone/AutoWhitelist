@@ -13,6 +13,7 @@ import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mojang.authlib.GameProfile;
+import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.Team;
@@ -20,7 +21,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.WhitelistEntry;
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,11 +35,11 @@ import java.util.stream.Collectors;
 import static com.awakenedredstone.autowhitelist.lang.JigsawLanguage.translations;
 
 public class AutoWhitelist implements ModInitializer {
-
     public static MinecraftServer server;
 
     public static final Config config = new Config();
-    public static final Logger LOGGER = LogManager.getLogger("AutoWhitelist");
+    public static final Logger LOGGER = LogUtils.getLogger();
+    public static final org.apache.logging.log4j.Logger LOG4J_LOGGER = LogManager.getLogger("AutoWhitelist");
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private static final File configFile = new File(config.getConfigDirectory(), "AutoWhitelist.json");
