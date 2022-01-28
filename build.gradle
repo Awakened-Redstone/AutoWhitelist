@@ -22,7 +22,6 @@ dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    //modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     include(modImplementation(fabricApi.module("fabric-lifecycle-events-v1", project.fabric_version)))
     include(modImplementation(fabricApi.module("fabric-api-base", project.fabric_version)))
 
@@ -35,10 +34,8 @@ dependencies {
     implementation include('net.dv8tion:JDA:4.3.0_310') {
         exclude module: 'opus-java'
     }
-    //implementation include('org.apache.logging.log4j:log4j-slf4j-impl:2.14.1')
 
     include "net.sf.trove4j:trove4j:3.0.3"
-    //include 'org.slf4j:slf4j-api:1.7.25'
     include 'org.apache.commons:commons-collections4:4.1'
     include 'com.neovisionaries:nv-websocket-client:2.14'
     include 'com.squareup.okhttp3:okhttp:3.13.0'
@@ -49,8 +46,8 @@ dependencies {
 }
 
 compileJava {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = 16
+    targetCompatibility = 16
     options.encoding = 'UTF-8'
 }
 
