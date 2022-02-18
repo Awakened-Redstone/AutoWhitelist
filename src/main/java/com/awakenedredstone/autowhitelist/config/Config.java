@@ -29,7 +29,7 @@ public class Config {
                 String json = reader.lines().collect(Collectors.joining("\n"));
                 StringReader stringReader = new StringReader(json);
 
-                JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
+                JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();              
                 if (jsonObject.get("version") == null || jsonObject.get("version").getAsFloat() != configVersion) {
 
                     jsonObject.add("owners", new JsonArray());

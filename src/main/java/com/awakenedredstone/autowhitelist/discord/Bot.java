@@ -88,7 +88,7 @@ public class Bot implements Runnable {
         } catch (LoginException e) {
             AutoWhitelist.LOGGER.error("Failed to start bot, please verify the token.");
         } catch (Exception e) {
-			AutoWhitelist.LOG4J_LOGGER.error(e);
-		}
+			      AutoWhitelist.LOG4J_LOGGER.error(e);
+		    }
     }
 }
