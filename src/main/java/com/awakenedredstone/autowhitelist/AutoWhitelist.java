@@ -22,6 +22,7 @@ import net.minecraft.server.PlayerManager;
 import net.minecraft.server.WhitelistEntry;
 import org.apache.logging.log4j.LogManager;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,8 +39,7 @@ public class AutoWhitelist implements ModInitializer {
     public static MinecraftServer server;
 
     public static final Config config = new Config();
-    public static final Logger LOGGER = LogUtils.getLogger();
-    public static final org.apache.logging.log4j.Logger LOG4J_LOGGER = LogManager.getLogger("AutoWhitelist");
+    public static final Logger LOGGER = LoggerFactory.getLogger("AutoWhitelist");
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private static final File configFile = new File(config.getConfigDirectory(), "AutoWhitelist.json");
@@ -58,7 +58,7 @@ public class AutoWhitelist implements ModInitializer {
         List<GameProfile> profiles = entries.stream().map(v -> {
             ((ServerConfigEntryMixin<?>) v).callGetKey();
             return (GameProfile) ((ServerConfigEntryMixin<?>) v).getKey();
-        }).collect(Collectors.toList());
+        }).toList();
 
         for (GameProfile profile : profiles) {
             GameProfile profile1 = server.getUserCache().getByUuid(profile.getId()).orElse(null);
@@ -91,7 +91,7 @@ public class AutoWhitelist implements ModInitializer {
             } catch (ClassCastException e) {
                 return null;
             }
-        }).filter(Objects::nonNull).collect(Collectors.toList());
+        }).filter(Objects::nonNull).toList();
 
         getConfigData().whitelist.keySet().forEach(teamName -> {
             Team team = scoreboard.getTeam(teamName);
@@ -103,7 +103,7 @@ public class AutoWhitelist implements ModInitializer {
                 GameProfile profile = profiles.stream().filter(v -> v.getName().equals(player)).findFirst().orElse(null);
                 if (profile == null) return true;
                 return !whitelist.isAllowed(profile);
-            }).collect(Collectors.toList());
+            }).toList();
             invalidPlayers.forEach(player -> scoreboard.removePlayerFromTeam(player, team));
         });
 

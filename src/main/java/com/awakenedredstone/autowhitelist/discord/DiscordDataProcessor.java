@@ -21,60 +21,6 @@ import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 
 public class DiscordDataProcessor implements Runnable {
 
-   /* private void updateWhitelist() {
-        List<String> ids = new SQLite().getIds();
-        List<ExtendedGameProfile> memberList = new SQLite().getMembers();
-        Guild guild = jda.getGuildById(serverId);
-        if (guild == null) {
-            AutoWhitelist.logger.error("Failed to get discord server, got null");
-            return;
-        }
-        guild.loadMembers().onSuccess(members -> {
-            List<Member> users = members.stream().filter(member -> ids.contains(member.getId())).collect(Collectors.toList());
-
-            for (Member user : users) {
-
-                List<ExtendedGameProfile> players = memberList.stream().filter(player -> user.getId().equals(player.getDiscordId())).collect(Collectors.toList());
-                ExtendedGameProfile player = players.get(0);
-
-                List<String> roles = getMemberRoles();
-                List<Role> userRoles = user.getRoles().stream().filter((role) -> roles.contains(role.getId())).collect(Collectors.toList());
-                if (userRoles.size() >= 1) {
-                    int higher = 0;
-                    Role best = null;
-                    for (Role role : userRoles) {
-                        if (role.getPosition() > higher) {
-                            higher = role.getPosition();
-                            best = role;
-                        }
-                    }
-                    if (best == null) {
-                        AutoWhitelist.logger.error("Failed to get best tier role!");
-                        return;
-                    }
-                    for (Map.Entry<String, JsonElement> entry : AutoWhitelist.config.getConfigs().get("whitelist").getAsJsonObject().entrySet()) {
-                        JsonArray jsonArray = entry.getValue().getAsJsonArray();
-                        for (JsonElement value : jsonArray) {
-                            if (value.getAsString().equals(best.getId())) {
-                                if (ids.contains(user.getId()) && !player.getTeam().equals(entry.getKey())) {
-                                    try {
-                                        new SQLite().updateData(user.getId(), getUsername(player.getId().toString()), player.getId().toString(), entry.getKey());
-                                    } catch (IOException e) {
-                                        AutoWhitelist.logger.error("Failed to get username!", e);
-                                        return;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else if (!AutoWhitelist.server.getPlayerManager().isOperator(player)) {
-                    new SQLite().removeMemberById(player.getDiscordId());
-                    AutoWhitelist.removePlayer(player);
-                }
-            }
-        });
-    }*/
-
     @Override
     public void run() {
         updateWhitelist();
@@ -91,9 +37,9 @@ public class DiscordDataProcessor implements Runnable {
 
                     List<Member> members = guild.findMembers(v -> {
                         if (v.getUser().isBot()) return false;
-                        return !Collections.disjoint(v.getRoles().stream().map(Role::getId).collect(Collectors.toList()), new ArrayList<>(whitelistDataMap.keySet()));
+                        return !Collections.disjoint(v.getRoles().stream().map(Role::getId).toList(), new ArrayList<>(whitelistDataMap.keySet()));
                     }).get();
-                    List<String> memberIds = members.stream().map(ISnowflake::getId).collect(Collectors.toList());
+                    List<String> memberIds = members.stream().map(ISnowflake::getId).toList();
 
                     List<ExtendedGameProfile> invalidPlayers = whitelist.getEntries().stream().map(entry -> {
                         ((ServerConfigEntryMixin<?>) entry).callGetKey();
@@ -102,7 +48,7 @@ public class DiscordDataProcessor implements Runnable {
                         } catch (ClassCastException exception) {
                             return null;
                         }
-                    }).filter(Objects::nonNull).filter(entry -> !memberIds.contains(entry.getDiscordId())).collect(Collectors.toList());
+                    }).filter(Objects::nonNull).filter(entry -> !memberIds.contains(entry.getDiscordId())).toList();
 
                     if (!invalidPlayers.isEmpty()) {
                         for (ExtendedGameProfile invalidPlayer : invalidPlayers) {
@@ -111,7 +57,7 @@ public class DiscordDataProcessor implements Runnable {
                     }
 
                     for (Member member : members) {
-                        String highestRole = member.getRoles().stream().map(Role::getId).filter(whitelistDataMap::containsKey).collect(Collectors.toList()).get(0);
+                        String highestRole = member.getRoles().stream().map(Role::getId).filter(whitelistDataMap::containsKey).toList().get(0);
                         String teamName = whitelistDataMap.get(highestRole);
                         List<ExtendedGameProfile> profiles = whitelist.getFromDiscordId(member.getId());
                         if (profiles.isEmpty()) continue;

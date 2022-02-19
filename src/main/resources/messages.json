@@ -1,4 +1,26 @@
 {
+  "command.failed": "An unexpected error occurred trying to execute that command",
+  "command.context.here": "<--[HERE]",
+  "command.context.parse_error": "%s at position %s: %s",
+  "commands.help.failed": "Unknown command or insufficient permissions",
+
+  "command.name.help": "Help command",
+
+  "command.description.help": "Displays commands info",
+  "command.description.botstatus": "Shows the bot status.",
+  "command.description.botinfo": "Shows the bot status.",
+  "command.description.serverstatus": "Shows the Minecraft server status.",
+  "command.description.serverinfo": "Shows the Minecraft server status.",
+  "command.description.status": "Shows the system status.",
+  "command.description.register": "Adds the informed minecraft account to the Member Server whitelist. [Members only]",
+
+  "command.description.help.command": "Command to display the help of",
+  "command.description.register.username": "Minecraft Java Edition username",
+
+  "test.translation": "This is a translation",
+  "test.translation.arg": "This is a translation with 1 arg: %s",
+  "test.translation.args": "This is a translation with multiple args: %s, %s",
+
   "command.register.success.title": "Welcome to the group!",
   "command.register.success.message": "Your Minecraft account has been added to the whitelist.\nPlease verify before reporting bugs, it probably isn't caused by the mod.\n\n_Please remember that you can always get your entry removed if you break any rule._",
   "command.register.last_steps.title": "Finishing some last things.",
@@ -28,6 +50,6 @@
   "command.feedback.received.message": "Your request has been received and is being processed, if you don't get another feedback message in the next minute than please contact a moderator.",
   "command.feedback.message.signature": "Minecraft PhoenixSC Edition",
 
-  "bot.activity.type": "DEFAULT",
+  "bot.activity.type": "PLAYING",
   "bot.activity.message": "on the Member Server"
 }

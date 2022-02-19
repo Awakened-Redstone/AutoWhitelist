@@ -53,22 +53,18 @@ public class ExtendedWhitelist extends Whitelist {
 
     public void remove(String var5, Type type) {
         switch (type) {
-            case DISCORD_ID:
-                values().stream().filter(entry -> {
-                    ((ServerConfigEntryMixin<?>) entry).callGetKey();
-                    try {
-                        return ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getDiscordId().equals(var5);
-                    } catch (ClassCastException exception) {
-                        return false;
-                    }
-                }).forEach(whitelistEntry -> remove((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) whitelistEntry).getKey()));
-                break;
-            case USERNAME:
-                values().stream().filter(entry -> {
-                    ((ServerConfigEntryMixin<?>) entry).callGetKey();
-                    return ((GameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getName().equals(var5);
-                }).forEach(whitelistEntry -> remove((GameProfile) ((ServerConfigEntryMixin<?>) whitelistEntry).getKey()));
-                break;
+            case DISCORD_ID -> values().stream().filter(entry -> {
+                ((ServerConfigEntryMixin<?>) entry).callGetKey();
+                try {
+                    return ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getDiscordId().equals(var5);
+                } catch (ClassCastException exception) {
+                    return false;
+                }
+            }).forEach(whitelistEntry -> remove((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) whitelistEntry).getKey()));
+            case USERNAME -> values().stream().filter(entry -> {
+                ((ServerConfigEntryMixin<?>) entry).callGetKey();
+                return ((GameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getName().equals(var5);
+            }).forEach(whitelistEntry -> remove((GameProfile) ((ServerConfigEntryMixin<?>) whitelistEntry).getKey()));
         }
     }
 

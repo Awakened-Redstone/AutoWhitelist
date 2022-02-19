@@ -1,28 +1,28 @@
-package com.awakenedredstone.autowhitelist.discord;
+package com.awakenedredstone.autowhitelist.discord.events;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.awakenedredstone.autowhitelist.discord.commands.RegisterCommand;
-import com.awakenedredstone.autowhitelist.discord.commands.developer.BotStatusCommand;
-import com.awakenedredstone.autowhitelist.discord.commands.developer.ServerStatusCommand;
-import com.awakenedredstone.autowhitelist.discord.commands.developer.StatusCommand;
+import com.awakenedredstone.autowhitelist.discord.DiscordDataProcessor;
+import com.awakenedredstone.autowhitelist.discord.api.AutoWhitelistAPI;
+import com.awakenedredstone.autowhitelist.lang.TranslatableText;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
 import com.awakenedredstone.autowhitelist.util.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.util.FailedToUpdateWhitelistException;
 import com.awakenedredstone.autowhitelist.util.InvalidTeamNameException;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandClient;
-import com.jagrosh.jdautilities.command.CommandClientBuilder;
-import com.jagrosh.jdautilities.command.CommandEvent;
-import com.jagrosh.jdautilities.examples.command.PingCommand;
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.*;
+import com.mojang.brigadier.tree.CommandNode;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.hooks.SubscribeEvent;
+import net.dv8tion.jda.api.interactions.commands.Command;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.internal.interactions.CommandDataImpl;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
@@ -30,37 +30,31 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.*;
-import java.util.function.Consumer;
+import java.util.Locale;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.awakenedredstone.autowhitelist.discord.Bot.*;
+import static com.awakenedredstone.autowhitelist.discord.Bot.whitelistDataMap;
 import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 
-public class BotEventListener extends ListenerAdapter {
+public class CoreEvents {
 
-    @Override
-    public void onReady(@NotNull ReadyEvent e) {
-        AutoWhitelist.LOGGER.info("Bot started. Parsing registered users.");
-
-        CommandClientBuilder builder = new CommandClientBuilder();
-        builder.setPrefix(prefix);
-        builder.setOwnerId("387745099204919297");
-        builder.setCoOwnerIds(AutoWhitelist.getConfigData().owners);
-        builder.setHelpConsumer(generateHelpConsumer());
-        builder.addCommands(
-                new RegisterCommand(),
-                new PingCommand(),
-
-                //Developer commands
-                new ServerStatusCommand(),
-                new BotStatusCommand(),
-                new StatusCommand()
-        );
-        CommandClient command = builder.build();
-
-        jda.addEventListener(command);
+    @SubscribeEvent
+    public void onReady(ReadyEvent e) {
+        AutoWhitelist.LOGGER.info("Finishing setup.");
+        if (AutoWhitelist.getConfigData().enableSlashCommands) {
+            List<Command> commands = jda.retrieveCommands().complete();
+            AutoWhitelistAPI.dispatcher().getRoot().getChildren().forEach(command -> {
+                if (commands.stream().map(Command::getName).noneMatch(slashCommand -> slashCommand.equalsIgnoreCase(command.getName()))) {
+                    registerCommands(command);
+                }
+            });
+        } else {
+            jda.retrieveCommands().complete().forEach(command -> jda.deleteCommandById(command.getId()).queue());
+        }
 
         if (scheduledUpdate != null) {
             scheduledUpdate.cancel(false);
@@ -70,57 +64,12 @@ public class BotEventListener extends ListenerAdapter {
             }
         }
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        AutoWhitelist.LOGGER.info("Parsing registered users.");
         scheduledUpdate = scheduler.scheduleWithFixedDelay(new DiscordDataProcessor(), 0, updateDelay, TimeUnit.SECONDS);
+        AutoWhitelist.LOGGER.info("Load complete.");
     }
 
-    private Consumer<CommandEvent> generateHelpConsumer() {
-        return (event) -> {
-            EmbedBuilder builder = new EmbedBuilder().setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
-            Command.Category category;
-            List<MessageEmbed.Field> fields = new ArrayList<>();
-            for (Command command : event.getClient().getCommands()) {
-                if ((!command.isHidden() && !command.isOwnerCommand()) || event.isOwner()) {
-
-                    String command_ = "\n`" +
-                            event.getClient().getPrefix() +
-                            (prefix == null ? " " : "") +
-                            command.getName() +
-                            (command.getArguments() == null ? "" : " " + command.getArguments()) +
-                            "` \u200E \u200E | \u200E \u200E " + command.getHelp();
-
-                    category = command.getCategory();
-                    fields.add(new MessageEmbed.Field(category == null ? "No Category" : category.getName(), command_, false));
-                }
-            }
-
-            List<MessageEmbed.Field> mergedFields = new ArrayList<>();
-            String commands = "";
-            String lastName = "";
-            for (MessageEmbed.Field field : fields) {
-                if (Objects.equals(field.getName(), lastName)) {
-                    commands += "\n" + field.getValue();
-                    if (fields.get(fields.size() - 1) == field) {
-                        mergedFields.add(new MessageEmbed.Field(lastName, commands, false));
-                    }
-                } else if (!commands.isEmpty()) {
-                    mergedFields.add(new MessageEmbed.Field(lastName, commands, false));
-                    commands = "";
-                    commands += "\n" + field.getValue();
-                    lastName = field.getName();
-                } else if (fields.size() > 1) {
-                    commands += field.getValue();
-                    lastName = field.getName();
-                } else {
-                    mergedFields.add(new MessageEmbed.Field(field.getName(), field.getValue(), false));
-                }
-            }
-
-            mergedFields.forEach(builder::addField);
-            event.reply(builder.build());
-        };
-    }
-
-    @Override
+    @SubscribeEvent
     public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent e) {
         User user = e.getUser();
         ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.server.getPlayerManager().getWhitelist();
@@ -133,10 +82,10 @@ public class BotEventListener extends ListenerAdapter {
             } catch (ClassCastException exception) {
                 return false;
             }
-        }).findFirst().map(v -> {
+        }).map(v -> {
             ((ServerConfigEntryMixin<?>) v).callGetKey();
             return (ExtendedGameProfile) ((ServerConfigEntryMixin<?>) v).getKey();
-        }).ifPresent(players::add);
+        }).forEach(players::add);
         if (players.size() > 1) {
             AutoWhitelist.LOGGER.error("Found more than one registered user with same discord id: {}", user.getId(), new FailedToUpdateWhitelistException("Could not update the whitelist, found multiple"));
             return;
@@ -148,19 +97,19 @@ public class BotEventListener extends ListenerAdapter {
         }
     }
 
-    @Override
+    @SubscribeEvent
     public void onGuildMemberRoleAdd(@NotNull GuildMemberRoleAddEvent e) {
         updateUser(e.getMember(), e.getRoles());
     }
 
-    @Override
+    @SubscribeEvent
     public void onGuildMemberRoleRemove(@NotNull GuildMemberRoleRemoveEvent e) {
         updateUser(e.getMember(), e.getRoles());
     }
 
     private void updateUser(Member member, List<Role> roles) {
         analyzeTimings("BotEventListener#updateUser", () -> {
-            if (Collections.disjoint(roles.stream().map(Role::getId).collect(Collectors.toList()), new ArrayList<>(whitelistDataMap.keySet()))) {
+            if (Collections.disjoint(roles.stream().map(Role::getId).toList(), new ArrayList<>(whitelistDataMap.keySet()))) {
                 return;
             }
 
@@ -174,7 +123,7 @@ public class BotEventListener extends ListenerAdapter {
                 return;
             }
 
-            List<String> validRoles = member.getRoles().stream().map(Role::getId).filter(whitelistDataMap::containsKey).collect(Collectors.toList());
+            List<String> validRoles = member.getRoles().stream().map(Role::getId).filter(whitelistDataMap::containsKey).toList();
             if (validRoles.isEmpty()) {
                 ExtendedGameProfile profile = profiles.get(0);
                 AutoWhitelist.removePlayer(profile);
@@ -196,5 +145,15 @@ public class BotEventListener extends ListenerAdapter {
                 scoreboard.addPlayerToTeam(profile.getName(), team);
             }
         });
+    }
+
+    private void registerCommands(CommandNode<?> command) {
+        AutoWhitelist.LOGGER.info(String.valueOf(command.getRedirect() != null));
+        if (command.getRedirect() != null) {
+            return;
+        }
+        CommandDataImpl commandData = new CommandDataImpl(command.getName().toLowerCase(), new TranslatableText("command.description." + command.getName()).getString());
+        command.getChildren().forEach(node -> commandData.addOptions(new OptionData(OptionType.STRING, node.getName(), new TranslatableText("command.description." + command.getName() + "." + node.getName()).getString())));
+        //jda.upsertCommand(commandData).queue();
     }
 }

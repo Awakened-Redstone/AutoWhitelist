@@ -40,18 +40,18 @@ public class AutoWhitelistCommand {
 
     public static void executeSpecificReload(ServerCommandSource source, ReloadableObjects type) {
         switch (type) {
-            case BOT:
+            case BOT -> {
                 source.sendFeedback(new LiteralText("Restarting bot, please wait."), true);
                 analyzeTimings("Bot#reloadBot", () -> Bot.getInstance().reloadBot(source));
-                break;
-            case CONFIG:
+            }
+            case CONFIG -> {
                 source.sendFeedback(new LiteralText("Reloading configurations."), true);
                 analyzeTimings("Config#loadConfigs", AutoWhitelist.config::loadConfigs);
-                break;
-            case TRANSLATIONS:
+            }
+            case TRANSLATIONS -> {
                 source.sendFeedback(new LiteralText("Reloading translations."), true);
                 analyzeTimings("AutoWhitelist#reloadTranslations", AutoWhitelist::reloadTranslations);
-                break;
+            }
         }
     }
 
