@@ -42,7 +42,7 @@ public class ExtendedWhitelist extends Whitelist {
 
     public JsonObject fromProfile(ExtendedWhitelistEntry entry) {
         JsonObject json = new JsonObject();
-        entry.fromJson(json);
+        entry.write(json);
         return json;
     }
 

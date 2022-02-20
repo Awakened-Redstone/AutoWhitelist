@@ -1,4 +1,0 @@
-accessWidener v1 named
-
-#Fields
-#mutable field net/minecraft/server/PlayerManager whitelist Lnet/minecraft/server/Whitelist;

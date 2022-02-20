@@ -42,7 +42,7 @@ public class AutoWhitelist implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger("AutoWhitelist");
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    private static final File configFile = new File(config.getConfigDirectory(), "AutoWhitelist.json");
+    private static final File configFile = new File(config.getConfigDirectory(), "autowhitelist.json");
 
     public static ConfigData getConfigData() {
         return config.getConfigData();
@@ -136,6 +136,15 @@ public class AutoWhitelist implements ModInitializer {
     public void onInitialize() {
         File dir = config.getConfigDirectory();
         if ((dir.exists() && dir.isDirectory()) || dir.mkdirs()) {
+            if (new File(new File(".", "config"), "AutoWhitelist.json").exists()) {
+                new File(new File(".", "config"), "AutoWhitelist.json").renameTo(configFile);
+            }
+
+            if (new File(new File(".", "config/AutoWhitelist-assets"), "messages.json").exists()) {
+                if (new File(new File(".", "config/AutoWhitelist-assets"), "messages.json").renameTo(new File(config.getConfigDirectory(), "messages.json"))) {
+                    new File(".", "config/AutoWhitelist-assets").delete();
+                }
+            }
             if (!configFile.exists()) {
                 JsonHelper.writeJsonToFile(config.generateDefaultConfig(), configFile);
             }
@@ -150,11 +159,7 @@ public class AutoWhitelist implements ModInitializer {
                 InputStream inputStream = AutoWhitelistServer.class.getResource("/messages.json").openStream();
                 JigsawLanguage.load(inputStream, translations::put);
             }
-            File file = new File(config.getConfigDirectory(), "AutoWhitelist-assets/messages.json");
-            File folder = new File(config.getConfigDirectory(), "AutoWhitelist-assets");
-            if (!folder.exists()) {
-                folder.mkdir();
-            }
+            File file = new File(config.getConfigDirectory(), "messages.json");
             if (!file.exists()) {
                 Files.copy(AutoWhitelistServer.class.getResource("/messages.json").openStream(), file.toPath());
             }

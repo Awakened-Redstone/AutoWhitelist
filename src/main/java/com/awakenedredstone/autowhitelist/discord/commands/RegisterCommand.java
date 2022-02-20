@@ -129,7 +129,7 @@ public class RegisterCommand {
                 if (whitelisted) {
                     BotHelper.sendFeedbackMessage(channel, new TranslatableText("command.register.username_already_registered.title"), new TranslatableText("command.register.username_already_registered.title"), BotHelper.MessageType.ERROR);
                 } else {
-                    Message message = BotHelper.generateFeedbackMessage(new TranslatableText("command.register.last_steps.title"), new LiteralText("command.register.last_steps.message"), BotHelper.MessageType.INFO);
+                    Message message = BotHelper.generateFeedbackMessage(new TranslatableText("command.register.last_steps.title"), new TranslatableText("command.register.last_steps.message"), BotHelper.MessageType.INFO);
                     MessageAction feedbackMessage = channel.sendMessage(message);
                     feedbackMessage.queue(message_ -> {
                         whitelist.add(new ExtendedWhitelistEntry(extendedProfile));

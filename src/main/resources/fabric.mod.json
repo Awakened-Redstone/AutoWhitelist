@@ -22,7 +22,6 @@
   "mixins": [
     "autowhitelist.mixins.json"
   ],
-  "accessWidener": "autowhitelist.accesswidener",
   "depends": {
     "fabricloader": ">=0.13.2",
     "minecraft": ">1.18.1"

@@ -16,11 +16,11 @@ import java.util.stream.Collectors;
 public class Config {
 
     private ConfigData configData;
-    private final File configFile = new File(getConfigDirectory(), "AutoWhitelist.json");
+    private final File configFile = new File(getConfigDirectory(), "autowhitelist.json");
     private final byte configVersion = 3;
 
     public File getConfigDirectory() {
-        return new File(".", "config");
+        return new File(".", "config/autowhitelist");
     }
 
     public void loadConfigs() {
@@ -72,7 +72,7 @@ public class Config {
         json.add("token", new JsonPrimitive("bot-token"));
         json.add("clientId", new JsonPrimitive("client-id"));
         json.add("discordServerId", new JsonPrimitive("discord-server-id"));
-        json.add("enableSlashCommands", new JsonPrimitive(false));
+        //json.add("enableSlashCommands", new JsonPrimitive(false)); Disabled due to high times to update global commands and not being practical for now
         JsonObject whitelistJson = JsonHelper.getNestedObject(json, "whitelist", true);
         if (whitelistJson == null) {
             AutoWhitelist.LOGGER.error("Something went wrong when generating the default config file!");

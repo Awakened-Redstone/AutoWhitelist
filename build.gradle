@@ -27,10 +27,6 @@ archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
 
-loom {
-    accessWidenerPath = file("src/main/resources/autowhitelist.accesswidener")
-}
-
 sourceCompatibility = 16
 targetCompatibility = 16
 
@@ -49,6 +45,10 @@ dependencies {
     include 'org.apache.commons:commons-collections4:4.1'
     include 'com.neovisionaries:nv-websocket-client:2.14'
     include 'com.squareup.okhttp3:okhttp:3.13.0'
+    include 'com.squareup.okio:okio:1.17.2'
+    include 'com.fasterxml.jackson.core:jackson-databind:2.10.1'
+    include 'com.fasterxml.jackson.core:jackson-annotations:2.10.1'
+    include 'com.fasterxml.jackson.core:jackson-core:2.10.1'
 }
 
 compileJava {
