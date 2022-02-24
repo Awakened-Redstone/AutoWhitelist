@@ -2,56 +2,71 @@ package com.awakenedredstone.autowhitelist.discord.commands;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.discord.BotHelper;
+import com.awakenedredstone.autowhitelist.discord.api.command.CommandManager;
+import com.awakenedredstone.autowhitelist.discord.api.command.DiscordCommandSource;
+import com.awakenedredstone.autowhitelist.lang.TranslatableText;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
 import com.awakenedredstone.autowhitelist.util.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandEvent;
 import com.mojang.authlib.GameProfile;
-import net.dv8tion.jda.api.Permission;
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
+import net.dv8tion.jda.internal.interactions.CommandDataImpl;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.LiteralText;
-import com.awakenedredstone.autowhitelist.lang.TranslatableText;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 import static com.awakenedredstone.autowhitelist.discord.Bot.whitelistDataMap;
 import static com.awakenedredstone.autowhitelist.discord.BotHelper.*;
 import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
-import static net.dv8tion.jda.api.Permission.*;
 
-public class RegisterCommand extends Command {
+public class RegisterCommand {
+    public static void register(CommandDispatcher<DiscordCommandSource> dispatcher) {
+        LiteralCommandNode<DiscordCommandSource> literalCommandNode = dispatcher.register(CommandManager.literal("register").requires(DiscordCommandSource::isFromGuild)
+                .then(CommandManager.argument("minecraft_username", StringArgumentType.word()).executes((source) -> {
+                    if (source.getSource().getType() == DiscordCommandSource.CommandType.SLASH_COMMAND) {
+                        ((SlashCommandInteractionEvent) source.getSource().getEvent()).deferReply().queue(m -> {
+                            execute(source.getSource(), StringArgumentType.getString(source, "minecraft_username"));
+                            m.deleteOriginal().queue();
+                        });
+                    } else {
+                        execute(source.getSource(), StringArgumentType.getString(source, "minecraft_username"));
+                    }
+                    return 0;
+                })));
 
-    public RegisterCommand() {
-        this.name = "register";
-        this.help = "Adds the informed minecraft account to the Member Server whitelist. [Members only]";
-        this.category = new Category("Server integration");
-        this.botPermissions = new Permission[]{MESSAGE_ATTACH_FILES, MESSAGE_HISTORY, MESSAGE_EMBED_LINKS, MESSAGE_READ, MESSAGE_WRITE, VIEW_CHANNEL};
-        this.arguments = "<minecraft username>";
-        this.guildOnly = true;
+//        CommandDataImpl command = new CommandDataImpl("register", new com.awakenedredstone.autowhitelist.discord.api.text.TranslatableText("command.description.register").getString());
+//        command.addOptions(new OptionData(OptionType.STRING, "username", new com.awakenedredstone.autowhitelist.discord.api.text.TranslatableText("command.description.register.username").getString()));
+//        jda.upsertCommand(command).queue();
     }
 
-    @Override
-    protected void execute(CommandEvent e) {
+    protected static void execute(DiscordCommandSource source, String username) {
         analyzeTimings("RegisterCommand#execute", () -> {
-            MessageChannel channel = e.getChannel();
-            Member member = e.getMember();
+            MessageChannel channel = source.getChannel();
+            Member member = source.getMember();
             if (member == null) return;
 
-            sendTempFeedbackMessage(e.getChannel(), new TranslatableText("command.feedback.received.title"), new TranslatableText("command.feedback.received.message"), 7);
+            sendTempFeedbackMessage(source.getChannel(), new TranslatableText("command.feedback.received.title"), new TranslatableText("command.feedback.received.message"), 10);
 
             String id = member.getId();
             List<Role> roles = member.getRoles();
 
-            boolean accepted = !Collections.disjoint(roles.stream().map(Role::getId).collect(Collectors.toList()), new ArrayList<>(whitelistDataMap.keySet()));
+            boolean accepted = !Collections.disjoint(roles.stream().map(Role::getId).toList(), new ArrayList<>(whitelistDataMap.keySet()));
             if (accepted) {
                 MinecraftServer server = AutoWhitelist.server;
                 ExtendedWhitelist whitelist = (ExtendedWhitelist) server.getPlayerManager().getWhitelist();
@@ -70,7 +85,7 @@ public class RegisterCommand extends Command {
                     return;
                 }
 
-                String highestRole = roles.stream().map(Role::getId).filter(whitelistDataMap::containsKey).collect(Collectors.toList()).get(0);
+                String highestRole = roles.stream().map(Role::getId).filter(whitelistDataMap::containsKey).toList().get(0);
                 String teamName = whitelistDataMap.get(highestRole);
                 Team team = server.getScoreboard().getTeam(teamName);
                 if (team == null) {
@@ -78,12 +93,11 @@ public class RegisterCommand extends Command {
                     return;
                 }
 
-                String arguments = e.getArgs();
-                if (arguments.isEmpty()) {
+                if (username.isEmpty()) {
                     BotHelper.sendFeedbackMessage(channel, new TranslatableText("command.few_args.title"), new TranslatableText("command.few_args.message"), MessageType.WARNING);
                     return;
                 }
-                String[] args = arguments.split(" ");
+                String[] args = username.split(" ");
                 if (args.length > 1) {
                     BotHelper.sendFeedbackMessage(channel, new TranslatableText("command.too_many_args.title"), new TranslatableText("command.too_many_args.message"), MessageType.WARNING);
                     return;
@@ -92,10 +106,10 @@ public class RegisterCommand extends Command {
 
                 {
                     if (arg.length() > 16) {
-                        sendFeedbackMessage(e.getChannel(), new TranslatableText("command.register.invalid_username.title"), new TranslatableText("command.register.invalid_username.message.too_long"), MessageType.WARNING);
+                        sendFeedbackMessage(source.getChannel(), new TranslatableText("command.register.invalid_username.title"), new TranslatableText("command.register.invalid_username.message.too_long"), MessageType.WARNING);
                         return;
                     } else if (arg.length() < 3) {
-                        sendFeedbackMessage(e.getChannel(), new TranslatableText("command.register.invalid_username.title"), new TranslatableText("command.register.invalid_username.message.too_short"), MessageType.WARNING);
+                        sendFeedbackMessage(source.getChannel(), new TranslatableText("command.register.invalid_username.title"), new TranslatableText("command.register.invalid_username.message.too_short"), MessageType.WARNING);
                         return;
                     }
                 }
@@ -115,7 +129,7 @@ public class RegisterCommand extends Command {
                 if (whitelisted) {
                     BotHelper.sendFeedbackMessage(channel, new TranslatableText("command.register.username_already_registered.title"), new TranslatableText("command.register.username_already_registered.title"), BotHelper.MessageType.ERROR);
                 } else {
-                    Message message = BotHelper.generateFeedbackMessage(new TranslatableText("command.register.last_steps.title"), new LiteralText("command.register.last_steps.message"), BotHelper.MessageType.INFO);
+                    Message message = BotHelper.generateFeedbackMessage(new TranslatableText("command.register.last_steps.title"), new TranslatableText("command.register.last_steps.message"), BotHelper.MessageType.INFO);
                     MessageAction feedbackMessage = channel.sendMessage(message);
                     feedbackMessage.queue(message_ -> {
                         whitelist.add(new ExtendedWhitelistEntry(extendedProfile));

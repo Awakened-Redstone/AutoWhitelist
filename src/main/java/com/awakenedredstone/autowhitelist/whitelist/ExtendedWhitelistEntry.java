@@ -22,7 +22,8 @@ public class ExtendedWhitelistEntry extends WhitelistEntry {
         return (ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey();
     }
 
-    protected void fromJson(JsonObject json) {
+    @Override
+    protected void write(JsonObject json) {
         ((ServerConfigEntryMixin<?>) this).callGetKey();
         if (((ServerConfigEntryMixin<?>) this).getKey() != null && ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getId() != null) {
             json.addProperty("uuid", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getId().toString());

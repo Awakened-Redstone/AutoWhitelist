@@ -3,12 +3,12 @@
   "id": "autowhitelist",
   "version": "${version}",
   "name": "AutoWhitelist",
-  "description": "description",
+  "description": "A way to automate the whitelist of a minecraft server based on discord roles ",
   "authors": [
-    "AwakenedRedstone"
+    "Awakened Redstone"
   ],
   "contact": {},
-  "license": "MIT",
+  "license": "LGPL-3",
   "icon": "assets/autowhitelist/icon.png",
   "environment": "server",
   "entrypoints": {
@@ -23,7 +23,7 @@
     "autowhitelist.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.12.12",
-    "minecraft": ">=1.18.2-alpha.22.3.a"
+    "fabricloader": ">=0.13.2",
+    "minecraft": ">1.18.1"
   }
 }

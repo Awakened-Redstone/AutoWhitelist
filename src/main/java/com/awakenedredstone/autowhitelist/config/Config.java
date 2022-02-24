@@ -16,11 +16,11 @@ import java.util.stream.Collectors;
 public class Config {
 
     private ConfigData configData;
-    private final File configFile = new File(getConfigDirectory(), "AutoWhitelist.json");
-    private final float configVersion = 2.1f;
+    private final File configFile = new File(getConfigDirectory(), "autowhitelist.json");
+    private final byte configVersion = 3;
 
     public File getConfigDirectory() {
-        return new File(".", "config");
+        return new File(".", "config/autowhitelist");
     }
 
     public void loadConfigs() {
@@ -30,9 +30,8 @@ public class Config {
                 StringReader stringReader = new StringReader(json);
 
                 JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
-                if (jsonObject.get("version") == null || jsonObject.get("version").getAsFloat() != configVersion) {
-
-                    jsonObject.add("owners", new JsonArray());
+                if (jsonObject.get("version").getAsFloat() != configVersion) {
+                    jsonObject.add("version", new JsonPrimitive(configVersion));
 
                     JsonHelper.writeJsonToFile(jsonObject, configFile);
                 }
@@ -58,7 +57,8 @@ public class Config {
                     } catch (NullPointerException ignored) {}
                 }
             } catch (IOException e) {
-                AutoWhitelist.LOG4J_LOGGER.error(e);
+                AutoWhitelist.LOGGER.error("Failed to load configurations!", e);
+                //TODO: Stop mod initialization
             }
         }
     }
@@ -72,6 +72,7 @@ public class Config {
         json.add("token", new JsonPrimitive("bot-token"));
         json.add("clientId", new JsonPrimitive("client-id"));
         json.add("discordServerId", new JsonPrimitive("discord-server-id"));
+        //json.add("enableSlashCommands", new JsonPrimitive(false)); Disabled due to high times to update global commands and not being practical for now
         JsonObject whitelistJson = JsonHelper.getNestedObject(json, "whitelist", true);
         if (whitelistJson == null) {
             AutoWhitelist.LOGGER.error("Something went wrong when generating the default config file!");

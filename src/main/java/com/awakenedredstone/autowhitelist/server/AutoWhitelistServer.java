@@ -33,11 +33,7 @@ public class AutoWhitelistServer implements DedicatedServerModInitializer {
                     InputStream inputStream = AutoWhitelistServer.class.getResource("/messages.json").openStream();
                     JigsawLanguage.load(inputStream, translations::put);
                 }
-                File file = new File(config.getConfigDirectory(), "AutoWhitelist-assets/messages.json");
-                File folder = new File(config.getConfigDirectory(), "AutoWhitelist-assets");
-                if (!folder.exists()) {
-                    folder.mkdir();
-                }
+                File file = new File(config.getConfigDirectory(), "messages.json");
                 if (!file.exists()) {
                     Files.copy(AutoWhitelistServer.class.getResource("/messages.json").openStream(), file.toPath());
                 }

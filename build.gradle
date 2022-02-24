@@ -1,5 +1,15 @@
+buildscript {
+    dependencies {
+        classpath 'org.kohsuke:github-api:1.135'
+    }
+}
+
 plugins {
-    id "fabric-loom" version "0.10-SNAPSHOT"
+    id "fabric-loom" version "0.11-SNAPSHOT"
+    id "maven-publish"
+    id "org.ajoberstar.grgit" version "3.1.0"
+    id "com.matthewprenger.cursegradle" version "1.4.0"
+    id "com.modrinth.minotaur" version "1.1.0"
 }
 
 repositories {
@@ -10,6 +20,8 @@ repositories {
       url 'https://m2.dv8tion.net/releases'
     }
 }
+
+def ENV = System.getenv()
 
 archivesBaseName = project.archives_base_name
 version = project.mod_version
@@ -25,13 +37,7 @@ dependencies {
     include(modImplementation(fabricApi.module("fabric-lifecycle-events-v1", project.fabric_version)))
     include(modImplementation(fabricApi.module("fabric-api-base", project.fabric_version)))
 
-    implementation include("org.xerial:sqlite-jdbc:3.34.0")
-    implementation include("com.jagrosh:jda-utilities-command:3.0.5")
-    implementation include("com.jagrosh:jda-utilities-commons:3.0.5")
-    implementation include("com.jagrosh:jda-utilities-menu:3.0.5")
-    implementation include("com.jagrosh:jda-utilities-examples:3.0.5")
-    implementation include("com.jagrosh:jda-utilities-doc:3.0.5")
-    implementation include('net.dv8tion:JDA:4.3.0_310') {
+    implementation include('net.dv8tion:JDA:5.0.0-alpha.5') {
         exclude module: 'opus-java'
     }
 
@@ -76,4 +82,93 @@ tasks.withType(JavaCompile) {
 
 jar {
     from "LICENSE"
+}
+
+def getBranch() {
+    def ENV = System.getenv()
+    if (ENV.GITHUB_REF) {
+        def branch = ENV.GITHUB_REF
+        return branch.substring(branch.lastIndexOf("/") + 1)
+    }
+
+    if (grgit == null) {
+        return "unknown"
+    }
+
+    def branch = grgit.branch.current().name
+    return branch.substring(branch.lastIndexOf("/") + 1)
+}
+
+task remapMavenJar(type: net.fabricmc.loom.task.RemapJarTask, dependsOn: jar) {
+    input = jar.archiveFile
+    archiveFileName = "${archivesBaseName}-${project.version}-maven.jar"
+    addNestedDependencies = false
+}
+build.dependsOn remapMavenJar
+
+curseforge {
+    if (ENV.CURSEFORGE_API_KEY) {
+        apiKey = ENV.CURSEFORGE_API_KEY
+    }
+
+    project {
+        id = "575422"
+        changelog = ENV.CHANGELOG ?: "No changelog provided"
+        releaseType = "release"
+        addGameVersion "1.18-Snapshot"
+        addGameVersion "Fabric"
+
+        mainArtifact(remapJar) {
+            displayName = "[$project.supported_versions] AutoWhitelist - $project.version"
+        }
+
+        afterEvaluate {
+            uploadTask.dependsOn("remapJar")
+        }
+    }
+
+    options {
+        forgeGradleIntegration = false
+    }
+}
+
+import org.kohsuke.github.GHReleaseBuilder
+import org.kohsuke.github.GitHub
+
+task github(dependsOn: remapMavenJar) {
+    onlyIf {
+        ENV.GITHUB_TOKEN
+    }
+
+    doLast {
+        def github = GitHub.connectUsingOAuth(ENV.GITHUB_TOKEN as String)
+        def repository = github.getRepository(ENV.GITHUB_REPOSITORY)
+
+        def releaseBuilder = new GHReleaseBuilder(repository, version as String)
+        releaseBuilder.name("[$project.supported_versions] AutoWhitelist - $project.version")
+        releaseBuilder.body(ENV.CHANGELOG ?: "No changelog provided")
+        releaseBuilder.commitish(getBranch())
+        releaseBuilder.prerelease(false)
+
+        def ghRelease = releaseBuilder.create()
+        ghRelease.uploadAsset(file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"), "application/java-archive");
+    }
+}
+
+task modrinth(type: com.modrinth.minotaur.TaskModrinthUpload, dependsOn: remapMavenJar) {
+    onlyIf {
+        ENV.MODRINTH_TOKEN
+    }
+
+    token = ENV.MODRINTH_TOKEN
+    projectId = "2tvyop0z"
+    versionNumber = version
+    versionName = "[$project.supported_versions] AutoWhitelist - $project.version"
+    releaseType = "release"
+    changelog = ENV.CHANGELOG ?: "No changelog provided"
+
+    uploadFile = remapJar
+
+    addGameVersion(project.minecraft_version)
+    addLoader('fabric')
 }
