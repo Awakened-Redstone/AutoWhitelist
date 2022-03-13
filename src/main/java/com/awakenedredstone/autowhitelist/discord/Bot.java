@@ -106,8 +106,6 @@ public class Bot implements Runnable {
             try {
                 jda.getPresence().setActivity(Activity.of(Activity.ActivityType.valueOf(new TranslatableText("bot.activity.type").getString().toUpperCase().replace("PLAYING", "DEFAULT")), new TranslatableText("bot.activity.message").getString()));
             } catch (IllegalArgumentException | NullPointerException e) { //TODO: remove the replace once JDA is updated to 5.x.x
-                jda.getPresence().setActivity(Activity.of(Activity.ActivityType.valueOf(new TranslatableText("bot.activity.type").getString().toUpperCase()), new TranslatableText("bot.activity.message").getString()));
-            } catch (IllegalArgumentException | NullPointerException e) {
                 AutoWhitelist.LOGGER.error("Failed to set bot activity, the chosen activity type value is not valid.", e);
             }
             TestCommand.register(AutoWhitelistAPI.dispatcher());
