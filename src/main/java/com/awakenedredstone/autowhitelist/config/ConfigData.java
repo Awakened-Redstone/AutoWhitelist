@@ -12,5 +12,6 @@ public class ConfigData {
     public String token;
     public String clientId;
     public String discordServerId;
+    public boolean enableSlashCommands;
     public Map<String, List<String>> whitelist;
 }

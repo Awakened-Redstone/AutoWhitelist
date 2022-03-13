@@ -54,11 +54,6 @@ public class CommandManager {
                 return var18;
             } catch (CommandSyntaxException var14) {
                 if (var14.getInput() != null && var14.getCursor() >= 0) {
-                    ParseResults<DiscordCommandSource> parse = dispatcher.parse(stringReader, commandSource);
-                    CommandContext<DiscordCommandSource> context = parse.getContext().build(parse.getReader().getString());
-                    if (context.getChild() == null && context.getCommand() == null) {
-
-                    }
                     int i = Math.min(var14.getInput().length(), var14.getCursor());
                     MutableText mutableText = Util.toText(var14.getRawMessage()).shallowCopy();
                     mutableText.append("\n");
