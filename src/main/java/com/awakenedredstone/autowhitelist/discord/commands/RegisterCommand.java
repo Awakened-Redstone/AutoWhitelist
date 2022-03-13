@@ -17,11 +17,11 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+//import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
-import net.dv8tion.jda.internal.interactions.CommandDataImpl;
+//import net.dv8tion.jda.internal.interactions.CommandDataImpl;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.LiteralText;
@@ -40,10 +40,10 @@ public class RegisterCommand {
         LiteralCommandNode<DiscordCommandSource> literalCommandNode = dispatcher.register(CommandManager.literal("register").requires(DiscordCommandSource::isFromGuild)
                 .then(CommandManager.argument("minecraft_username", StringArgumentType.word()).executes((source) -> {
                     if (source.getSource().getType() == DiscordCommandSource.CommandType.SLASH_COMMAND) {
-                        ((SlashCommandInteractionEvent) source.getSource().getEvent()).deferReply().queue(m -> {
-                            execute(source.getSource(), StringArgumentType.getString(source, "minecraft_username"));
-                            m.deleteOriginal().queue();
-                        });
+//                        ((SlashCommandInteractionEvent) source.getSource().getEvent()).deferReply().queue(m -> {
+//                            execute(source.getSource(), StringArgumentType.getString(source, "minecraft_username"));
+//                            m.deleteOriginal().queue();
+//                        });
                     } else {
                         execute(source.getSource(), StringArgumentType.getString(source, "minecraft_username"));
                     }

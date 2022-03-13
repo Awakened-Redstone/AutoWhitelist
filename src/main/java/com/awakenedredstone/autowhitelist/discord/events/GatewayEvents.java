@@ -4,7 +4,7 @@ import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.discord.api.AutoWhitelistAPI;
 import com.awakenedredstone.autowhitelist.discord.api.command.DiscordCommandSource;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+//import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.SubscribeEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -29,7 +29,7 @@ public class GatewayEvents {
         }
     }
 
-    @SubscribeEvent
+    /*@SubscribeEvent
     public void onSlashCommand(SlashCommandInteractionEvent event) {
         String command = "/".concat(event.getName()).concat(event.getOptions().stream().map(OptionMapping::getAsString).map(v -> " " + v).collect(Collectors.joining()));
         if (event.isFromGuild()) {
@@ -37,5 +37,5 @@ public class GatewayEvents {
         } else {
             AutoWhitelistAPI.INSTANCE.getCommandManager().execute(new DiscordCommandSource(event.getUser(), null, event.getChannel(), DiscordCommandSource.CommandType.SLASH_COMMAND, event), command);
         }
-    }
+    }*/
 }

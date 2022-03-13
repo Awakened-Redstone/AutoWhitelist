@@ -6,7 +6,7 @@ import com.awakenedredstone.autowhitelist.discord.api.command.DiscordCommandSour
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+//import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -47,7 +47,7 @@ public class BotStatusCommand {
 
                 embedBuilder.addField("Discord timings", output, false);
                 if (source.getType() == DiscordCommandSource.CommandType.SLASH_COMMAND) {
-                    ((SlashCommandInteractionEvent)source.getEvent()).replyEmbeds(embedBuilder.build()).queue();
+//                    ((SlashCommandInteractionEvent)source.getEvent()).replyEmbeds(embedBuilder.build()).queue();
                 } else {
                     source.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
                 }

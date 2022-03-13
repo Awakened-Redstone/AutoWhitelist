@@ -30,6 +30,10 @@ group = project.maven_group
 sourceCompatibility = 16
 targetCompatibility = 16
 
+configurations {
+    includeTransitive
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
@@ -37,19 +41,19 @@ dependencies {
     include(modImplementation(fabricApi.module("fabric-lifecycle-events-v1", project.fabric_version)))
     include(modImplementation(fabricApi.module("fabric-api-base", project.fabric_version)))
 
-    implementation include('net.dv8tion:JDA:5.0.0-alpha.5') {
+    implementation('net.dv8tion:JDA:4.4.0') {
         exclude module: 'opus-java'
     }
 
-    include "net.sf.trove4j:trove4j:3.0.3"
-    include 'org.apache.commons:commons-collections4:4.1'
-    include 'com.neovisionaries:nv-websocket-client:2.14'
-    include 'com.squareup.okhttp3:okhttp:3.13.0'
-    include 'com.squareup.okio:okio:1.17.2'
-    include 'com.fasterxml.jackson.core:jackson-databind:2.10.1'
-    include 'com.fasterxml.jackson.core:jackson-annotations:2.10.1'
-    include 'com.fasterxml.jackson.core:jackson-core:2.10.1'
+    includeTransitive implementation('net.dv8tion:JDA:4.4.0_352') {
+        exclude module: 'opus-java'
+    }
 }
+
+configurations.getByName("includeTransitive").resolvedConfiguration.resolvedArtifacts.forEach(dep -> {
+    if (!dep.id.componentIdentifier.displayName.contains("slf4j-api"))
+        dependencies.add("include", dep.id.componentIdentifier.displayName)
+})
 
 compileJava {
     sourceCompatibility = 16
@@ -115,7 +119,7 @@ curseforge {
         id = "575422"
         changelog = ENV.CHANGELOG ?: "No changelog provided"
         releaseType = "release"
-        addGameVersion "1.18-Snapshot"
+        addGameVersion "$project.minecraft_version"
         addGameVersion "Fabric"
 
         mainArtifact(remapJar) {
@@ -148,7 +152,6 @@ task github(dependsOn: remapMavenJar) {
         releaseBuilder.name("[$project.supported_versions] AutoWhitelist - $project.version")
         releaseBuilder.body(ENV.CHANGELOG ?: "No changelog provided")
         releaseBuilder.commitish(getBranch())
-        releaseBuilder.prerelease(false)
 
         def ghRelease = releaseBuilder.create()
         ghRelease.uploadAsset(file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"), "application/java-archive");

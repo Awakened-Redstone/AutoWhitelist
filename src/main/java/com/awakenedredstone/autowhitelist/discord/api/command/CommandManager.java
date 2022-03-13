@@ -14,10 +14,11 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+//import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -53,6 +54,11 @@ public class CommandManager {
                 return var18;
             } catch (CommandSyntaxException var14) {
                 if (var14.getInput() != null && var14.getCursor() >= 0) {
+                    ParseResults<DiscordCommandSource> parse = dispatcher.parse(stringReader, commandSource);
+                    CommandContext<DiscordCommandSource> context = parse.getContext().build(parse.getReader().getString());
+                    if (context.getChild() == null && context.getCommand() == null) {
+
+                    }
                     int i = Math.min(var14.getInput().length(), var14.getCursor());
                     MutableText mutableText = Util.toText(var14.getRawMessage()).shallowCopy();
                     mutableText.append("\n");
@@ -74,7 +80,7 @@ public class CommandManager {
                         embedBuilder.setDescription(mutableText.getString());
                         embedBuilder.setFooter(new TranslatableText("command.feedback.message.signature").getString());
                         embedBuilder.setColor(BotHelper.MessageType.ERROR.hexColor);
-                        ((SlashCommandInteractionEvent)commandSource.getEvent()).deferReply(true).queue(m -> m.editOriginal(new MessageBuilder().setEmbeds(embedBuilder.build()).build()).queue());
+//                        ((SlashCommandInteractionEvent)commandSource.getEvent()).deferReply(true).queue(m -> m.editOriginal(new MessageBuilder().setEmbeds(embedBuilder.build()).build()).queue());
                     } else {
                         commandSource.sendError(mutableText);
                     }

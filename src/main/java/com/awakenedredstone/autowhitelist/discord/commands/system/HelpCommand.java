@@ -12,11 +12,11 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.tree.CommandNode;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.internal.interactions.CommandDataImpl;
+//import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+//import net.dv8tion.jda.api.interactions.commands.OptionType;
+//import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+//import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+//import net.dv8tion.jda.internal.interactions.CommandDataImpl;
 
 import java.util.Map;
 
@@ -46,7 +46,7 @@ public class HelpCommand {
             }
 
             if (source.getType() == DiscordCommandSource.CommandType.SLASH_COMMAND) {
-                ((SlashCommandInteractionEvent)source.getEvent()).replyEmbeds(embedBuilder.build()).queue();
+//                ((SlashCommandInteractionEvent)source.getEvent()).replyEmbeds(embedBuilder.build()).queue();
             } else {
                 source.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
             }
@@ -75,7 +75,7 @@ public class HelpCommand {
                     embedBuilder.appendDescription(new LiteralText("`" + AutoWhitelist.getConfigData().prefix + result + "` | ").append(new TranslatableText("command.description." + result)).getString());
                 }
                 if (source.getType() == DiscordCommandSource.CommandType.SLASH_COMMAND) {
-                    ((SlashCommandInteractionEvent)source.getEvent()).replyEmbeds(embedBuilder.build()).queue();
+//                    ((SlashCommandInteractionEvent)source.getEvent()).replyEmbeds(embedBuilder.build()).queue();
                 } else {
                     source.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
                 }

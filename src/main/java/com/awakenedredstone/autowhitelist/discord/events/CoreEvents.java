@@ -2,7 +2,6 @@ package com.awakenedredstone.autowhitelist.discord.events;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.discord.DiscordDataProcessor;
-import com.awakenedredstone.autowhitelist.discord.api.AutoWhitelistAPI;
 import com.awakenedredstone.autowhitelist.lang.TranslatableText;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
 import com.awakenedredstone.autowhitelist.util.ExtendedGameProfile;
@@ -10,7 +9,10 @@ import com.awakenedredstone.autowhitelist.util.FailedToUpdateWhitelistException;
 import com.awakenedredstone.autowhitelist.util.InvalidTeamNameException;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
+import com.mojang.brigadier.arguments.*;
+import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.CommandNode;
+import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
@@ -19,10 +21,9 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.hooks.SubscribeEvent;
-import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.internal.interactions.CommandDataImpl;
+//import net.dv8tion.jda.internal.interactions.CommandDataImpl;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
@@ -30,14 +31,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static com.awakenedredstone.autowhitelist.discord.Bot.*;
-import static com.awakenedredstone.autowhitelist.discord.Bot.whitelistDataMap;
 import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 
 public class CoreEvents {
@@ -45,7 +43,7 @@ public class CoreEvents {
     @SubscribeEvent
     public void onReady(ReadyEvent e) {
         AutoWhitelist.LOGGER.info("Finishing setup.");
-        if (AutoWhitelist.getConfigData().enableSlashCommands) {
+        /*if (AutoWhitelist.getConfigData().enableSlashCommands) {
             List<Command> commands = jda.retrieveCommands().complete();
             AutoWhitelistAPI.dispatcher().getRoot().getChildren().forEach(command -> {
                 if (commands.stream().map(Command::getName).noneMatch(slashCommand -> slashCommand.equalsIgnoreCase(command.getName()))) {
@@ -53,8 +51,8 @@ public class CoreEvents {
                 }
             });
         } else {
-            jda.retrieveCommands().complete().forEach(command -> jda.deleteCommandById(command.getId()).queue());
-        }
+            jSlashCommandDatada.retrieveCommands().complete().forEach(command -> jda.deleteCommandById(command.getId()).queue());
+        }*/
 
         if (scheduledUpdate != null) {
             scheduledUpdate.cancel(false);
@@ -152,8 +150,28 @@ public class CoreEvents {
         if (command.getRedirect() != null) {
             return;
         }
-        CommandDataImpl commandData = new CommandDataImpl(command.getName().toLowerCase(), new TranslatableText("command.description." + command.getName()).getString());
-        command.getChildren().forEach(node -> commandData.addOptions(new OptionData(OptionType.STRING, node.getName(), new TranslatableText("command.description." + command.getName() + "." + node.getName()).getString())));
-        //jda.upsertCommand(commandData).queue();
+//        CommandDataImpl commandData = new CommandDataImpl(command.getName().toLowerCase(), new TranslatableText("command.description." + command.getName()).getString());
+        boolean required = command.getCommand() == null;
+        command.getChildren().forEach(node -> {
+            if (node instanceof LiteralCommandNode) {
+//                commandData.addOptions(new OptionData(OptionType.SUB_COMMAND, node.getName(), new TranslatableText("command.description." + command.getName() + "." + node.getName()).getString(), required));
+            }
+            else if (node instanceof ArgumentCommandNode node1) {
+                OptionType type;
+                ArgumentType<?> type1 = node1.getType();
+                if (type1 instanceof BoolArgumentType) {
+                    type = OptionType.BOOLEAN;
+                } else if (type1 instanceof DoubleArgumentType || type1 instanceof FloatArgumentType) {
+                    type = OptionType.NUMBER;
+                } else if (type1 instanceof IntegerArgumentType || type1 instanceof LongArgumentType) {
+                    type = OptionType.INTEGER;
+                } else {
+                    type = OptionType.STRING;
+                }
+//                commandData.addOptions(new OptionData(type, node.getName(), new TranslatableText("command.description." + command.getName() + "." + node.getName()).getString(), required));
+            }
+
+        });
+//        jda.upsertCommand(commandData).queue();
     }
 }
