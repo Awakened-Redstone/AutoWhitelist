@@ -7,9 +7,9 @@ import com.awakenedredstone.autowhitelist.discord.api.text.TranslatableText;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+//import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import net.dv8tion.jda.internal.interactions.CommandDataImpl;
+//import net.dv8tion.jda.internal.interactions.CommandDataImpl;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.util.Util;
@@ -69,7 +69,7 @@ public class ServerStatusCommand {
             embedBuilder.addField("Server information", serverInformation.toString(), true);
 
             if (source.getType() == DiscordCommandSource.CommandType.SLASH_COMMAND) {
-                ((SlashCommandInteractionEvent)source.getEvent()).replyEmbeds(embedBuilder.build()).queue();
+//                ((SlashCommandInteractionEvent)source.getEvent()).replyEmbeds(embedBuilder.build()).queue();
             } else {
                 source.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
             }

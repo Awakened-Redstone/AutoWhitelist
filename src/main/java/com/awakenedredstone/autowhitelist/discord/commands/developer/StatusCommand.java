@@ -3,14 +3,10 @@ package com.awakenedredstone.autowhitelist.discord.commands.developer;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.discord.api.command.CommandManager;
 import com.awakenedredstone.autowhitelist.discord.api.command.DiscordCommandSource;
-import com.awakenedredstone.autowhitelist.lang.TranslatableText;
 import com.awakenedredstone.autowhitelist.util.Debugger;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import net.dv8tion.jda.internal.interactions.CommandDataImpl;
+//import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.Arrays;
@@ -61,7 +57,7 @@ public class StatusCommand {
 
             embedBuilder.addField("Processing timings", output2.toString(), true);
             if (source.getType() == DiscordCommandSource.CommandType.SLASH_COMMAND) {
-                ((SlashCommandInteractionEvent)source.getEvent()).replyEmbeds(embedBuilder.build()).queue();
+//                ((SlashCommandInteractionEvent)source.getEvent()).replyEmbeds(embedBuilder.build()).queue();
             } else {
                 source.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
             }

@@ -22,7 +22,7 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
-import net.dv8tion.jda.internal.interactions.CommandDataImpl;
+//import net.dv8tion.jda.internal.interactions.CommandDataImpl;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.logging.UncaughtExceptionHandler;
@@ -104,6 +104,8 @@ public class Bot implements Runnable {
             builder.setMemberCachePolicy(MemberCachePolicy.ALL);
             jda = builder.build();
             try {
+                jda.getPresence().setActivity(Activity.of(Activity.ActivityType.valueOf(new TranslatableText("bot.activity.type").getString().toUpperCase().replace("PLAYING", "DEFAULT")), new TranslatableText("bot.activity.message").getString()));
+            } catch (IllegalArgumentException | NullPointerException e) { //TODO: remove the replace once JDA is updated to 5.x.x
                 jda.getPresence().setActivity(Activity.of(Activity.ActivityType.valueOf(new TranslatableText("bot.activity.type").getString().toUpperCase()), new TranslatableText("bot.activity.message").getString()));
             } catch (IllegalArgumentException | NullPointerException e) {
                 AutoWhitelist.LOGGER.error("Failed to set bot activity, the chosen activity type value is not valid.", e);
