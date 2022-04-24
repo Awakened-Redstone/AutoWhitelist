@@ -4,16 +4,19 @@ import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.commands.AutoWhitelistCommand;
 import com.awakenedredstone.autowhitelist.discord.Bot;
 import com.awakenedredstone.autowhitelist.lang.JigsawLanguage;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.minecraft.client.resource.language.TranslationStorage;
 import net.minecraft.util.logging.UncaughtExceptionHandler;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.awakenedredstone.autowhitelist.AutoWhitelist.config;
 import static com.awakenedredstone.autowhitelist.lang.JigsawLanguage.translations;

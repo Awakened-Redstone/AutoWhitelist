@@ -12,24 +12,18 @@ import com.awakenedredstone.autowhitelist.discord.commands.system.PingCommand;
 import com.awakenedredstone.autowhitelist.discord.events.CoreEvents;
 import com.awakenedredstone.autowhitelist.discord.events.GatewayEvents;
 import com.awakenedredstone.autowhitelist.discord.events.JdaEvents;
-import com.awakenedredstone.autowhitelist.lang.TranslatableText;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager;
-import net.dv8tion.jda.api.interactions.commands.Command;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
-//import net.dv8tion.jda.internal.interactions.CommandDataImpl;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import net.minecraft.util.logging.UncaughtExceptionHandler;
 
 import javax.security.auth.login.LoginException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 
@@ -84,7 +78,7 @@ public class Bot implements Runnable {
         thread.setDaemon(true);
         thread.start();
 
-        source.sendFeedback(new LiteralText("Discord bot starting."), true);
+        source.sendFeedback(Text.literal("Discord bot starting."), true);
     }
 
     public void run() {
@@ -104,7 +98,7 @@ public class Bot implements Runnable {
             builder.setMemberCachePolicy(MemberCachePolicy.ALL);
             jda = builder.build();
             try {
-                jda.getPresence().setActivity(Activity.of(Activity.ActivityType.valueOf(new TranslatableText("bot.activity.type").getString().toUpperCase().replace("PLAYING", "DEFAULT")), new TranslatableText("bot.activity.message").getString()));
+                jda.getPresence().setActivity(Activity.of(Activity.ActivityType.valueOf(Text.translatable("bot.activity.type").getString().toUpperCase().replace("PLAYING", "DEFAULT")), Text.translatable("bot.activity.message").getString()));
             } catch (IllegalArgumentException | NullPointerException e) { //TODO: remove the replace once JDA is updated to 5.x.x
                 AutoWhitelist.LOGGER.error("Failed to set bot activity, the chosen activity type value is not valid.", e);
             }

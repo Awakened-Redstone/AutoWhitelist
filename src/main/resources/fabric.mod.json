@@ -11,6 +11,7 @@
   "license": "LGPL-3",
   "icon": "assets/autowhitelist/icon.png",
   "environment": "server",
+  "accessWidener": "autowhitelist.accesswidener",
   "entrypoints": {
     "main": [
       "com.awakenedredstone.autowhitelist.AutoWhitelist"

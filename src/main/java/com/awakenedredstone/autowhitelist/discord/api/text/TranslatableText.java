@@ -32,6 +32,10 @@ public class TranslatableText extends BaseText implements ParsableText {
       this.args = EMPTY_ARGUMENTS;
    }
 
+   public net.minecraft.text.Text getMinecraftText() {
+      return net.minecraft.text.Text.literal(this.getString());
+   }
+
    public TranslatableText(String key, Object... args) {
       this.key = key;
       this.args = args;

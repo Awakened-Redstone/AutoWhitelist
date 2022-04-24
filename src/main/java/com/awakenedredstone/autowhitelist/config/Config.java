@@ -6,11 +6,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class Config {
@@ -42,18 +40,18 @@ public class Config {
                     configData.whitelistScheduledVerificationSeconds = 30;
                     AutoWhitelist.LOGGER.warn("Whitelist scheduled verification time can't be equals to or lower than 0. It has been set to 30 (not on the file)");
                     try {
-                        AutoWhitelist.server.getCommandSource().sendFeedback(new LiteralText("Whitelist scheduled verification time can't be equals to or lower than 0. It has been set to 30 (not on the file)"), true);
+                        AutoWhitelist.server.getCommandSource().sendFeedback(Text.literal("Whitelist scheduled verification time can't be equals to or lower than 0. It has been set to 30 (not on the file)"), true);
                     } catch (NullPointerException ignored) {}
                 } else if (configData.whitelistScheduledVerificationSeconds < 3) {
                     configData.whitelistScheduledVerificationSeconds = 30;
                     AutoWhitelist.LOGGER.warn("Whitelist scheduled verification time have to be at least 3 seconds. It has been set to 30 (not on the file)");
                     try {
-                        AutoWhitelist.server.getCommandSource().sendFeedback(new LiteralText("Whitelist scheduled verification time have to be at least 3 seconds. It has been set to 30 (not on the file)"), true);
+                        AutoWhitelist.server.getCommandSource().sendFeedback(Text.literal("Whitelist scheduled verification time have to be at least 3 seconds. It has been set to 30 (not on the file)"), true);
                     } catch (NullPointerException ignored) {}
                 } else if (configData.whitelistScheduledVerificationSeconds < 30) {
                     AutoWhitelist.LOGGER.warn("Whitelist scheduled verification time is really low. It is not recommended to have it lower than 30 seconds, since it can affect the server performance.");
                     try {
-                        AutoWhitelist.server.getCommandSource().sendFeedback(new LiteralText("Whitelist scheduled verification time is really low. It is not recommended to have it lower than 30 seconds, since it can affect the server performance."), true);
+                        AutoWhitelist.server.getCommandSource().sendFeedback(Text.literal("Whitelist scheduled verification time is really low. It is not recommended to have it lower than 30 seconds, since it can affect the server performance."), true);
                     } catch (NullPointerException ignored) {}
                 }
             } catch (IOException e) {

@@ -7,11 +7,6 @@ import com.awakenedredstone.autowhitelist.discord.api.text.TranslatableText;
 import com.awakenedredstone.autowhitelist.discord.api.util.Formatting;
 import com.mojang.brigadier.CommandDispatcher;
 import net.dv8tion.jda.api.EmbedBuilder;
-//import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-//import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-//import net.dv8tion.jda.internal.interactions.CommandDataImpl;
-
-import static com.awakenedredstone.autowhitelist.discord.Bot.jda;
 
 public class TestCommand {
     public static void register(CommandDispatcher<DiscordCommandSource> dispatcher) {

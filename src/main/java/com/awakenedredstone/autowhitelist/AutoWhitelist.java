@@ -12,21 +12,20 @@ import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
-import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
+import net.minecraft.client.resource.language.TranslationStorage;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.WhitelistEntry;
-import org.apache.logging.log4j.LogManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.util.Collection;
 import java.util.List;
@@ -154,7 +153,6 @@ public class AutoWhitelist implements ModInitializer {
 
     public static void reloadTranslations() {
         try {
-            translations.clear();
             {
                 InputStream inputStream = AutoWhitelistServer.class.getResource("/messages.json").openStream();
                 JigsawLanguage.load(inputStream, translations::put);
@@ -166,7 +164,8 @@ public class AutoWhitelist implements ModInitializer {
 
             InputStream inputStream = Files.newInputStream(file.toPath());
             JigsawLanguage.load(inputStream, translations::put);
-        } catch (IOException ignored) {
+        } catch (Exception e) {
+            LOGGER.error("Failed to load translations", e);
         }
     }
 

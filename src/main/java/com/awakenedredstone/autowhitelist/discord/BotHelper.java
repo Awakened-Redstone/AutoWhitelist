@@ -1,11 +1,10 @@
 package com.awakenedredstone.autowhitelist.discord;
 
-import com.awakenedredstone.autowhitelist.lang.TranslatableText;
+import com.awakenedredstone.autowhitelist.discord.api.text.TranslatableText;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import net.minecraft.text.Text;

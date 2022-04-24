@@ -5,7 +5,7 @@ import com.awakenedredstone.autowhitelist.discord.Bot;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 
 import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 
@@ -30,26 +30,26 @@ public class AutoWhitelistCommand {
     }
 
     public static void executeReload(ServerCommandSource source) {
-        source.sendFeedback(new LiteralText("Reloading AutoWhitelist configurations, please wait."), true);
+        source.sendFeedback(Text.literal("Reloading AutoWhitelist configurations, please wait."), true);
 
         analyzeTimings("Config#loadConfigs", AutoWhitelist.config::loadConfigs);
         analyzeTimings("AutoWhitelist#reloadTranslations", AutoWhitelist::reloadTranslations);
-        source.sendFeedback(new LiteralText("Restarting bot, please wait."), true);
+        source.sendFeedback(Text.literal("Restarting bot, please wait."), true);
         analyzeTimings("Bot#reloadBot", () -> Bot.getInstance().reloadBot(source));
     }
 
     public static void executeSpecificReload(ServerCommandSource source, ReloadableObjects type) {
         switch (type) {
             case BOT -> {
-                source.sendFeedback(new LiteralText("Restarting bot, please wait."), true);
+                source.sendFeedback(Text.literal("Restarting bot, please wait."), true);
                 analyzeTimings("Bot#reloadBot", () -> Bot.getInstance().reloadBot(source));
             }
             case CONFIG -> {
-                source.sendFeedback(new LiteralText("Reloading configurations."), true);
+                source.sendFeedback(Text.literal("Reloading configurations."), true);
                 analyzeTimings("Config#loadConfigs", AutoWhitelist.config::loadConfigs);
             }
             case TRANSLATIONS -> {
-                source.sendFeedback(new LiteralText("Reloading translations."), true);
+                source.sendFeedback(Text.literal("Reloading translations."), true);
                 analyzeTimings("AutoWhitelist#reloadTranslations", AutoWhitelist::reloadTranslations);
             }
         }

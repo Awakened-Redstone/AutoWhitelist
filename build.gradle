@@ -12,6 +12,10 @@ plugins {
     id "com.modrinth.minotaur" version "1.1.0"
 }
 
+loom {
+    accessWidenerPath = file("src/main/resources/autowhitelist.accesswidener")
+}
+
 repositories {
     mavenCentral()
     jcenter()
