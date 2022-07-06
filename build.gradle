@@ -7,13 +7,7 @@ buildscript {
 plugins {
     id "fabric-loom" version "0.12.+"
     id "maven-publish"
-    id "org.ajoberstar.grgit" version "3.1.0"
-    id "com.matthewprenger.cursegradle" version "1.4.0"
     id "com.modrinth.minotaur" version "2.+"
-}
-
-loom {
-    accessWidenerPath = file("src/main/resources/autowhitelist.accesswidener")
 }
 
 repositories {
@@ -24,7 +18,7 @@ repositories {
     }
 }
 
-def ENV = System.getenv()
+def CHANGELOG = new File('CHANGELOG.md').exists() ? new File('CHANGELOG.md').text : "No changelog provided"
 
 archivesBaseName = project.archives_base_name
 version = project.mod_version
@@ -41,16 +35,15 @@ dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    include(modImplementation(fabricApi.module("fabric-lifecycle-events-v1", project.fabric_version)))
-    include(modImplementation(fabricApi.module("fabric-api-base", project.fabric_version)))
-
-    implementation('net.dv8tion:JDA:4.4.0') {
-        exclude module: 'opus-java'
-    }
+    include modImplementation(fabricApi.module("fabric-lifecycle-events-v1", project.fabric_version))
+    include modImplementation(fabricApi.module("fabric-api-base", project.fabric_version))
 
     includeTransitive implementation('net.dv8tion:JDA:4.4.0_352') {
         exclude module: 'opus-java'
+        exclude group: 'okhttp3', module: "okhttp"
     }
+
+    include implementation('com.squareup.okhttp3:okhttp:4.9.0')
 }
 
 configurations.getByName("includeTransitive").resolvedConfiguration.resolvedArtifacts.forEach(dep -> {
@@ -113,57 +106,27 @@ task remapMavenJar(type: net.fabricmc.loom.task.RemapJarTask, dependsOn: jar) {
 }
 build.dependsOn remapMavenJar
 
-curseforge {
-    if (ENV.CURSEFORGE_API_KEY) {
-        apiKey = ENV.CURSEFORGE_API_KEY
-    }
-
-    project {
-        id = "575422"
-        changelog = ENV.CHANGELOG ?: "No changelog provided"
-        releaseType = "release"
-        addGameVersion "$project.minecraft_version"
-        addGameVersion "Fabric"
-
-        mainArtifact(remapJar) {
-            displayName = "[$project.supported_versions] AutoWhitelist - $project.version"
-        }
-
-        afterEvaluate {
-            uploadTask.dependsOn("remapJar")
-        }
-    }
-
-    options {
-        forgeGradleIntegration = false
-    }
-}
-
-import org.kohsuke.github.GHReleaseBuilder
-import org.kohsuke.github.GitHub
-
-task github(dependsOn: remapMavenJar) {
-    onlyIf {
-        ENV.GITHUB_TOKEN
-    }
-
-    doLast {
-        def github = GitHub.connectUsingOAuth(ENV.GITHUB_TOKEN as String)
-        def repository = github.getRepository(ENV.GITHUB_REPOSITORY)
-
-        def releaseBuilder = new GHReleaseBuilder(repository, version as String)
-        releaseBuilder.name("[$project.supported_versions] AutoWhitelist - $project.version")
-        releaseBuilder.body(ENV.CHANGELOG ?: "No changelog provided")
-        releaseBuilder.commitish(getBranch())
-
-        def ghRelease = releaseBuilder.create()
-        ghRelease.uploadAsset(file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"), "application/java-archive");
-    }
-}
-
 modrinth {
+    String projectVersion = project.version.toString();
+    List<String> projectVersionNumber = projectVersion.split("-", 2)
+    String projectVersionName = "Release ${projectVersionNumber[0]}"
+    if (projectVersion.contains("beta")) {
+        List<String> projectBeta = projectVersionNumber[1].split("[.]", 2)
+        projectVersionName = "${projectVersionNumber[0]} - Beta ${projectBeta[1]}"
+        versionType = "beta"
+    } else if (projectVersion.contains("alpha")) {
+        List<String> projectAlpha = projectVersionNumber[1].split("[.]", 2)
+        projectVersionName = "${projectVersionNumber[0]} - Alpha ${projectAlpha[1]}"
+        versionType = "alpha"
+    } else if (projectVersion.contains("rc")) {
+        List<String> projectRC = projectVersionNumber[1].split("[.]", 2)
+        projectVersionName = "${projectVersionNumber[0]} - Release Candidate ${projectRC[1]}"
+        versionType = "beta"
+    }
+
+    token = System.getenv().MODRINTH_TOKEN
     projectId = "2tvyop0z"
-    versionName = "[$project.supported_versions] AutoWhitelist - $project.version"
-    changelog = ENV.CHANGELOG ?: "No changelog provided"
+    versionName = projectVersionName
+    changelog = CHANGELOG ?: "No changelog provided"
     uploadFile = remapJar
 }

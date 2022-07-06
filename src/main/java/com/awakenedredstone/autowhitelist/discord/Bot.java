@@ -2,6 +2,7 @@ package com.awakenedredstone.autowhitelist.discord;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.discord.api.AutoWhitelistAPI;
+import com.awakenedredstone.autowhitelist.discord.api.text.TranslatableText;
 import com.awakenedredstone.autowhitelist.discord.commands.RegisterCommand;
 import com.awakenedredstone.autowhitelist.discord.commands.developer.BotStatusCommand;
 import com.awakenedredstone.autowhitelist.discord.commands.developer.ServerStatusCommand;
@@ -20,17 +21,26 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
-import net.minecraft.util.logging.UncaughtExceptionHandler;
 
 import javax.security.auth.login.LoginException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
-public class Bot implements Runnable {
-    public static Bot instance;
+public class Bot extends Thread {
+    public Bot() {
+        super("AutoWhitelist Bot");
+        this.setDaemon(true);
+        this.setUncaughtExceptionHandler(new net.minecraft.util.logging.UncaughtExceptionHandler(AutoWhitelist.LOGGER));
+    }
+
+    private static Bot instance;
 
     public static ScheduledFuture<?> scheduledUpdate;
+    public static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
     public static JDA jda = null;
     private static String token = AutoWhitelist.getConfigData().token;
@@ -40,15 +50,28 @@ public class Bot implements Runnable {
     public static long updateDelay = AutoWhitelist.getConfigData().whitelistScheduledVerificationSeconds;
     public static Map<String, String> whitelistDataMap = new HashMap<>();
 
-    public static void stopBot() {
+    public static void stopBot(boolean force) {
         if (scheduledUpdate != null) {
-            scheduledUpdate.cancel(false);
-            try {
-                scheduledUpdate.get();
-            } catch (Exception ignored) {
+            AutoWhitelist.LOGGER.info("Stopping scheduled events");
+            scheduledUpdate.cancel(force);
+            if (!force) {
+                try {
+                    scheduledUpdate.get();
+                } catch (Exception ignored) {/**/}
             }
+            scheduledUpdate = null;
         }
-        if (jda != null) jda.shutdown();
+
+        if (!executorService.isShutdown()) executorService.shutdown();
+
+        if (jda != null) {
+            AutoWhitelist.LOGGER.info("Stopping the bot");
+            if (force) jda.shutdownNow();
+            else jda.shutdown();
+            AutoWhitelist.LOGGER.info("Bot stopped");
+
+            jda = null;
+        }
     }
 
     public static Bot getInstance() {
@@ -67,28 +90,21 @@ public class Bot implements Runnable {
             scheduledUpdate.cancel(false);
             try {
                 scheduledUpdate.get();
-            } catch (Exception ignored) {
-            }
+            } catch (Exception ignored) {/**/}
         }
         if (jda != null) jda.shutdown();
 
-        Thread thread = new Thread(new Bot());
-        thread.setName("AutoWhitelist Bot");
-        thread.setUncaughtExceptionHandler(new UncaughtExceptionHandler(AutoWhitelist.LOGGER));
-        thread.setDaemon(true);
-        thread.start();
-
         source.sendFeedback(Text.literal("Discord bot starting."), true);
+
+        //noinspection CallToThreadRun
+        run();
     }
 
     public void run() {
-        init();
-    }
-
-    private void init() {
         try {
             AutoWhitelistAPI.INSTANCE = new AutoWhitelistAPI();
-            if (whitelistDataMap.isEmpty()) AutoWhitelist.getConfigData().whitelist.forEach((v, k) -> k.forEach(id_ -> whitelistDataMap.put(id_, v)));
+            if (whitelistDataMap.isEmpty())
+                AutoWhitelist.getConfigData().whitelist.forEach((v, k) -> k.forEach(id_ -> whitelistDataMap.put(id_, v)));
             JDABuilder builder = JDABuilder.createDefault(token);
             builder.setEventManager(new AnnotatedEventManager());
             builder.addEventListeners(new JdaEvents());
@@ -97,11 +113,14 @@ public class Bot implements Runnable {
             builder.enableIntents(GatewayIntent.GUILD_MEMBERS);
             builder.setMemberCachePolicy(MemberCachePolicy.ALL);
             jda = builder.build();
+
             try {
-                jda.getPresence().setActivity(Activity.of(Activity.ActivityType.valueOf(Text.translatable("bot.activity.type").getString().toUpperCase().replace("PLAYING", "DEFAULT")), Text.translatable("bot.activity.message").getString()));
-            } catch (IllegalArgumentException | NullPointerException e) { //TODO: remove the replace once JDA is updated to 5.x.x
-                AutoWhitelist.LOGGER.error("Failed to set bot activity, the chosen activity type value is not valid.", e);
+                jda.getPresence().setActivity(Activity.of(Activity.ActivityType.valueOf(new TranslatableText("bot.activity.type").getString().toUpperCase().replace("PLAYING", "DEFAULT")), new TranslatableText("bot.activity.message").getString()));
+            } catch (IllegalArgumentException |
+                     NullPointerException e) { //TODO: remove the replace once JDA is updated to 5.x.x
+                AutoWhitelist.LOGGER.error("Failed to set bot activity, the activity type {} is not valid.", new TranslatableText("bot.activity.type").getString().toUpperCase(), e);
             }
+
             TestCommand.register(AutoWhitelistAPI.dispatcher());
             HelpCommand.register(AutoWhitelistAPI.dispatcher());
             PingCommand.register(AutoWhitelistAPI.dispatcher());
@@ -114,7 +133,7 @@ public class Bot implements Runnable {
         } catch (LoginException e) {
             AutoWhitelist.LOGGER.error("Failed to start bot, please verify the token.");
         } catch (Exception e) {
-			AutoWhitelist.LOGGER.error("Failed to start bot!", e);
-		}
+            AutoWhitelist.LOGGER.error("Failed to start bot!", e);
+        }
     }
 }

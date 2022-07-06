@@ -2,8 +2,9 @@ package com.awakenedredstone.autowhitelist;
 
 import com.awakenedredstone.autowhitelist.config.Config;
 import com.awakenedredstone.autowhitelist.config.ConfigData;
+import com.awakenedredstone.autowhitelist.discord.Bot;
 import com.awakenedredstone.autowhitelist.json.JsonHelper;
-import com.awakenedredstone.autowhitelist.lang.JigsawLanguage;
+import com.awakenedredstone.autowhitelist.lang.CustomLanguage;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
 import com.awakenedredstone.autowhitelist.server.AutoWhitelistServer;
 import com.awakenedredstone.autowhitelist.util.ExtendedGameProfile;
@@ -12,16 +13,18 @@ import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.client.resource.language.TranslationStorage;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.WhitelistEntry;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
+import net.minecraft.util.math.Vec2f;
+import net.minecraft.util.math.Vec3d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +33,8 @@ import java.nio.file.Files;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
-import static com.awakenedredstone.autowhitelist.lang.JigsawLanguage.translations;
+import static com.awakenedredstone.autowhitelist.lang.CustomLanguage.translations;
 
 public class AutoWhitelist implements ModInitializer {
     public static MinecraftServer server;
@@ -64,15 +66,18 @@ public class AutoWhitelist implements ModInitializer {
             try {
                 if (profile1 == null) {
                     removePlayer((ExtendedGameProfile) profile);
+                    getCommandSource().sendFeedback(Text.literal("Removing bad entry from " + profile.getName()), true);
                     continue;
                 }
             } catch (ClassCastException ignored) {
+                getCommandSource().sendFeedback(Text.literal("Removing bad entry from " + profile.getName()), true);
                 whitelist.remove(profile);
                 scoreboard.clearPlayerTeam(profile.getName());
                 continue;
             }
 
             if (!profile.getName().equals(profile1.getName())) {
+                getCommandSource().sendFeedback(Text.literal("Fixing bad entry from " + profile.getName()), true);
                 try {
                     ExtendedGameProfile isExtended = (ExtendedGameProfile) profile;
                     whitelist.remove(isExtended);
@@ -114,13 +119,15 @@ public class AutoWhitelist implements ModInitializer {
                 LOGGER.error("Could not check team information of \"{}\", got \"null\" when trying to get \"net.minecraft.scoreboard.Team\" from \"{}\"", player.getName(), player.getTeam(), new InvalidTeamNameException("Tried to get \"net.minecraft.scoreboard.Team\" from \"" + player.getTeam() + "\" but got \"null\"."));
                 return;
             }
+
             if (scoreboard.getPlayerTeam(player.getName()) != team) {
-                scoreboard.clearPlayerTeam(player.getName());
                 scoreboard.addPlayerToTeam(player.getName(), team);
             }
         }
 
-        server.kickNonWhitelistedPlayers(server.getCommandSource());
+        if (server.getPlayerManager().isWhitelistEnabled()) {
+            server.kickNonWhitelistedPlayers(server.getCommandSource());
+        }
     }
 
     public static void removePlayer(ExtendedGameProfile player) {
@@ -133,19 +140,12 @@ public class AutoWhitelist implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> Bot.stopBot(true), "JDA shutdown"));
+
         File dir = config.getConfigDirectory();
         if ((dir.exists() && dir.isDirectory()) || dir.mkdirs()) {
-            if (new File(new File(".", "config"), "AutoWhitelist.json").exists()) {
-                new File(new File(".", "config"), "AutoWhitelist.json").renameTo(configFile);
-            }
-
-            if (new File(new File(".", "config/AutoWhitelist-assets"), "messages.json").exists()) {
-                if (new File(new File(".", "config/AutoWhitelist-assets"), "messages.json").renameTo(new File(config.getConfigDirectory(), "messages.json"))) {
-                    new File(".", "config/AutoWhitelist-assets").delete();
-                }
-            }
             if (!configFile.exists()) {
-                JsonHelper.writeJsonToFile(config.generateDefaultConfig(), configFile);
+                JsonHelper.writeJsonToFile(config.defaultConfig(), configFile);
             }
         }
         config.loadConfigs();
@@ -155,7 +155,7 @@ public class AutoWhitelist implements ModInitializer {
         try {
             {
                 InputStream inputStream = AutoWhitelistServer.class.getResource("/messages.json").openStream();
-                JigsawLanguage.load(inputStream, translations::put);
+                CustomLanguage.load(inputStream, translations::put);
             }
             File file = new File(config.getConfigDirectory(), "messages.json");
             if (!file.exists()) {
@@ -163,10 +163,16 @@ public class AutoWhitelist implements ModInitializer {
             }
 
             InputStream inputStream = Files.newInputStream(file.toPath());
-            JigsawLanguage.load(inputStream, translations::put);
+            CustomLanguage.load(inputStream, translations::put);
         } catch (Exception e) {
             LOGGER.error("Failed to load translations", e);
         }
+    }
+
+    public static ServerCommandSource getCommandSource() {
+        ServerWorld serverWorld = server.getOverworld();
+        return new ServerCommandSource(server, serverWorld == null ? Vec3d.ZERO : Vec3d.of(serverWorld.getSpawnPos()), Vec2f.ZERO,
+                serverWorld, 4, "AutoWhitelist", Text.literal("AutoWhitelist"), server, null);
     }
 
 }

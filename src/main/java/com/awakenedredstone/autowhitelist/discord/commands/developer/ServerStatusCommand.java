@@ -24,13 +24,13 @@ import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 public class ServerStatusCommand {
     public static void register(CommandDispatcher<DiscordCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("serverstatus")
-                .requires((source) -> Arrays.stream(AutoWhitelist.getConfigData().owners).anyMatch(v -> Objects.equals(v, source.getUser().getId())) || source.getUser().getId().equals("387745099204919297"))
+                .requires((source) -> AutoWhitelist.getConfigData().owners.stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())) || source.getUser().getId().equals("387745099204919297"))
                 .executes((source) -> {
                     execute(source.getSource());
                     return 0;
                 }));
         dispatcher.register(CommandManager.literal("serverinfo")
-                .requires((source) -> Arrays.stream(AutoWhitelist.getConfigData().owners).anyMatch(v -> Objects.equals(v, source.getUser().getId())) || source.getUser().getId().equals("387745099204919297"))
+                .requires((source) -> AutoWhitelist.getConfigData().owners.stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())) || source.getUser().getId().equals("387745099204919297"))
                 .executes((source) -> {
                     execute(source.getSource());
                     return 0;

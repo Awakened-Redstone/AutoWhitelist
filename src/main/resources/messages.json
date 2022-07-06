@@ -7,11 +7,13 @@
   "command.name.help": "Help command",
 
   "command.description.help": "Displays commands info",
+  "command.description.ping": "Shows the bot ping",
   "command.description.botstatus": "Shows the bot status.",
   "command.description.botinfo": "Shows the bot status.",
   "command.description.serverstatus": "Shows the Minecraft server status.",
   "command.description.serverinfo": "Shows the Minecraft server status.",
-  "command.description.status": "Shows the system status.",
+  "command.description.status": "Shows the mod timings.",
+  "command.description.info": "Shows the mod timings.",
   "command.description.register": "Adds the informed minecraft account to the Member Server whitelist. [Members only]",
 
   "command.description.help.command": "Command to display the help of",

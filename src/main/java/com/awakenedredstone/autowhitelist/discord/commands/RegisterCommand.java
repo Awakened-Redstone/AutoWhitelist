@@ -20,7 +20,6 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.Text;
 
 import java.util.ArrayList;
 import java.util.Collections;

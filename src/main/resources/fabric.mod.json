@@ -3,15 +3,13 @@
   "id": "autowhitelist",
   "version": "${version}",
   "name": "AutoWhitelist",
-  "description": "A way to automate the whitelist of a minecraft server based on discord roles ",
+  "description": "A way to automate the whitelist of a minecraft server based on discord roles",
   "authors": [
     "Awakened Redstone"
   ],
-  "contact": {},
   "license": "LGPL-3",
   "icon": "assets/autowhitelist/icon.png",
   "environment": "server",
-  "accessWidener": "autowhitelist.accesswidener",
   "entrypoints": {
     "main": [
       "com.awakenedredstone.autowhitelist.AutoWhitelist"

@@ -2,7 +2,7 @@ package com.awakenedredstone.autowhitelist.discord.api.text;
 
 import com.awakenedredstone.autowhitelist.discord.api.command.DiscordCommandSource;
 import com.awakenedredstone.autowhitelist.discord.api.util.Util;
-import com.awakenedredstone.autowhitelist.lang.JigsawLanguage;
+import com.awakenedredstone.autowhitelist.lang.CustomLanguage;
 import com.google.common.collect.Lists;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.dv8tion.jda.api.entities.User;
@@ -42,7 +42,7 @@ public class TranslatableText extends BaseText implements ParsableText {
    }
 
    private void updateTranslations() {
-      Language language = JigsawLanguage.getInstance();
+      Language language = CustomLanguage.getInstance();
       if (language != this.languageCache) {
          this.languageCache = language;
          this.translations.clear();

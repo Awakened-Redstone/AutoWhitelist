@@ -40,27 +40,15 @@ public class CoreEvents {
     @SubscribeEvent
     public void onReady(ReadyEvent e) {
         AutoWhitelist.LOGGER.info("Finishing setup.");
-        /*if (AutoWhitelist.getConfigData().enableSlashCommands) {
-            List<Command> commands = jda.retrieveCommands().complete();
-            AutoWhitelistAPI.dispatcher().getRoot().getChildren().forEach(command -> {
-                if (commands.stream().map(Command::getName).noneMatch(slashCommand -> slashCommand.equalsIgnoreCase(command.getName()))) {
-                    registerCommands(command);
-                }
-            });
-        } else {
-            jSlashCommandDatada.retrieveCommands().complete().forEach(command -> jda.deleteCommandById(command.getId()).queue());
-        }*/
-
         if (scheduledUpdate != null) {
             scheduledUpdate.cancel(false);
             try {
                 scheduledUpdate.get();
-            } catch (Exception ignored) {
-            }
+            } catch (Exception ignored) {/**/}
         }
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
         AutoWhitelist.LOGGER.info("Parsing registered users.");
-        scheduledUpdate = scheduler.scheduleWithFixedDelay(new DiscordDataProcessor(), 0, updateDelay, TimeUnit.SECONDS);
+        scheduledUpdate = executorService.scheduleWithFixedDelay(new DiscordDataProcessor(), 0, updateDelay, TimeUnit.SECONDS);
         AutoWhitelist.LOGGER.info("Load complete.");
     }
 

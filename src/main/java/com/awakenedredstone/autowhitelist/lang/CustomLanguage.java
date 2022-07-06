@@ -8,10 +8,10 @@ import net.minecraft.util.Language;
 
 import java.util.Map;
 
-public class JigsawLanguage extends Language {
+public class CustomLanguage extends Language {
     public static final Map<String, String> translations = Maps.newHashMap();
     private final boolean rightToLeft = false;
-    private static final Language instance = new JigsawLanguage();
+    private static final Language instance = new CustomLanguage();
 
     public String get(String key) {
         return translations.getOrDefault(key, key);
