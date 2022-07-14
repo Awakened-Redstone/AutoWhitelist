@@ -38,18 +38,19 @@ dependencies {
     include modImplementation(fabricApi.module("fabric-lifecycle-events-v1", project.fabric_version))
     include modImplementation(fabricApi.module("fabric-api-base", project.fabric_version))
 
-    includeTransitive implementation('net.dv8tion:JDA:4.4.0_352') {
+    include implementation('net.dv8tion:JDA:4.4.0_352') {
         exclude module: 'opus-java'
-        exclude group: 'okhttp3', module: "okhttp"
     }
 
-    include implementation('com.squareup.okhttp3:okhttp:4.9.0')
+    include 'com.fasterxml.jackson.core:jackson-annotations:2.10.1'
+    include 'com.fasterxml.jackson.core:jackson-databind:2.10.1'
+    include 'com.fasterxml.jackson.core:jackson-core:2.10.1'
+    include 'com.neovisionaries:nv-websocket-client:2.14'
+    include 'org.apache.commons:commons-collections4:4.1'
+    include 'com.squareup.okhttp3:okhttp:3.13.0'
+    include 'com.squareup.okio:okio:1.17.2'
+    include 'net.sf.trove4j:trove4j:3.0.3'
 }
-
-configurations.getByName("includeTransitive").resolvedConfiguration.resolvedArtifacts.forEach(dep -> {
-    if (!dep.id.componentIdentifier.displayName.contains("slf4j-api"))
-        dependencies.add("include", dep.id.componentIdentifier.displayName)
-})
 
 compileJava {
     sourceCompatibility = 17
