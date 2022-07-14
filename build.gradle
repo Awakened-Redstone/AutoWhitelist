@@ -1,3 +1,5 @@
+import com.modrinth.minotaur.dependencies.ModDependency
+
 buildscript {
     dependencies {
         classpath 'org.kohsuke:github-api:1.306'
@@ -130,4 +132,7 @@ modrinth {
     versionName = projectVersionName
     changelog = CHANGELOG ?: "No changelog provided"
     uploadFile = remapJar
+    dependencies = [
+            new ModDependency("fabric-language-kotlin", "required") //Cube controller
+    ]
 }
