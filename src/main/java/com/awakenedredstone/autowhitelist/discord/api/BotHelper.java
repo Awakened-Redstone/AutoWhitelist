@@ -1,13 +1,13 @@
 package com.awakenedredstone.autowhitelist.discord.api;
 
-import com.awakenedredstone.autowhitelist.discord.api.text.Text;
-import com.awakenedredstone.autowhitelist.discord.api.text.TranslatableText;
+import com.awakenedredstone.autowhitelist.discord.api.util.Markdown;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.requests.restaction.MessageAction;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.minecraft.text.Text;
 
 import java.awt.*;
 import java.util.concurrent.TimeUnit;
@@ -20,8 +20,8 @@ public class BotHelper {
         embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
-        embedBuilder.setFooter(new TranslatableText("command.feedback.message.signature").getString());
-        MessageAction messageAction = channel.sendMessageEmbeds(embedBuilder.build());
+        embedBuilder.setFooter(Text.translatable("command.feedback.message.signature").getString());
+        MessageCreateAction messageAction = channel.sendMessageEmbeds(embedBuilder.build());
         messageAction.queue();
     }
 
@@ -30,9 +30,9 @@ public class BotHelper {
         embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
-        embedBuilder.setFooter(new TranslatableText("command.feedback.message.signature").getString());
+        embedBuilder.setFooter(Text.translatable("command.feedback.message.signature").getString());
         embedBuilder.setColor(type.hexColor);
-        MessageAction messageAction = channel.sendMessageEmbeds(embedBuilder.build());
+        MessageCreateAction messageAction = channel.sendMessageEmbeds(embedBuilder.build());
         messageAction.queue();
     }
 
@@ -42,36 +42,36 @@ public class BotHelper {
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
         embedBuilder.setFooter(String.format("This message will be deleted %s seconds after being sent.", seconds));
-        MessageAction messageAction = channel.sendMessageEmbeds(embedBuilder.build());
+        MessageCreateAction messageAction = channel.sendMessageEmbeds(embedBuilder.build());
         messageAction.queue(m -> m.delete().queueAfter(seconds, TimeUnit.SECONDS));
     }
 
-    public static Message generateFeedbackMessage(Text title, Text message) {
+    public static MessageCreateData generateFeedbackMessage(Text title, Text message) {
         EmbedBuilder embedBuilder = new EmbedBuilder();
         embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
-        embedBuilder.setFooter(new TranslatableText("command.feedback.message.signature").getString());
-        return new MessageBuilder(embedBuilder.build()).build();
+        embedBuilder.setFooter(Text.translatable("command.feedback.message.signature").getString());
+        return new MessageCreateBuilder().setEmbeds(embedBuilder.build()).build();
     }
 
-    public static Message generateFeedbackMessage(Text title, Text message, MessageType type) {
+    public static MessageCreateData generateFeedbackMessage(Text title, Text message, MessageType type) {
         EmbedBuilder embedBuilder = new EmbedBuilder();
         embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
-        embedBuilder.setTitle(title.markdownFormatted());
-        embedBuilder.setDescription(message.markdownFormatted());
-        embedBuilder.setFooter(new TranslatableText("command.feedback.message.signature").getString());
+        embedBuilder.setTitle(Markdown.formatText(title));
+        embedBuilder.setDescription(Markdown.formatText(message));
+        embedBuilder.setFooter(Text.translatable("command.feedback.message.signature").getString());
         embedBuilder.setColor(type.hexColor);
-        return new MessageBuilder(embedBuilder.build()).build();
+        return new MessageCreateBuilder().setEmbeds(embedBuilder.build()).build();
     }
 
     public static void sendSimpleMessage(MessageChannel channel, Text message) {
-        MessageAction messageAction = channel.sendMessage(message.markdownFormatted());
+        MessageCreateAction messageAction = channel.sendMessage(Markdown.formatText(message));
         messageAction.queue();
     }
 
     public static void sendTempSimpleMessage(MessageChannel channel, Text message, int seconds) {
-        MessageAction messageAction = channel.sendMessage(message.markdownFormatted());;
+        MessageCreateAction messageAction = channel.sendMessage(Markdown.formatText(message));
         messageAction.queue(m -> m.delete().queueAfter(seconds, TimeUnit.SECONDS));
     }
 

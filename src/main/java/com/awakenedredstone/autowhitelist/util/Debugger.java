@@ -6,10 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Deprecated(forRemoval = true)
 public class Debugger {
 
     public static final Map<String, long[]> timings = new HashMap<>();
 
+    @Deprecated(forRemoval = true)
     public static void analyzeTimings(String method, Dummy dummy) {
         long start = System.nanoTime();
         dummy.dummy();

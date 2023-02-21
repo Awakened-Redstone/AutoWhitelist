@@ -7,8 +7,5 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(ServerConfigEntry.class)
 public interface ServerConfigEntryMixin<T> {
-
-    @Invoker T callGetKey();
     @Accessor T getKey();
-
 }

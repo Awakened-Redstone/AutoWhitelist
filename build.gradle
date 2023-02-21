@@ -1,23 +1,17 @@
 import com.modrinth.minotaur.dependencies.ModDependency
 
-buildscript {
-    dependencies {
-        classpath 'org.kohsuke:github-api:1.306'
-    }
-}
-
 plugins {
-    id "fabric-loom" version "0.12.+"
+    id "fabric-loom" version "1.1-SNAPSHOT"
     id "maven-publish"
     id "com.modrinth.minotaur" version "2.+"
 }
 
 repositories {
     mavenCentral()
-    maven {
-      name 'm2-dv8tion'
-      url 'https://m2.dv8tion.net/releases'
-    }
+    maven { url 'https://m2.dv8tion.net/releases' }
+    maven { url 'https://maven.wispforest.io' }
+    maven { url 'https://maven.nucleoid.xyz' }
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
 }
 
 def CHANGELOG = new File('CHANGELOG.md').exists() ? new File('CHANGELOG.md').text : "No changelog provided"
@@ -29,18 +23,23 @@ group = project.maven_group
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
-configurations {
-    includeTransitive
-}
-
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    include modImplementation(fabricApi.module("fabric-lifecycle-events-v1", project.fabric_version))
-    include modImplementation(fabricApi.module("fabric-api-base", project.fabric_version))
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    include implementation('net.dv8tion:JDA:4.4.0_352') {
+    compileOnly "blue.endless:jankson:1.2.1"
+    annotationProcessor modImplementation("io.wispforest:owo-lib:0.10.2+1.19.3")
+    include modImplementation("fr.catcore:server-translations-api:1.4.19+1.19.3")
+    include modImplementation("eu.pb4:placeholder-api:2.0.0-pre.3+1.19.3")
+
+    modRuntimeOnly "net.fabricmc:fabric-language-kotlin:1.9.1+kotlin.1.8.10"
+
+    compileOnly 'net.luckperms:api:5.4'
+    modCompileOnly 'me.lucko:fabric-permissions-api:0.2-SNAPSHOT'
+
+    include api('net.dv8tion:JDA:5.0.0-beta.3') {
         exclude module: 'opus-java'
     }
 
@@ -52,6 +51,12 @@ dependencies {
     include 'com.squareup.okhttp3:okhttp:3.13.0'
     include 'com.squareup.okio:okio:1.17.2'
     include 'net.sf.trove4j:trove4j:3.0.3'
+}
+
+tasks.withType(JavaCompile) {
+    doFirst {
+        println "AnnotationProcessorPath for $name is ${options.getAnnotationProcessorPath().getFiles()}"
+    }
 }
 
 compileJava {
@@ -85,21 +90,6 @@ tasks.withType(JavaCompile) {
 
 jar {
     from "LICENSE"
-}
-
-def getBranch() {
-    def ENV = System.getenv()
-    if (ENV.GITHUB_REF) {
-        def branch = ENV.GITHUB_REF
-        return branch.substring(branch.lastIndexOf("/") + 1)
-    }
-
-    if (grgit == null) {
-        return "unknown"
-    }
-
-    def branch = grgit.branch.current().name
-    return branch.substring(branch.lastIndexOf("/") + 1)
 }
 
 task remapMavenJar(type: net.fabricmc.loom.task.RemapJarTask, dependsOn: jar) {

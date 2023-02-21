@@ -1,10 +1,12 @@
-package com.awakenedredstone.autowhitelist.discord.commands.developer;
+package com.awakenedredstone.autowhitelist.discord.commands.debug;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.discord.api.command.CommandManager;
 import com.awakenedredstone.autowhitelist.discord.api.command.DiscordCommandSource;
 import com.mojang.brigadier.CommandDispatcher;
 import net.dv8tion.jda.api.EmbedBuilder;
+//import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+//import net.dv8tion.jda.internal.interactions.CommandDataImpl;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.util.Util;
@@ -18,20 +20,17 @@ import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 public class ServerStatusCommand {
     public static void register(CommandDispatcher<DiscordCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("serverstatus")
-                .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())) || source.getUser().getId().equals("387745099204919297"))
+                .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
                 .executes((source) -> {
                     execute(source.getSource());
                     return 0;
                 }));
         dispatcher.register(CommandManager.literal("serverinfo")
-                .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())) || source.getUser().getId().equals("387745099204919297"))
+                .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
                 .executes((source) -> {
                     execute(source.getSource());
                     return 0;
                 }));
-
-//        CommandDataImpl command = new CommandDataImpl("serverStatus", new TranslatableText("command.description.serverStatus").getString());
-//        jda.upsertCommand(command).queue();
     }
 
     protected static void execute(DiscordCommandSource source) {
@@ -62,17 +61,13 @@ public class ServerStatusCommand {
 
             embedBuilder.addField("Server information", serverInformation.toString(), true);
 
-            if (source.getType() == DiscordCommandSource.CommandType.SLASH_COMMAND) {
-//                ((SlashCommandInteractionEvent)source.getEvent()).replyEmbeds(embedBuilder.build()).queue();
-            } else {
-                source.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
-            }
+            source.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
         });
     }
 
     private static String getServerStatus(MinecraftServer server) {
-        if (server.isStopped()) return "Stopped.";
-        if (server.isRunning()) return "Running.";
-        return "Unknown.";
+        if (server.isStopped()) return "Stopped";
+        if (server.isRunning()) return "Running";
+        return "Unknown";
     }
 }

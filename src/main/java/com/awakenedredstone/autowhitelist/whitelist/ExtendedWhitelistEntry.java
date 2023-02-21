@@ -18,23 +18,21 @@ public class ExtendedWhitelistEntry extends WhitelistEntry {
     }
 
     public ExtendedGameProfile getProfile() {
-        ((ServerConfigEntryMixin<?>) this).callGetKey();
         return (ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey();
     }
 
     @Override
     protected void write(JsonObject json) {
-        ((ServerConfigEntryMixin<?>) this).callGetKey();
         if (((ServerConfigEntryMixin<?>) this).getKey() != null && ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getId() != null) {
             json.addProperty("uuid", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getId().toString());
             json.addProperty("name", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getName());
-            json.addProperty("team", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getTeam());
+            json.addProperty("role", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getRole());
             json.addProperty("discordId", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getDiscordId());
         }
     }
 
     private static ExtendedGameProfile profileFromJson(JsonObject json) {
-        if (json.has("uuid") && json.has("name") && json.has("discordId") && json.has("team")) {
+        if (json.has("uuid") && json.has("name") && json.has("discordId") && json.has("role")) {
             String string = json.get("uuid").getAsString();
 
             UUID uuid;
@@ -44,7 +42,7 @@ public class ExtendedWhitelistEntry extends WhitelistEntry {
                 return null;
             }
 
-            return new ExtendedGameProfile(uuid, json.get("name").getAsString(), json.get("team").getAsString(), json.get("discordId").getAsString());
+            return new ExtendedGameProfile(uuid, json.get("name").getAsString(), json.get("role").getAsString(), json.get("discordId").getAsString());
         } else {
             return null;
         }

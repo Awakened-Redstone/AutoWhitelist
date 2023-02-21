@@ -11,11 +11,8 @@
   "icon": "assets/autowhitelist/icon.png",
   "environment": "server",
   "entrypoints": {
-    "main": [
-      "com.awakenedredstone.autowhitelist.AutoWhitelist"
-    ],
     "server": [
-      "com.awakenedredstone.autowhitelist.server.AutoWhitelistServer"
+      "com.awakenedredstone.autowhitelist.AutoWhitelist"
     ]
   },
   "mixins": [
@@ -23,7 +20,9 @@
   ],
   "depends": {
     "fabricloader": ">=0.13.2",
+    "fabric-lifecycle-events-v1": "*",
     "fabric-language-kotlin": "*",
-    "minecraft": ">=1.19"
+    "owo-lib": "0.10.2",
+    "minecraft": "1.19.3"
   }
 }

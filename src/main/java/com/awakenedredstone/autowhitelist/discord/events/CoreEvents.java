@@ -1,35 +1,27 @@
 package com.awakenedredstone.autowhitelist.discord.events;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
+import com.awakenedredstone.autowhitelist.config.EntryData;
 import com.awakenedredstone.autowhitelist.discord.DiscordDataProcessor;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
 import com.awakenedredstone.autowhitelist.util.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.util.FailedToUpdateWhitelistException;
-import com.awakenedredstone.autowhitelist.util.InvalidTeamNameException;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
-import com.mojang.brigadier.arguments.*;
-import com.mojang.brigadier.tree.ArgumentCommandNode;
-import com.mojang.brigadier.tree.CommandNode;
-import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.SubscribeEvent;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.awakenedredstone.autowhitelist.discord.Bot.*;
@@ -39,6 +31,7 @@ public class CoreEvents {
 
     @SubscribeEvent
     public void onReady(ReadyEvent e) {
+        guild = jda.getGuildById(AutoWhitelist.CONFIG.discordServerId());
         AutoWhitelist.LOGGER.info("Finishing setup.");
         if (scheduledUpdate != null) {
             scheduledUpdate.cancel(false);
@@ -48,7 +41,7 @@ public class CoreEvents {
         }
 
         AutoWhitelist.LOGGER.info("Parsing registered users.");
-        scheduledUpdate = executorService.scheduleWithFixedDelay(new DiscordDataProcessor(), 0, updateDelay, TimeUnit.SECONDS);
+        scheduledUpdate = executorService.scheduleWithFixedDelay(new DiscordDataProcessor(), 0, AutoWhitelist.CONFIG.updatePeriod(), TimeUnit.SECONDS);
         AutoWhitelist.LOGGER.info("Load complete.");
     }
 
@@ -57,18 +50,12 @@ public class CoreEvents {
         User user = e.getUser();
         ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.server.getPlayerManager().getWhitelist();
 
-        List<ExtendedGameProfile> players = new ArrayList<>();
-        whitelist.getEntries().stream().filter(entry -> {
-            ((ServerConfigEntryMixin<?>) entry).callGetKey();
-            try {
-                return user.getId().equals(((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getDiscordId());
-            } catch (ClassCastException exception) {
-                return false;
-            }
-        }).map(v -> {
-            ((ServerConfigEntryMixin<?>) v).callGetKey();
-            return (ExtendedGameProfile) ((ServerConfigEntryMixin<?>) v).getKey();
-        }).forEach(players::add);
+        List<ExtendedGameProfile> players = whitelist.getEntries().stream()
+                .filter(entry -> ((ServerConfigEntryMixin<?>) entry).getKey() instanceof ExtendedGameProfile)
+                .filter(entry -> user.getId().equals(((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getDiscordId()))
+                .map(v -> (ExtendedGameProfile) ((ServerConfigEntryMixin<?>) v).getKey())
+                .toList();
+
         if (players.size() > 1) {
             AutoWhitelist.LOGGER.error("Found more than one registered user with same discord id: {}", user.getId(), new FailedToUpdateWhitelistException("Could not update the whitelist, found multiple"));
             return;
@@ -82,81 +69,56 @@ public class CoreEvents {
 
     @SubscribeEvent
     public void onGuildMemberRoleAdd(@NotNull GuildMemberRoleAddEvent e) {
-        updateUser(e.getMember(), e.getRoles());
+        updateUser(e.getMember());
     }
 
     @SubscribeEvent
     public void onGuildMemberRoleRemove(@NotNull GuildMemberRoleRemoveEvent e) {
-        updateUser(e.getMember(), e.getRoles());
+        updateUser(e.getMember());
     }
 
-    private void updateUser(Member member, List<Role> roles) {
+    private void updateUser(Member member) {
         analyzeTimings("BotEventListener#updateUser", () -> {
-            if (Collections.disjoint(roles.stream().map(Role::getId).toList(), new ArrayList<>(whitelistDataMap.keySet()))) {
-                return;
-            }
+            Optional<String> roleOptional = getTopRole(member.getRoles());
 
             ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.server.getPlayerManager().getWhitelist();
 
-            List<ExtendedGameProfile> profiles = whitelist.getFromDiscordId(member.getId());
+            List<ExtendedGameProfile> profiles = whitelist.getProfilesFromDiscordId(member.getId());
             if (profiles.isEmpty()) return;
             if (profiles.size() > 1) {
                 AutoWhitelist.LOGGER.warn("Duplicate entries of Discord user with id {}. All of them will be removed.", member.getId());
-                profiles.forEach(profile -> whitelist.remove(new ExtendedWhitelistEntry(new ExtendedGameProfile(profile.getId(), profile.getName(), profile.getTeam(), profile.getDiscordId()))));
+                profiles.forEach(whitelist::remove);
                 return;
             }
 
-            List<String> validRoles = member.getRoles().stream().map(Role::getId).filter(whitelistDataMap::containsKey).toList();
-            if (validRoles.isEmpty()) {
+            if (roleOptional.isEmpty()) {
                 ExtendedGameProfile profile = profiles.get(0);
                 AutoWhitelist.removePlayer(profile);
                 return;
             }
-            String highestRole = validRoles.get(0);
-            String teamName = whitelistDataMap.get(highestRole);
+            String role = roleOptional.get();
+            EntryData entry = AutoWhitelist.whitelistDataMap.get(role);
             ExtendedGameProfile profile = profiles.get(0);
-            if (!profile.getTeam().equals(teamName)) {
-                whitelist.remove(profile);
-                whitelist.add(new ExtendedWhitelistEntry(new ExtendedGameProfile(profile.getId(), profile.getName(), teamName, profile.getDiscordId())));
+            if (!profile.getRole().equals(role)) {
+                whitelist.add(new ExtendedWhitelistEntry(profile.withRole(role)));
 
-                Scoreboard scoreboard = AutoWhitelist.server.getScoreboard();
-                Team team = scoreboard.getTeam(teamName);
-                if (team == null) {
-                    AutoWhitelist.LOGGER.error("Could not check team information of \"{}\", got \"null\" when trying to get \"net.minecraft.scoreboard.Team\" from \"{}\"", profile.getName(), profile.getTeam(), new InvalidTeamNameException("Tried to get \"net.minecraft.scoreboard.Team\" from \"" + profile.getTeam() + "\" but got \"null\"."));
-                    return;
-                }
-                scoreboard.addPlayerToTeam(profile.getName(), team);
+                entry.assertSafe();
+                entry.updateUser(profile);
             }
         });
     }
 
-    private void registerCommands(CommandNode<?> command) {
-        AutoWhitelist.LOGGER.info(String.valueOf(command.getRedirect() != null));
-        if (command.getRedirect() != null) {
-            return;
-        }
-//        CommandDataImpl commandData = new CommandDataImpl(command.getName().toLowerCase(), new TranslatableText("command.description." + command.getName()).getString());
-        boolean required = command.getCommand() == null;
-        command.getChildren().forEach(node -> {
-            if (node instanceof LiteralCommandNode) {
-//                commandData.addOptions(new OptionData(OptionType.SUB_COMMAND, node.getName(), new TranslatableText("command.description." + command.getName() + "." + node.getName()).getString(), required));
-            }
-            else if (node instanceof ArgumentCommandNode node1) {
-                OptionType type;
-                ArgumentType<?> type1 = node1.getType();
-                if (type1 instanceof BoolArgumentType) {
-                    type = OptionType.BOOLEAN;
-                } else if (type1 instanceof DoubleArgumentType || type1 instanceof FloatArgumentType) {
-                    type = OptionType.NUMBER;
-                } else if (type1 instanceof IntegerArgumentType || type1 instanceof LongArgumentType) {
-                    type = OptionType.INTEGER;
-                } else {
-                    type = OptionType.STRING;
-                }
-//                commandData.addOptions(new OptionData(type, node.getName(), new TranslatableText("command.description." + command.getName() + "." + node.getName()).getString(), required));
-            }
+    private boolean hasRole(List<Role> roles) {
+        for (Role r : roles)
+            if (AutoWhitelist.whitelistDataMap.containsKey(r.getId())) return true;
 
-        });
-//        jda.upsertCommand(commandData).queue();
+        return false;
+    }
+
+    private Optional<String> getTopRole(List<Role> roles) {
+        for (Role r : roles)
+            if (AutoWhitelist.whitelistDataMap.containsKey(r.getId())) return Optional.of(r.getId());
+
+        return Optional.empty();
     }
 }

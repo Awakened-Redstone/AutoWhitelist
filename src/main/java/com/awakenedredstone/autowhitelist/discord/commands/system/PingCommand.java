@@ -2,12 +2,7 @@ package com.awakenedredstone.autowhitelist.discord.commands.system;
 
 import com.awakenedredstone.autowhitelist.discord.api.command.CommandManager;
 import com.awakenedredstone.autowhitelist.discord.api.command.DiscordCommandSource;
-import com.awakenedredstone.autowhitelist.discord.api.text.LiteralText;
-import com.awakenedredstone.autowhitelist.discord.api.text.TranslatableText;
-import com.awakenedredstone.autowhitelist.discord.api.util.Formatting;
 import com.mojang.brigadier.CommandDispatcher;
-import net.dv8tion.jda.api.EmbedBuilder;
-//import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import java.time.temporal.ChronoUnit;
 
@@ -18,7 +13,7 @@ public class PingCommand {
             return 0;
         }));
 
-//        CommandData command = new CommandDataImpl("test", new TranslatableText("command.description.test").markdownFormatted());
+//        CommandData command = new CommandDataImpl("test", Text.translatable("command.description.test").markdownFormatted());
 //        jda.upsertCommand(command).queue();
     }
 

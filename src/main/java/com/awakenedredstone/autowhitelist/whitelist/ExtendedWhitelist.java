@@ -7,8 +7,8 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.server.ServerConfigEntry;
 import net.minecraft.server.Whitelist;
 import net.minecraft.server.WhitelistEntry;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -24,7 +24,6 @@ public class ExtendedWhitelist extends Whitelist {
     protected ServerConfigEntry<GameProfile> fromJson(JsonObject json) {
         ExtendedWhitelistEntry entry = new ExtendedWhitelistEntry(json);
         try {
-            ((ServerConfigEntryMixin<?>) entry).callGetKey();
             if (((ServerConfigEntryMixin<?>) entry).getKey() != null) return entry;
             else return new WhitelistEntry(json);
         } catch (ClassCastException e) {
@@ -54,7 +53,6 @@ public class ExtendedWhitelist extends Whitelist {
     public void remove(String var5, Type type) {
         switch (type) {
             case DISCORD_ID -> values().stream().filter(entry -> {
-                ((ServerConfigEntryMixin<?>) entry).callGetKey();
                 try {
                     return ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getDiscordId().equals(var5);
                 } catch (ClassCastException exception) {
@@ -62,29 +60,35 @@ public class ExtendedWhitelist extends Whitelist {
                 }
             }).forEach(whitelistEntry -> remove((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) whitelistEntry).getKey()));
             case USERNAME -> values().stream().filter(entry -> {
-                ((ServerConfigEntryMixin<?>) entry).callGetKey();
                 return ((GameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getName().equals(var5);
             }).forEach(whitelistEntry -> remove((GameProfile) ((ServerConfigEntryMixin<?>) whitelistEntry).getKey()));
         }
     }
 
-    public List<ExtendedGameProfile> getFromDiscordId(String var5) {
+    public List<ExtendedGameProfile> getProfilesFromDiscordId(String id) {
         return values().stream().filter(entry -> {
-            ((ServerConfigEntryMixin<?>) entry).callGetKey();
             try {
-                return ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getDiscordId().equals(var5);
+                return ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getDiscordId().equals(id);
             } catch (ClassCastException exception) {
                 return false;
             }
-        }).map(whitelistEntry -> (ExtendedGameProfile) ((ServerConfigEntryMixin<?>) whitelistEntry).getKey()).collect(Collectors.toList());
+        }).map(whitelistEntry -> (ExtendedGameProfile) ((ServerConfigEntryMixin<?>) whitelistEntry).getKey()).toList();
+    }
+
+    public List<ExtendedWhitelistEntry> getFromDiscordId(String id) {
+        return values().stream()
+                .filter(entry -> entry instanceof ExtendedWhitelistEntry)
+                .filter(entry -> ((ServerConfigEntryMixin<?>) entry).getKey() instanceof ExtendedGameProfile profile && profile.getDiscordId().equals(id))
+                .map(v -> (ExtendedWhitelistEntry) v)
+                .toList();
     }
 
     @Nullable
     public GameProfile getFromUsername(String var5) {
-        return values().stream().filter(entry -> {
-            ((ServerConfigEntryMixin<?>) entry).callGetKey();
-            return ((GameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getName().equals(var5);
-        }).map(whitelistEntry -> (GameProfile) ((ServerConfigEntryMixin<?>) whitelistEntry).getKey()).findFirst().orElse(null);
+        return values().stream()
+                .filter(entry -> ((GameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getName().equals(var5))
+                .map(whitelistEntry -> (GameProfile) ((ServerConfigEntryMixin<?>) whitelistEntry).getKey())
+                .findFirst().orElse(null);
     }
 
     public enum Type {

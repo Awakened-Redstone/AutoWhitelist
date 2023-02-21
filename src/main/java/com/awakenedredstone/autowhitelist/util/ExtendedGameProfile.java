@@ -6,20 +6,24 @@ import java.util.UUID;
 
 public class ExtendedGameProfile extends GameProfile {
 
-    private final String team;
+    private final String role;
     private final String discordId;
 
-    public ExtendedGameProfile(UUID id, String name, String team, String discordId) {
+    public ExtendedGameProfile(UUID id, String name, String role, String discordId) {
         super(id, name);
-        this.team = team;
+        this.role = role;
         this.discordId = discordId;
     }
 
-    public String getTeam() {
-        return team;
+    public String getRole() {
+        return role;
     }
 
     public String getDiscordId() {
         return discordId;
+    }
+
+    public ExtendedGameProfile withRole(String newRole) {
+        return new ExtendedGameProfile(getId(), getName(), newRole, discordId);
     }
 }

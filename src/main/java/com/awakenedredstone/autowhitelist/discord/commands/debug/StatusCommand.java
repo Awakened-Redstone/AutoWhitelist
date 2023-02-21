@@ -1,12 +1,12 @@
-package com.awakenedredstone.autowhitelist.discord.commands.developer;
+package com.awakenedredstone.autowhitelist.discord.commands.debug;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.discord.api.command.CommandManager;
 import com.awakenedredstone.autowhitelist.discord.api.command.DiscordCommandSource;
 import com.awakenedredstone.autowhitelist.util.Debugger;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.dv8tion.jda.api.EmbedBuilder;
-//import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.Arrays;
@@ -16,23 +16,22 @@ import java.util.Objects;
 import static com.awakenedredstone.autowhitelist.discord.Bot.jda;
 import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 
+@Deprecated(forRemoval = true)
 public class StatusCommand {
     public static void register(CommandDispatcher<DiscordCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("status")
-                .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())) || source.getUser().getId().equals("387745099204919297"))
-                .executes((source) -> {
-                    execute(source.getSource());
-                    return 0;
-                }));
-        dispatcher.register(CommandManager.literal("info")
-                .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())) || source.getUser().getId().equals("387745099204919297"))
+        LiteralCommandNode<DiscordCommandSource> literalCommandNode = dispatcher.register(CommandManager.literal("status")
+                .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
                 .executes((source) -> {
                     execute(source.getSource());
                     return 0;
                 }));
 
-//        CommandDataImpl command = new CommandDataImpl("botStatus", new TranslatableText("command.description.status").getString());
-//        jda.upsertCommand(command).queue();
+        dispatcher.register(CommandManager.literal("info")
+                .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
+                .executes((source) -> {
+                    execute(source.getSource());
+                    return 0;
+                }));
     }
 
     protected static void execute(DiscordCommandSource source) {
@@ -56,11 +55,8 @@ public class StatusCommand {
             }
 
             embedBuilder.addField("Processing timings", output2.toString(), true);
-            if (source.getType() == DiscordCommandSource.CommandType.SLASH_COMMAND) {
-//                ((SlashCommandInteractionEvent)source.getEvent()).replyEmbeds(embedBuilder.build()).queue();
-            } else {
-                source.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
-            }
+
+            source.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
         });
     }
 }

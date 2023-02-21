@@ -1,12 +1,13 @@
 package com.awakenedredstone.autowhitelist.discord;
 
-import com.awakenedredstone.autowhitelist.discord.api.text.TranslatableText;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.requests.restaction.MessageAction;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.minecraft.text.Text;
 
 import java.awt.*;
@@ -15,12 +16,12 @@ import java.util.concurrent.TimeUnit;
 public class BotHelper extends Bot {
 
     public static void sendFeedbackMessage(MessageChannel channel, Text title, Text message) {
-        MessageAction messageAction = channel.sendMessage(generateFeedbackMessage(title, message));
+        MessageCreateAction messageAction = channel.sendMessage(generateFeedbackMessage(title, message));
         messageAction.queue();
     }
 
     public static void sendFeedbackMessage(MessageChannel channel, Text title, Text message, MessageType type) {
-        MessageAction messageAction = channel.sendMessage(generateFeedbackMessage(title, message, type));
+        MessageCreateAction messageAction = channel.sendMessage(generateFeedbackMessage(title, message, type));
         messageAction.queue();
     }
 
@@ -30,36 +31,46 @@ public class BotHelper extends Bot {
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
         embedBuilder.setFooter(String.format("This message will be deleted %s seconds after being sent.", seconds));
-        MessageAction messageAction = channel.sendMessage(new MessageBuilder().setEmbeds(embedBuilder.build()).build());
+        MessageCreateAction messageAction = channel.sendMessage(new MessageCreateBuilder().setEmbeds(embedBuilder.build()).build());
         messageAction.queue(m -> m.delete().queueAfter(seconds, TimeUnit.SECONDS));
     }
 
-    public static Message generateFeedbackMessage(Text title, Text message) {
+    public static MessageCreateData generateFeedbackMessage(Text title, Text message) {
         EmbedBuilder embedBuilder = new EmbedBuilder();
         embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
-        embedBuilder.setFooter(new TranslatableText("command.feedback.message.signature").getString());
-        return new MessageBuilder(embedBuilder.build()).build();
+        embedBuilder.setFooter(Text.translatable("command.feedback.message.signature").getString());
+        return new MessageCreateBuilder().setEmbeds(embedBuilder.build()).build();
     }
 
-    public static Message generateFeedbackMessage(Text title, Text message, MessageType type) {
+    public static MessageCreateData generateFeedbackMessage(Text title, Text message, MessageType type) {
         EmbedBuilder embedBuilder = new EmbedBuilder();
         embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
-        embedBuilder.setFooter(new TranslatableText("command.feedback.message.signature").getString());
+        embedBuilder.setFooter(Text.translatable("command.feedback.message.signature").getString());
         embedBuilder.setColor(type.hexColor);
-        return new MessageBuilder(embedBuilder.build()).build();
+        return new MessageCreateBuilder().addEmbeds(embedBuilder.build()).build();
+    }
+
+    public static MessageEditData generateEditFeedbackMessage(Text title, Text message, MessageType type) {
+        EmbedBuilder embedBuilder = new EmbedBuilder();
+        embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
+        embedBuilder.setTitle(title.getString());
+        embedBuilder.setDescription(message.getString());
+        embedBuilder.setFooter(Text.translatable("command.feedback.message.signature").getString());
+        embedBuilder.setColor(type.hexColor);
+        return new MessageEditBuilder().setEmbeds(embedBuilder.build()).build();
     }
 
     public static void sendSimpleMessage(MessageChannel channel, Text message) {
-        MessageAction messageAction = channel.sendMessage(message.getString());
+        MessageCreateAction messageAction = channel.sendMessage(message.getString());
         messageAction.queue();
     }
 
     public static void sendTempSimpleMessage(MessageChannel channel, Text message, int seconds) {
-        MessageAction messageAction = channel.sendMessage(message.getString());
+        MessageCreateAction messageAction = channel.sendMessage(message.getString());
         messageAction.queue(m -> m.delete().queueAfter(seconds, TimeUnit.SECONDS));
     }
 

@@ -1,127 +1,76 @@
 package com.awakenedredstone.autowhitelist;
 
-import com.awakenedredstone.autowhitelist.config.Config;
-import com.awakenedredstone.autowhitelist.config.ConfigData;
+import blue.endless.jankson.JsonObject;
+import blue.endless.jankson.JsonPrimitive;
+import com.awakenedredstone.autowhitelist.commands.AutoWhitelistCommand;
+import com.awakenedredstone.autowhitelist.config.Configs;
+import com.awakenedredstone.autowhitelist.config.EntryData;
+import com.awakenedredstone.autowhitelist.config.compat.LuckpermsEntry;
 import com.awakenedredstone.autowhitelist.discord.Bot;
-import com.awakenedredstone.autowhitelist.json.JsonHelper;
-import com.awakenedredstone.autowhitelist.lang.CustomLanguage;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
-import com.awakenedredstone.autowhitelist.server.AutoWhitelistServer;
 import com.awakenedredstone.autowhitelist.util.ExtendedGameProfile;
-import com.awakenedredstone.autowhitelist.util.InvalidTeamNameException;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.awakenedredstone.autowhitelist.whitelist.WhitelistCache;
 import com.mojang.authlib.GameProfile;
-import net.fabricmc.api.ModInitializer;
+import eu.pb4.placeholders.api.PlaceholderResult;
+import eu.pb4.placeholders.api.Placeholders;
+import net.fabricmc.api.DedicatedServerModInitializer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.WhitelistEntry;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
-import static com.awakenedredstone.autowhitelist.lang.CustomLanguage.translations;
-
-public class AutoWhitelist implements ModInitializer {
-    public static MinecraftServer server;
-
-    public static final Config config = new Config();
+@Environment(EnvType.SERVER)
+public class AutoWhitelist implements DedicatedServerModInitializer {
+    public static final String MOD_ID = "autowhitelist";
     public static final Logger LOGGER = LoggerFactory.getLogger("AutoWhitelist");
-    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-
-    private static final File configFile = new File(config.getConfigDirectory(), "autowhitelist.json");
-
-    public static ConfigData getConfigData() {
-        return config.getConfigData();
-    }
+    public static final Configs CONFIG;
+    public static final File WHITELIST_CACHE_FILE = new File("whitelist-cache.json");
+    public static final WhitelistCache WHITELIST_CACHE = new WhitelistCache(WHITELIST_CACHE_FILE);
+    public static MinecraftServer server;
+    public static Map<String, EntryData> whitelistDataMap = new HashMap<>();
 
     public static void updateWhitelist() {
         PlayerManager playerManager = server.getPlayerManager();
         ExtendedWhitelist whitelist = (ExtendedWhitelist) playerManager.getWhitelist();
-        Scoreboard scoreboard = server.getScoreboard();
 
         Collection<? extends WhitelistEntry> entries = whitelist.getEntries();
 
-        List<GameProfile> profiles = entries.stream().map(v -> {
-            ((ServerConfigEntryMixin<?>) v).callGetKey();
-            return (GameProfile) ((ServerConfigEntryMixin<?>) v).getKey();
-        }).toList();
+        List<GameProfile> profiles = entries.stream().map(v -> (GameProfile) ((ServerConfigEntryMixin<?>) v).getKey()).toList();
 
         for (GameProfile profile : profiles) {
-            GameProfile profile1 = server.getUserCache().getByUuid(profile.getId()).orElse(null);
-            try {
-                if (profile1 == null) {
-                    removePlayer((ExtendedGameProfile) profile);
-                    getCommandSource().sendFeedback(Text.literal("Removing bad entry from " + profile.getName()), true);
-                    continue;
-                }
-            } catch (ClassCastException ignored) {
-                getCommandSource().sendFeedback(Text.literal("Removing bad entry from " + profile.getName()), true);
-                whitelist.remove(profile);
-                scoreboard.clearPlayerTeam(profile.getName());
-                continue;
-            }
+            GameProfile cachedProfile = server.getUserCache().getByUuid(profile.getId()).orElse(null);
 
-            if (!profile.getName().equals(profile1.getName())) {
+            if (!profile.getName().equals(cachedProfile.getName()) && profile instanceof ExtendedGameProfile extendedProfile) {
                 getCommandSource().sendFeedback(Text.literal("Fixing bad entry from " + profile.getName()), true);
-                try {
-                    ExtendedGameProfile isExtended = (ExtendedGameProfile) profile;
-                    whitelist.remove(isExtended);
-                    whitelist.add(new ExtendedWhitelistEntry(new ExtendedGameProfile(profile1.getId(), profile1.getName(), isExtended.getTeam(), isExtended.getDiscordId())));
-                } catch (ClassCastException ignored) {
-                    whitelist.remove(profile);
-                    whitelist.add(new WhitelistEntry(profile1));
-                }
+                whitelist.add(new ExtendedWhitelistEntry(new ExtendedGameProfile(cachedProfile.getId(), cachedProfile.getName(), extendedProfile.getRole(), extendedProfile.getDiscordId())));
             }
         }
 
-        List<ExtendedGameProfile> extendedProfiles = profiles.stream().map(v -> {
-            try {
-                return (ExtendedGameProfile) v;
-            } catch (ClassCastException e) {
-                return null;
-            }
-        }).filter(Objects::nonNull).toList();
+        CONFIG.entries().forEach(EntryData::purgeInvalid);
 
-        getConfigData().whitelist.keySet().forEach(teamName -> {
-            Team team = scoreboard.getTeam(teamName);
-            if (team == null) {
-                LOGGER.error("Could not check for invalid players on team \"{}\", got \"null\" when trying to get \"net.minecraft.scoreboard.Team\" from \"{}\"", teamName, teamName, new InvalidTeamNameException("Tried to get \"net.minecraft.scoreboard.Team\" from \"" + teamName + "\" but got \"null\"."));
-                return;
-            }
-            List<String> invalidPlayers = team.getPlayerList().stream().filter(player -> {
-                GameProfile profile = profiles.stream().filter(v -> v.getName().equals(player)).findFirst().orElse(null);
-                if (profile == null) return true;
-                return !whitelist.isAllowed(profile);
-            }).toList();
-            invalidPlayers.forEach(player -> scoreboard.removePlayerFromTeam(player, team));
-        });
-
-        for (ExtendedGameProfile player : extendedProfiles) {
-            if (player == null) continue;
-            Team team = scoreboard.getTeam(player.getTeam());
-
-            if (team == null) {
-                LOGGER.error("Could not check team information of \"{}\", got \"null\" when trying to get \"net.minecraft.scoreboard.Team\" from \"{}\"", player.getName(), player.getTeam(), new InvalidTeamNameException("Tried to get \"net.minecraft.scoreboard.Team\" from \"" + player.getTeam() + "\" but got \"null\"."));
-                return;
-            }
-
-            if (scoreboard.getPlayerTeam(player.getName()) != team) {
-                scoreboard.addPlayerToTeam(player.getName(), team);
+        for (GameProfile profile : profiles) {
+            if (profile instanceof ExtendedGameProfile extended) {
+                EntryData entry = whitelistDataMap.get(extended.getRole());
+                if (entry.shouldUpdate(extended)) entry.updateUser(extended);
             }
         }
 
@@ -130,43 +79,55 @@ public class AutoWhitelist implements ModInitializer {
         }
     }
 
-    public static void removePlayer(ExtendedGameProfile player) {
-        if (server.getPlayerManager().getWhitelist().isAllowed(player)) {
-            server.getPlayerManager().getWhitelist().remove(new ExtendedWhitelistEntry(player));
-            Scoreboard scoreboard = server.getScoreboard();
-            scoreboard.clearPlayerTeam(player.getName());
+    public static void removePlayer(ExtendedGameProfile profile) {
+        if (server.getPlayerManager().getWhitelist().isAllowed(profile)) {
+            server.getPlayerManager().getWhitelist().remove(new ExtendedWhitelistEntry(profile));
+            whitelistDataMap.get(profile.getRole()).removeUser(profile);;
         }
     }
 
     @Override
-    public void onInitialize() {
+    public void onInitializeServer() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> Bot.stopBot(true), "JDA shutdown"));
 
-        File dir = config.getConfigDirectory();
-        if ((dir.exists() && dir.isDirectory()) || dir.mkdirs()) {
-            if (!configFile.exists()) {
-                JsonHelper.writeJsonToFile(config.defaultConfig(), configFile);
+        EntryData.register(new EntryData.Team(""));
+        EntryData.register(new EntryData.Command("", ""));
+        if (FabricLoader.getInstance().isModLoaded("luckperms")) {
+            EntryData.register(new LuckpermsEntry.Permission(""));
+            EntryData.register(new LuckpermsEntry.Group(""));
+        }
+
+        if (!WHITELIST_CACHE_FILE.exists()) {
+            try {
+                WHITELIST_CACHE.save();
+            } catch (IOException e) {
+                LOGGER.warn("Failed to save whitelist cache: ", e);
             }
         }
-        config.loadConfigs();
-    }
 
-    public static void reloadTranslations() {
-        try {
-            {
-                InputStream inputStream = AutoWhitelistServer.class.getResource("/messages.json").openStream();
-                CustomLanguage.load(inputStream, translations::put);
-            }
-            File file = new File(config.getConfigDirectory(), "messages.json");
-            if (!file.exists()) {
-                Files.copy(AutoWhitelistServer.class.getResource("/messages.json").openStream(), file.toPath());
-            }
+        CONFIG.subscribeToEntries(newEntries -> {
+            whitelistDataMap.clear();
+            newEntries.forEach(entry -> entry.getRoleIds().forEach(id -> AutoWhitelist.whitelistDataMap.put(id, entry)));
+        });
 
-            InputStream inputStream = Files.newInputStream(file.toPath());
-            CustomLanguage.load(inputStream, translations::put);
-        } catch (Exception e) {
-            LOGGER.error("Failed to load translations", e);
-        }
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+            AutoWhitelist.server = server;
+            CONFIG.load();
+            loadWhitelistCache();
+            if (!server.isOnlineMode()) {
+                LOGGER.warn("Offline server detected!");
+                LOGGER.warn("This mod does not offer support for offline servers!");
+                LOGGER.warn("Using a whitelist on an offline server offers little to no protection");
+                LOGGER.warn("AutoWhitelist may not work properly, fully or at all on an offline server");
+            }
+        });
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> AutoWhitelistCommand.register(dispatcher));
+        ServerLifecycleEvents.SERVER_STOPPING.register((server -> Bot.stopBot(false)));
+        ServerLifecycleEvents.SERVER_STARTED.register((server -> new Bot().start()));
+
+        Placeholders.register(new Identifier(MOD_ID, "prefix"),
+                (ctx, arg) -> PlaceholderResult.value(Text.literal(AutoWhitelist.CONFIG.prefix()))
+        );
     }
 
     public static ServerCommandSource getCommandSource() {
@@ -175,4 +136,22 @@ public class AutoWhitelist implements ModInitializer {
                 serverWorld, 4, "AutoWhitelist", Text.literal("AutoWhitelist"), server, null);
     }
 
+    public static void loadWhitelistCache() {
+        try {
+            WHITELIST_CACHE.load();
+        } catch (Exception exception) {
+            LOGGER.warn("Failed to load whitelist cache: ", exception);
+        }
+    }
+
+    static {
+        CONFIG = Configs.createAndLoad(builder -> {
+            builder.registerDeserializer(JsonObject.class, EntryData.class, (jsonObject, m) -> EntryData.deserialize(((JsonPrimitive) jsonObject.get("type")).asString(), jsonObject));
+            builder.registerSerializer(EntryData.class, (entryData, marshaller) -> {
+                JsonObject json = entryData.serialize();
+                json.put("type", new JsonPrimitive(entryData.getType().name()));
+                return json;
+            });
+        });
+    }
 }
