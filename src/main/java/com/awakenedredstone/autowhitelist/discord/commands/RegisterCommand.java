@@ -129,7 +129,9 @@ public class RegisterCommand {
                     MessageCreateAction feedbackMessage = channel.sendMessage(message);
                     feedbackMessage.queue(message_ -> {
                         whitelist.add(new ExtendedWhitelistEntry(extendedProfile));
-                        AutoWhitelist.WHITELIST_CACHE.add(new WhitelistCacheEntry(extendedProfile));
+                        if (!AutoWhitelist.CONFIG.enableWhitelistCache()) {
+                            AutoWhitelist.WHITELIST_CACHE.add(new WhitelistCacheEntry(extendedProfile));
+                        }
                         entry.registerUser(profile);
                         message_.editMessage(BotHelper.generateEditFeedbackMessage(Text.translatable("command.register.success.title"),
                                 Text.translatable("command.register.success.message"), BotHelper.MessageType.SUCCESS)).queue();
