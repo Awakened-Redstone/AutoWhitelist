@@ -23,6 +23,6 @@
     "fabric-lifecycle-events-v1": "*",
     "fabric-language-kotlin": "*",
     "owo-lib": "0.10.2",
-    "minecraft": "1.19.3"
+    "minecraft": "1.19.4"
   }
 }

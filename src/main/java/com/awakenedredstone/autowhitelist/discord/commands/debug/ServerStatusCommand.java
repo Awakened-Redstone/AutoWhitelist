@@ -12,6 +12,7 @@ import net.minecraft.server.PlayerManager;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 import static com.awakenedredstone.autowhitelist.discord.Bot.jda;
@@ -39,7 +40,7 @@ public class ServerStatusCommand {
             PlayerManager playerManager = server.getPlayerManager();
 
             long l = Util.getMeasuringTimeMs() - server.getTimeReference();
-            double MSPT = MathHelper.average(server.lastTickLengths) * 1.0E-6D;
+            double MSPT = Arrays.stream(server.lastTickLengths).average().getAsDouble() * 1.0E-6D;
             double TPS = 1000.0D / Math.max(50, MSPT);
             double MAX_POSSIBLE_TPS = 1000.0D / MSPT;
 

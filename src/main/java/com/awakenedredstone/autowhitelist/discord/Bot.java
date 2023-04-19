@@ -99,7 +99,7 @@ public class Bot extends Thread {
             builder.setMemberCachePolicy(MemberCachePolicy.ALL);
             jda = builder.build();
 
-            jda.getPresence().setActivity(Activity.of(AutoWhitelist.CONFIG.botActivityType().getActivityType(), Text.translatable("bot.activity.message").getString()));
+            jda.getPresence().setActivity(AutoWhitelist.CONFIG.botActivityType().getActivity());
 
             TestCommand.register(DiscordBrigadierHelper.dispatcher());
             HelpCommand.register(DiscordBrigadierHelper.dispatcher());

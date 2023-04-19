@@ -1,14 +1,17 @@
 package com.awakenedredstone.autowhitelist.config;
 
 import blue.endless.jankson.Comment;
+import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import io.wispforest.owo.config.annotation.*;
 import net.dv8tion.jda.annotations.Incubating;
 import net.dv8tion.jda.api.entities.Activity;
+import net.minecraft.text.Text;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+@SuppressWarnings("unused")
 @Config(name = "autowhitelist", wrapperName = "Configs")
 public class ConfigData {
 
@@ -51,6 +54,10 @@ public class ConfigData {
 
         public Activity.ActivityType getActivityType() {
             return activityType;
+        }
+
+        public Activity getActivity() {
+            return activityType == null ? null : Activity.of(activityType, Text.translatable("bot.activity.message").getString());
         }
     }
 

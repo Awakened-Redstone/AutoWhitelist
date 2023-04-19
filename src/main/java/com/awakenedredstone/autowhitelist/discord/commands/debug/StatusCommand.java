@@ -51,7 +51,7 @@ public class StatusCommand {
                 String method = entry.getKey();
                 long[] times = entry.getValue();
 
-                output2.append("\n").append("**").append(method).append(":** ").append(Debugger.formatTimings(Arrays.stream(times).min().orElse(-1))).append("/").append(Debugger.formatTimings(MathHelper.average(times))).append("/").append(Debugger.formatTimings(Arrays.stream(times).max().orElse(-1)));
+                output2.append("\n").append("**").append(method).append(":** ").append(Debugger.formatTimings(Arrays.stream(times).min().orElse(-1))).append("/").append(Debugger.formatTimings(Arrays.stream(times).average().getAsDouble())).append("/").append(Debugger.formatTimings(Arrays.stream(times).max().orElse(-1)));
             }
 
             embedBuilder.addField("Processing timings", output2.toString(), true);
