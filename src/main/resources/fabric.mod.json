@@ -22,7 +22,7 @@
     "fabricloader": ">=0.13.2",
     "fabric-lifecycle-events-v1": "*",
     "fabric-language-kotlin": "*",
-    "owo-lib": "0.10.2",
+    "owo-lib": "0.10.3",
     "minecraft": "1.19.4"
   }
 }
