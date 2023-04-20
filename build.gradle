@@ -23,6 +23,12 @@ group = project.maven_group
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
+configurations.configureEach {
+    resolutionStrategy {
+        force("net.fabricmc:fabric-loader:$loader_version")
+    }
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
