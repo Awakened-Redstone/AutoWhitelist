@@ -1,3 +1,5 @@
+### You can find the lite version at https://modrinth.com/mod/autowhitelist-lite
+
 **The mod may not work properly with other discord integration mods if they use a different version of JDA**
 <br/>
 AutoWhitelist is a mod made to automate the whitelisting of players based on their Discord role.  
@@ -7,7 +9,7 @@ It has also been made to be extremely stable so it can be used on servers that a
 <br/>
 <br/>
 
-#### You can set the bot message text with a <u>datapack</u>, more about it can be found <u>[here](https://github.com/NucleoidMC/Server-Translations#readme)</u>
+#### You can set the bot message text with a <u>datapack</u>, more about it can be found <u>[here](https://github.com/NucleoidMC/Server-Translations#usage)</u>
 
 Configuring the mod can be a bit complicated, you can find a tutorial below.
 <br/>
