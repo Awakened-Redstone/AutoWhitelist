@@ -47,7 +47,7 @@ body:
       description: What version of AutoWhitelist are you running?
       options:
         - Lite
-        #- Full
+        - Full
     validations:
       required: true
   - type: textarea

@@ -5,6 +5,16 @@ labels:
   - T-enhancement
   - T-documentation
 body:
+  - type: dropdown
+    id: version_type
+    attributes:
+      label: Version type
+      description: What version of AutoWhitelist are you running?
+      options:
+        - Lite
+        - Full
+    validations:
+      required: true
   - type: textarea
     id: target
     attributes:
