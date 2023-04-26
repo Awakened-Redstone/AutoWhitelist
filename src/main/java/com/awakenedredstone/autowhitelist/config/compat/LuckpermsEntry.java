@@ -24,14 +24,36 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public abstract class LuckpermsEntry extends EntryData {
+    /**
+     * Obtain a reference of the LuckPerms userManager.
+     *
+     * @return An instance of the LuckPerms userManager.
+     */
+    private UserManager getUserManager() {
+        LuckPerms luckPerms = LuckPermsProvider.get();
+        return luckPerms.getUserManager();
+    }
+
     @Override
     public <T extends GameProfile> void registerUser(T profile) {
-        getUser(profile).whenComplete((user, throwable) -> user.data().add(getNode()));
+        getUser(profile).whenComplete((user, throwable) -> {
+            // Add the LuckPerms group/permission to the user
+            user.data().add(getNode());
+
+            // Save the user to LuckPerms
+            getUserManager().saveUser(user);
+        });
     }
 
     @Override
     public <T extends GameProfile> void removeUser(T profile) {
-        getUser(profile).whenComplete((user, throwable) -> user.data().remove(getNode()));
+        getUser(profile).whenComplete((user, throwable) -> {
+            // Remove the LuckPerms group/permission from the user
+            user.data().remove(getNode());
+
+            // Save the user to LuckPerms
+            getUserManager().saveUser(user);
+        });
     }
 
     @Override
@@ -52,8 +74,7 @@ public abstract class LuckpermsEntry extends EntryData {
     }
 
     protected CompletableFuture<User> getUser(GameProfile profile) {
-        LuckPerms luckPerms = LuckPermsProvider.get();
-        UserManager userManager = luckPerms.getUserManager();
+        UserManager userManager = getUserManager();
         CompletableFuture<User> future;
         if (AutoWhitelist.server.getPlayerManager().getPlayer(profile.getId()) == null) {
             future = userManager.loadUser(profile.getId());
