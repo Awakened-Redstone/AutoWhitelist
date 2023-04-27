@@ -6,6 +6,7 @@ import eu.pb4.placeholders.api.PlaceholderHandler;
 import eu.pb4.placeholders.api.PlaceholderResult;
 import eu.pb4.placeholders.api.Placeholders;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 
 import java.util.Map;
 
@@ -14,6 +15,7 @@ public class DynamicPlaceholders {
     public static Text parseText(String inputText, String player) {
         return parseText(Text.literal(inputText), player);
     }
+
     public static Text parseText(Text inputText, String player) {
         Map<String, Text> placeholders = Map.of("player", Text.literal(player));
         return Placeholders.parseText(inputText, PlaceholderContext.of(AutoWhitelist.server),
@@ -22,6 +24,6 @@ public class DynamicPlaceholders {
     }
 
     private static PlaceholderHandler getPlaceholder(String id, Map<String, Text> placeholders) {
-        return placeholders.containsKey(id) ? (ctx, arg) -> PlaceholderResult.value(placeholders.get(id)) : Placeholders.getPlaceholders().get(id);
+        return placeholders.containsKey(id) ? (ctx, arg) -> PlaceholderResult.value(placeholders.get(id)) : Placeholders.getPlaceholders().get(new Identifier(id));
     }
 }
