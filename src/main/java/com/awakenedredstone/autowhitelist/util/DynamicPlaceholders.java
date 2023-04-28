@@ -24,6 +24,6 @@ public class DynamicPlaceholders {
     }
 
     private static PlaceholderHandler getPlaceholder(String id, Map<String, Text> placeholders) {
-        return placeholders.containsKey(id) ? (ctx, arg) -> PlaceholderResult.value(placeholders.get(id)) : Placeholders.getPlaceholders().get(new Identifier(id));
+        return placeholders.containsKey(id) ? (ctx, arg) -> PlaceholderResult.value(placeholders.get(id)) : Placeholders.DEFAULT_PLACEHOLDER_GETTER.getPlaceholder(id);
     }
 }

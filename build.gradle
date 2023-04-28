@@ -126,7 +126,7 @@ modrinth {
     token = System.getenv().MODRINTH_TOKEN
     projectId = "BMaqFQAd"
     versionName = projectVersionName
-    changelog = CHANGELOG ?: "No changelog provided"
+    changelog = CHANGELOG ?: ""
     uploadFile = remapJar
     dependencies = [
             new ModDependency("fabric-language-kotlin", "required"),
