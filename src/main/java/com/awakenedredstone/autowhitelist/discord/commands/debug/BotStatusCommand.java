@@ -5,7 +5,6 @@ import com.awakenedredstone.autowhitelist.discord.api.command.CommandManager;
 import com.awakenedredstone.autowhitelist.discord.api.command.DiscordCommandSource;
 import com.mojang.brigadier.CommandDispatcher;
 import net.dv8tion.jda.api.EmbedBuilder;
-//import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import java.util.Objects;
 

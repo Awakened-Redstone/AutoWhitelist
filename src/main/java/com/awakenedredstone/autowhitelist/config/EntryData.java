@@ -12,13 +12,10 @@ import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ServerScoreboard;
-import net.minecraft.scoreboard.Team;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.WhitelistEntry;
 
 import java.util.*;
-import java.util.function.Function;
 
 public abstract class EntryData {
     private static final Map<EntryType, EntryData> entryTypes = new HashMap<>();

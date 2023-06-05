@@ -4,7 +4,6 @@ import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.discord.api.DiscordBrigadierHelper;
 import com.awakenedredstone.autowhitelist.discord.api.command.DiscordCommandSource;
 import net.dv8tion.jda.api.entities.Message;
-//import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.SubscribeEvent;
 

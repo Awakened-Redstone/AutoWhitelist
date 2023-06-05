@@ -6,7 +6,6 @@ import eu.pb4.placeholders.api.PlaceholderHandler;
 import eu.pb4.placeholders.api.PlaceholderResult;
 import eu.pb4.placeholders.api.Placeholders;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 
 import java.util.Map;
 

@@ -2,7 +2,6 @@ package com.awakenedredstone.autowhitelist.discord.api.command;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -10,14 +9,14 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.CommandException;
 import net.minecraft.screen.ScreenTexts;
-import net.minecraft.text.*;
+import net.minecraft.text.HoverEvent;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.text.Texts;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.function.Predicate;
 
 public class CommandManager {
     private static final Logger LOGGER = LogManager.getLogger();

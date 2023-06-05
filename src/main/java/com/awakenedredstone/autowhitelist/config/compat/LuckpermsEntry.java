@@ -6,7 +6,6 @@ import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.config.EntryData;
 import com.awakenedredstone.autowhitelist.config.EntryType;
 import com.mojang.authlib.GameProfile;
-import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
@@ -15,7 +14,6 @@ import net.luckperms.api.node.Node;
 import net.luckperms.api.node.NodeEqualityPredicate;
 import net.luckperms.api.node.types.InheritanceNode;
 import net.luckperms.api.node.types.PermissionNode;
-import net.minecraft.server.MinecraftServer;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.CompletableFuture;

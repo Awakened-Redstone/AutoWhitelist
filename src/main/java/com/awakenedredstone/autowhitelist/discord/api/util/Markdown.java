@@ -1,7 +1,6 @@
 package com.awakenedredstone.autowhitelist.discord.api.util;
 
 import com.awakenedredstone.autowhitelist.util.TextUtil;
-import net.minecraft.text.OrderedText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 

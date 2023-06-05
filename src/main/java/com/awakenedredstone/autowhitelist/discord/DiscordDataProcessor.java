@@ -8,11 +8,11 @@ import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import net.minecraft.server.WhitelistEntry;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
-import static com.awakenedredstone.autowhitelist.discord.Bot.*;
+import static com.awakenedredstone.autowhitelist.discord.Bot.guild;
 import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 
 public class DiscordDataProcessor implements Runnable {

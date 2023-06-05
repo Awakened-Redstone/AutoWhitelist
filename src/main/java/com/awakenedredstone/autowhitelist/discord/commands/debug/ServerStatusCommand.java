@@ -5,12 +5,9 @@ import com.awakenedredstone.autowhitelist.discord.api.command.CommandManager;
 import com.awakenedredstone.autowhitelist.discord.api.command.DiscordCommandSource;
 import com.mojang.brigadier.CommandDispatcher;
 import net.dv8tion.jda.api.EmbedBuilder;
-//import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-//import net.dv8tion.jda.internal.interactions.CommandDataImpl;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.util.Util;
-import net.minecraft.util.math.MathHelper;
 
 import java.util.Arrays;
 import java.util.Objects;

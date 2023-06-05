@@ -14,7 +14,6 @@ import com.awakenedredstone.autowhitelist.discord.events.CoreEvents;
 import com.awakenedredstone.autowhitelist.discord.events.GatewayEvents;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.exceptions.InvalidTokenException;
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager;
@@ -42,8 +41,8 @@ public class Bot extends Thread {
     public static Guild guild = null;
 
     public static void stopBot(boolean force) {
+        AutoWhitelist.LOGGER.info("Stopping scheduled events");
         if (scheduledUpdate != null) {
-            AutoWhitelist.LOGGER.info("Stopping scheduled events");
             scheduledUpdate.cancel(force);
             if (!force) {
                 try {
@@ -53,7 +52,8 @@ public class Bot extends Thread {
             scheduledUpdate = null;
         }
 
-        if (!executorService.isShutdown()) executorService.shutdown();
+        if (force) executorService.shutdownNow();
+        else executorService.shutdown();
 
         if (jda != null) {
             AutoWhitelist.LOGGER.info("Stopping the bot");

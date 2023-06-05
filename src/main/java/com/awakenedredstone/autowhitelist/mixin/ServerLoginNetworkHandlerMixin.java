@@ -4,15 +4,11 @@ import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.config.EntryData;
 import com.awakenedredstone.autowhitelist.discord.Bot;
 import com.awakenedredstone.autowhitelist.util.ExtendedGameProfile;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import com.awakenedredstone.autowhitelist.whitelist.WhitelistCacheEntry;
 import com.mojang.authlib.GameProfile;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import net.fabricmc.fabric.impl.networking.DisconnectPacketSource;
-import net.fabricmc.fabric.impl.networking.NetworkHandlerExtensions;
-import net.fabricmc.fabric.impl.networking.PacketCallbackListener;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.Whitelist;
@@ -26,7 +22,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 @Mixin(ServerLoginNetworkHandler.class)
 public class ServerLoginNetworkHandlerMixin {

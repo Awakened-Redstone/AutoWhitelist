@@ -1,9 +1,7 @@
 package com.awakenedredstone.autowhitelist.config;
 
 import blue.endless.jankson.Comment;
-import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import io.wispforest.owo.config.annotation.*;
-import net.dv8tion.jda.annotations.Incubating;
 import net.dv8tion.jda.api.entities.Activity;
 import net.minecraft.text.Text;
 

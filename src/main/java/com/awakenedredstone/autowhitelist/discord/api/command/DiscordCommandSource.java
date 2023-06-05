@@ -1,7 +1,7 @@
 package com.awakenedredstone.autowhitelist.discord.api.command;
 
-import com.awakenedredstone.autowhitelist.discord.api.DiscordBrigadierHelper;
 import com.awakenedredstone.autowhitelist.discord.api.BotHelper;
+import com.awakenedredstone.autowhitelist.discord.api.DiscordBrigadierHelper;
 import com.mojang.brigadier.ResultConsumer;
 import com.mojang.brigadier.context.CommandContext;
 import net.dv8tion.jda.api.entities.Member;

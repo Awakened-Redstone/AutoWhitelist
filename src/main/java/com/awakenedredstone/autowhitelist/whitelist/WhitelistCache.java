@@ -6,7 +6,6 @@ import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.server.ServerConfigEntry;
 import net.minecraft.server.ServerConfigList;
-import net.minecraft.server.WhitelistEntry;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;

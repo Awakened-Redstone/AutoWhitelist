@@ -7,7 +7,6 @@ import com.awakenedredstone.autowhitelist.util.Debugger;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.minecraft.util.math.MathHelper;
 
 import java.util.Arrays;
 import java.util.Map;
