@@ -69,16 +69,16 @@ public class AutoWhitelistCommand {
             source.getPlayer().sendMessage(Text.literal(""), true);
         }
 
-        source.sendFeedback(Text.literal(list.toString()), false);
+        source.sendFeedback(() -> Text.literal(list.toString()), false);
         return 0;
     }
 
     public static int executeReload(ServerCommandSource source) {
-        source.sendFeedback(Text.literal("Reloading AutoWhitelist configurations, please wait."), true);
+        source.sendFeedback(() -> Text.literal("Reloading AutoWhitelist configurations, please wait."), true);
 
         analyzeTimings("Configs#load", AutoWhitelist.CONFIG::load);
         analyzeTimings("AutoWhitelist#loadWhitelistCache", AutoWhitelist::loadWhitelistCache);
-        source.sendFeedback(Text.literal("Restarting bot, please wait."), true);
+        source.sendFeedback(() -> Text.literal("Restarting bot, please wait."), true);
         analyzeTimings("Bot#reloadBot", () -> Bot.getInstance().reloadBot(source));
 
         return 0;
@@ -87,15 +87,15 @@ public class AutoWhitelistCommand {
     public static int executeSpecificReload(ServerCommandSource source, ReloadableObjects type) {
         switch (type) {
             case BOT -> {
-                source.sendFeedback(Text.literal("Restarting bot, please wait."), true);
+                source.sendFeedback(() -> Text.literal("Restarting bot, please wait."), true);
                 analyzeTimings("Bot#reloadBot", () -> Bot.getInstance().reloadBot(source));
             }
             case CONFIG -> {
-                source.sendFeedback(Text.literal("Reloading configurations."), true);
+                source.sendFeedback(() -> Text.literal("Reloading configurations."), true);
                 analyzeTimings("Configs#load", AutoWhitelist.CONFIG::load);
             }
             case CACHE -> {
-                source.sendFeedback(Text.literal("Reloading cache."), true);
+                source.sendFeedback(() -> Text.literal("Reloading cache."), true);
                 analyzeTimings("AutoWhitelist#loadWhitelistCache", AutoWhitelist::loadWhitelistCache);
             }
         }

@@ -62,7 +62,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             GameProfile cachedProfile = server.getUserCache().getByUuid(profile.getId()).orElse(null);
 
             if (!profile.getName().equals(cachedProfile.getName()) && profile instanceof ExtendedGameProfile extendedProfile) {
-                getCommandSource().sendFeedback(Text.literal("Fixing bad entry from " + profile.getName()), true);
+                getCommandSource().sendFeedback(() -> Text.literal("Fixing bad entry from " + profile.getName()), true);
                 whitelist.add(new ExtendedWhitelistEntry(new ExtendedGameProfile(cachedProfile.getId(), cachedProfile.getName(), extendedProfile.getRole(), extendedProfile.getDiscordId())));
             }
         }

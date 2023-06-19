@@ -80,7 +80,7 @@ public class Bot extends Thread {
         }
         if (jda != null) jda.shutdown();
 
-        source.sendFeedback(Text.literal("Discord bot starting."), true);
+        source.sendFeedback(() -> Text.literal("Discord bot starting."), true);
 
         //noinspection CallToThreadRun
         run();

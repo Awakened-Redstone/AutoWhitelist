@@ -159,11 +159,12 @@ The higher role on the Discord server has higher priority, and so a user with mu
 <br/>
 
 Possible activity values are:
-- NONE
-- PLAYING
-- STREAMING
-- LISTENING
-- WATCHING
+- NONE (Doesn't change the bot status)
+- RESET (Resets the bot status)
+- PLAYING (Sets the bot status to "Playing ...")
+- STREAMING (Sets the bot status to "Streaming ..."
+- LISTENING (Sets the bot status to "Listening to ...")
+- WATCHING (Sets the bot status to "Watching ...")
 
 To register your player run the command `register <username>`, by default the prefix is `np!`  
 The command requires the user to insert their Java username, if they change their nick, they don't have to register again.
