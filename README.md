@@ -158,6 +158,13 @@ The higher role on the Discord server has higher priority, and so a user with mu
 
 <br/>
 
+Possible activity values are:
+- NONE
+- PLAYING
+- STREAMING
+- LISTENING
+- WATCHING
+
 To register your player run the command `register <username>`, by default the prefix is `np!`  
 The command requires the user to insert their Java username, if they change their nick, they don't have to register again.
 There is no way for a user to change their registered account or to register another one, a moderator will have to run `/whitelist remove <player>` in the Minecraft server.

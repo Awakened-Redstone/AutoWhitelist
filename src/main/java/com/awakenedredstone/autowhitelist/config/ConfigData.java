@@ -39,6 +39,7 @@ public class ConfigData {
 
     public enum BotActivity {
         NONE(null),
+        RESET(null),
         PLAYING(Activity.ActivityType.PLAYING),
         STREAMING(Activity.ActivityType.STREAMING),
         LISTENING(Activity.ActivityType.LISTENING),

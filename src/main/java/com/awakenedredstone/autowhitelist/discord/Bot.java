@@ -1,6 +1,7 @@
 package com.awakenedredstone.autowhitelist.discord;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
+import com.awakenedredstone.autowhitelist.config.ConfigData;
 import com.awakenedredstone.autowhitelist.discord.api.DiscordBrigadierHelper;
 import com.awakenedredstone.autowhitelist.discord.api.GatewayIntents;
 import com.awakenedredstone.autowhitelist.discord.commands.RegisterCommand;
@@ -99,7 +100,9 @@ public class Bot extends Thread {
             builder.setMemberCachePolicy(MemberCachePolicy.ALL);
             jda = builder.build();
 
-            jda.getPresence().setActivity(AutoWhitelist.CONFIG.botActivityType().getActivity());
+            if (AutoWhitelist.CONFIG.botActivityType() != ConfigData.BotActivity.NONE) {
+                jda.getPresence().setActivity(AutoWhitelist.CONFIG.botActivityType().getActivity());
+            }
 
             TestCommand.register(DiscordBrigadierHelper.dispatcher());
             HelpCommand.register(DiscordBrigadierHelper.dispatcher());
