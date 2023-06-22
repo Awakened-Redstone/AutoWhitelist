@@ -1,3 +1,5 @@
+[<img src="https://storage.ko-fi.com/cdn/brandasset/kofi_button_blue.png" width="30%"/>](https://ko-fi.com/awakenedredstone)
+
 ### You can find the lite version at https://modrinth.com/mod/autowhitelist-lite
 
 **The mod may not work properly with other discord integration mods if they use a different version of JDA**
