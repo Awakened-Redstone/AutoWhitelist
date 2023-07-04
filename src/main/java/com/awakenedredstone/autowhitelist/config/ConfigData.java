@@ -23,7 +23,7 @@ public class ConfigData {
     @PredicateConstraint("idConstraint")
     @Comment("A list of ids to allow users to use the debug commands")
     public List<String> admins = new ArrayList<>();
-    @Comment("The activity shown on the bot status")
+    @Comment("The activity type shown on the bot status")
     public BotActivity botActivityType = BotActivity.PLAYING;
     @Comment("The bot command prefix")
     public String prefix = "np!";
