@@ -94,6 +94,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
 
         EntryData.register(new EntryData.Team(""));
         EntryData.register(new EntryData.Command("", ""));
+        EntryData.register(new EntryData.Whitelist());
         if (FabricLoader.getInstance().isModLoaded("luckperms")) {
             EntryData.register(new LuckpermsEntry.Permission(""));
             EntryData.register(new LuckpermsEntry.Group(""));

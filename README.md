@@ -85,6 +85,16 @@ The default format is
 ```
 </details>
 <details>
+<summary>Whitelist example</summary>
+
+```json5
+{
+    "roleIds": ["Discord role id"],
+    "type": "WHITELIST" //It does no extra action, it just whitelists the player
+}
+```
+</details>
+<details>
 <summary>Luckperms examples</summary>
 
 <details>

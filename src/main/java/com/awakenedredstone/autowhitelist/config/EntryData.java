@@ -14,6 +14,7 @@ import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.WhitelistEntry;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
@@ -174,12 +175,12 @@ public abstract class EntryData {
         public void assertSafe() {
             var root = DiscordBrigadierHelper.INSTANCE.getCommandManager().dispatcher.getRoot();
             String addCmdStart = addCommand.split(" ", 2)[0];
-            if (root.getChild(addCmdStart) == null) {
-                throw new AssertionError("Add command does not exist!");
+            if (root.getChild(addCmdStart) == null && !StringUtils.isBlank(addCmdStart)) {
+                throw new AssertionError("Add command does not exist! Did you add a slash at the start?");
             }
             String removeCmdStart = addCommand.split(" ", 2)[0];
-            if (root.getChild(removeCmdStart) == null) {
-                throw new AssertionError("Remove command does not exist!");
+            if (root.getChild(removeCmdStart) == null && !StringUtils.isBlank(removeCmdStart)) {
+                throw new AssertionError("Remove command does not exist! Did you add a slash at the start?");
             }
         }
 
@@ -197,6 +198,51 @@ public abstract class EntryData {
             json.put("addCommand", new JsonPrimitive(addCommand));
             json.put("removeCommand", new JsonPrimitive(removeCommand));
             return json;
+        }
+    }
+
+    public static class Whitelist extends EntryData {
+        @Override
+        public EntryType getType() {
+            return EntryType.WHITELIST;
+        }
+
+        @Override
+        public <T extends GameProfile> void registerUser(T profile) {
+            // Nothing to do here
+        }
+
+        @Override
+        public <T extends GameProfile> void removeUser(T profile) {
+            // Nothing to do here
+        }
+
+        @Override
+        public <T extends GameProfile> void updateUser(T profile) {
+            // Nothing to do here
+        }
+
+        @Override
+        public <T extends GameProfile> boolean shouldUpdate(T profile) {
+            return false;
+        }
+
+        @Override
+        public void assertSafe() {
+            // Nothing to do here
+        }
+
+        @Override
+        public void purgeInvalid() {}
+
+        @Override
+        public EntryData deserialize(JsonObject data) {
+            return new Whitelist();
+        }
+
+        @Override
+        public JsonObject serialize() {
+            return new JsonObject();
         }
     }
 }
