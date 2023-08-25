@@ -32,12 +32,12 @@ import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 public class RegisterCommand {
     public static void register(CommandDispatcher<DiscordCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("register").requires(DiscordCommandSource::isFromGuild)
-                .then(CommandManager.argument("minecraft_username", StringArgumentType.word())
-                        .executes((source) -> {
-                            execute(source.getSource(), StringArgumentType.getString(source, "minecraft_username"));
-                            return 0;
-                        })
-                )
+            .then(CommandManager.argument("minecraft_username", StringArgumentType.word())
+                .executes((source) -> {
+                    execute(source.getSource(), StringArgumentType.getString(source, "minecraft_username"));
+                    return 0;
+                })
+            )
         );
     }
 
@@ -48,7 +48,7 @@ public class RegisterCommand {
             if (member == null) return;
 
             sendTempFeedbackMessage(source.getChannel(), Text.translatable("command.feedback.received.title"),
-                    Text.translatable("command.feedback.received.message"), 10);
+                Text.translatable("command.feedback.received.message"), 10);
 
             String id = member.getId();
             List<Role> roles = member.getRoles();
@@ -67,7 +67,7 @@ public class RegisterCommand {
                 }).filter(Objects::nonNull).anyMatch(id_ -> id_.equals(id));
                 if (hasAccountWhitelisted) {
                     BotHelper.sendFeedbackMessage(channel, Text.translatable("command.register.already_registered.title"),
-                            Text.translatable("command.register.already_registered.message"), MessageType.WARNING);
+                        Text.translatable("command.register.already_registered.message"), MessageType.WARNING);
                     return;
                 }
 
@@ -75,22 +75,22 @@ public class RegisterCommand {
                 EntryData entry = AutoWhitelist.whitelistDataMap.get(highestRole);
                 try {
                     entry.assertSafe();
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     BotHelper.sendFeedbackMessage(channel, Text.translatable("command.fail.title"),
-                            Text.translatable("command.fatal.exception", e.getMessage()), MessageType.ERROR);
+                        Text.translatable("command.fatal.exception", e.getMessage()), MessageType.ERROR);
                     AutoWhitelist.LOGGER.error("Failed to whitelist user, tried to assert entry but got an exception", e);
                     return;
                 }
 
                 if (username.isEmpty()) {
                     BotHelper.sendFeedbackMessage(channel, Text.translatable("command.few_args.title"),
-                            Text.translatable("command.few_args.message"), MessageType.WARNING);
+                        Text.translatable("command.few_args.message"), MessageType.WARNING);
                     return;
                 }
                 String[] args = username.split(" ");
                 if (args.length > 1) {
                     BotHelper.sendFeedbackMessage(channel, Text.translatable("command.too_many_args.title"),
-                            Text.translatable("command.too_many_args.message"), MessageType.WARNING);
+                        Text.translatable("command.too_many_args.message"), MessageType.WARNING);
                     return;
                 }
                 String arg = args[0];
@@ -98,33 +98,33 @@ public class RegisterCommand {
                 {
                     if (arg.length() > 16) {
                         sendFeedbackMessage(source.getChannel(), Text.translatable("command.register.invalid_username.title"),
-                                Text.translatable("command.register.invalid_username.message.too_long"), MessageType.WARNING);
+                            Text.translatable("command.register.invalid_username.message.too_long"), MessageType.WARNING);
                         return;
                     } else if (arg.length() < 3) {
                         sendFeedbackMessage(source.getChannel(), Text.translatable("command.register.invalid_username.title"),
-                                Text.translatable("command.register.invalid_username.message.too_short"), MessageType.WARNING);
+                            Text.translatable("command.register.invalid_username.message.too_short"), MessageType.WARNING);
                         return;
                     }
                 }
                 GameProfile profile = server.getUserCache().findByName(arg).orElse(null);
                 if (profile == null) {
                     BotHelper.sendFeedbackMessage(channel, Text.translatable("command.fail.title"),
-                            Text.translatable("command.register.fail.account_data", arg), BotHelper.MessageType.ERROR);
+                        Text.translatable("command.register.fail.account_data", arg), BotHelper.MessageType.ERROR);
                     return;
                 }
                 ExtendedGameProfile extendedProfile = new ExtendedGameProfile(profile.getId(), profile.getName(), highestRole, id);
                 if (AutoWhitelist.server.getPlayerManager().getUserBanList().contains(extendedProfile)) {
                     BotHelper.sendFeedbackMessage(channel, Text.translatable("command.register.player_banned.title"),
-                            Text.translatable("command.register.player_banned.message"), BotHelper.MessageType.ERROR);
+                        Text.translatable("command.register.player_banned.message"), BotHelper.MessageType.ERROR);
                     return;
                 }
                 boolean whitelisted = whitelist.isAllowed(extendedProfile);
                 if (whitelisted) {
                     BotHelper.sendFeedbackMessage(channel, Text.translatable("command.register.username_already_registered.title"),
-                            Text.translatable("command.register.username_already_registered.message"), BotHelper.MessageType.ERROR);
+                        Text.translatable("command.register.username_already_registered.message"), BotHelper.MessageType.ERROR);
                 } else {
                     MessageCreateData message = BotHelper.generateFeedbackMessage(Text.translatable("command.register.last_steps.title"),
-                            Text.translatable("command.register.last_steps.message"), BotHelper.MessageType.INFO);
+                        Text.translatable("command.register.last_steps.message"), BotHelper.MessageType.INFO);
                     MessageCreateAction feedbackMessage = channel.sendMessage(message);
                     feedbackMessage.queue(message_ -> {
                         whitelist.add(new ExtendedWhitelistEntry(extendedProfile));
@@ -133,12 +133,12 @@ public class RegisterCommand {
                         }
                         entry.registerUser(profile);
                         message_.editMessage(BotHelper.generateEditFeedbackMessage(Text.translatable("command.register.success.title"),
-                                Text.translatable("command.register.success.message"), BotHelper.MessageType.SUCCESS)).queue();
+                            Text.translatable("command.register.success.message"), BotHelper.MessageType.SUCCESS)).queue();
                     });
                 }
             } else {
                 BotHelper.sendFeedbackMessage(channel, Text.translatable("command.register.fail.not_allowed.title"),
-                        Text.translatable("command.register.fail.not_allowed.message"), MessageType.NORMAL);
+                    Text.translatable("command.register.fail.not_allowed.message"), MessageType.NORMAL);
             }
         });
     }

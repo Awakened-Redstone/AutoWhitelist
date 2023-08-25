@@ -47,6 +47,7 @@
 
 
   "command.fail.title": "Something went wrong",
+  "command.fatal.exception": "Failed to execute command but got an exception\n```%s```### Please contact a moderator\n\nIf you are an admin, please check the mod configs, if the issue persists open an issue on the mod's [GitHub page](https://github.com/Awakened-Redstone/AutoWhitelist/issues)",
   "command.few_args.title": "Not enough arguments",
   "command.few_args.message": "You didn't put the minimum amount of arguments required.\nCheck the help command to see the command usage.",
   "command.too_many_args.title": "Too many arguments",
