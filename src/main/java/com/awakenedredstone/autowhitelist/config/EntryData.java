@@ -22,14 +22,32 @@ public abstract class EntryData {
     private static final Map<EntryType, EntryData> entryTypes = new HashMap<>();
     private final List<String> roleIds = new ArrayList<>();
 
+    public static EntryData deserialize(String type, JsonObject data) {
+        EntryData entry = entryTypes.get(EntryType.valueOf(type)).deserialize(data);
+        entry.populate(data);
+        return entry;
+    }
+
+    public static void register(EntryData data) {
+        entryTypes.putIfAbsent(data.getType(), data);
+    }
+
     public abstract EntryType getType();
+
     public abstract void assertSafe();
+
     public abstract <T extends GameProfile> void registerUser(T profile);
+
     public abstract <T extends GameProfile> void removeUser(T profile);
+
     public abstract <T extends GameProfile> void updateUser(T profile);
+
     public abstract <T extends GameProfile> boolean shouldUpdate(T profile);
+
     public abstract void purgeInvalid();
+
     public abstract EntryData deserialize(JsonObject data);
+
     public abstract JsonObject serialize();
 
     public List<String> getRoleIds() {
@@ -43,16 +61,6 @@ public abstract class EntryData {
     public void populate(JsonObject data) {
         JsonArray roles = (JsonArray) data.get("roleIds");
         roleIds.addAll(roles.stream().map(v -> ((JsonPrimitive) v).asString()).toList());
-    }
-
-    public static EntryData deserialize(String type, JsonObject data) {
-        EntryData entry = entryTypes.get(EntryType.valueOf(type)).deserialize(data);
-        entry.populate(data);
-        return entry;
-    }
-
-    public static void register(EntryData data) {
-        entryTypes.putIfAbsent(data.getType(), data);
     }
 
     public static class Team extends EntryData {
@@ -173,19 +181,25 @@ public abstract class EntryData {
 
         @Override
         public void assertSafe() {
-            var root = DiscordBrigadierHelper.INSTANCE.getCommandManager().dispatcher.getRoot();
+            var root = AutoWhitelist.server.getCommandManager().getDispatcher().getRoot();
             String addCmdStart = addCommand.split(" ", 2)[0];
             if (root.getChild(addCmdStart) == null && !StringUtils.isBlank(addCmdStart)) {
-                throw new AssertionError("Add command does not exist! Did you add a slash at the start?");
+                if (addCmdStart.startsWith("/")) {
+                    AutoWhitelist.LOGGER.warn("You don't need a slash at the start of the command");
+                }
+                throw new AssertionError(String.format("Add command \"%s\" does not exist!", addCmdStart));
             }
             String removeCmdStart = addCommand.split(" ", 2)[0];
             if (root.getChild(removeCmdStart) == null && !StringUtils.isBlank(removeCmdStart)) {
-                throw new AssertionError("Remove command does not exist! Did you add a slash at the start?");
+                if (removeCmdStart.startsWith("/")) {
+                    AutoWhitelist.LOGGER.warn("You don't need a slash at the start of the command");
+                }
+                throw new AssertionError(String.format("Remove command \"%s\" does not exist!", removeCmdStart));
             }
         }
 
         @Override
-        public void purgeInvalid() {}
+        public void purgeInvalid() {/**/}
 
         @Override
         public EntryData deserialize(JsonObject data) {
@@ -233,7 +247,7 @@ public abstract class EntryData {
         }
 
         @Override
-        public void purgeInvalid() {}
+        public void purgeInvalid() {/**/}
 
         @Override
         public EntryData deserialize(JsonObject data) {
