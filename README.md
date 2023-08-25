@@ -7,8 +7,6 @@
 AutoWhitelist is a mod made to automate the whitelisting of players based on their Discord role.  
 Its main purpose is to make the whitelisting of Twitch subscribers and Youtube channel members easy.
 <br/>
-It has also been made to be extremely stable so it can be used on servers that are constantly updating to the latest snapshot, so it is dependency free.
-<br/>
 <br/>
 
 #### You can set the bot message text with a <u>datapack</u>, more about it can be found <u>[here](https://github.com/Awakened-Redstone/AutoWhitelist/wiki/Custom-messages)</u>
@@ -79,13 +77,14 @@ The default format is
 {
     "roleIds": ["Discord role id"],
     "type": "COMMAND",
-    "addCommand": "/pardon %player%",
-    "removeCommand": "/ban %player%"
+    "addCommand": "scorereboard players set %player% cool_people 1",
+    "removeCommand": "scorereboard players reset %player% cool_people"
 }
 ```
 </details>
 <details>
 <summary>Whitelist example</summary>
+This was added on 1.0.0 Alpha 6!
 
 ```json5
 {
@@ -182,7 +181,8 @@ To register your player run the command `register <username>`, by default the pr
 The command requires the user to insert their Java username, if they change their nick, they don't have to register again.
 There is no way for a user to change their registered account or to register another one, a moderator will have to run `/whitelist remove <player>` in the Minecraft server.
 An example of running the command is `np!register AwakenedRedstone`  
-The mod does not support offline servers, this means, it only registers official Minecraft Java Edition accounts.
+The mod does not officially support offline servers.  
+When a player looses the role or leaves the discord server they are automatically removed from the whitelist
 <br/>  
 To reload settings run `/autowhitelist reload [bot|config]` to reload only one thing or `/autowhitelist reload` to reload everything
 
