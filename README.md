@@ -11,7 +11,7 @@ It has also been made to be extremely stable so it can be used on servers that a
 <br/>
 <br/>
 
-#### You can set the bot message text with a <u>datapack</u>, more about it can be found <u>[here](https://github.com/NucleoidMC/Server-Translations#usage)</u>
+#### You can set the bot message text with a <u>datapack</u>, more about it can be found <u>[here](https://github.com/Awakened-Redstone/AutoWhitelist/wiki/Custom-messages)</u>
 
 Configuring the mod can be a bit complicated, you can find a tutorial below.
 <br/>
@@ -20,13 +20,13 @@ Configuring the mod can be a bit complicated, you can find a tutorial below.
 <details>
 <summary>Creating the bot</summary>
 
-![Creating the bot](https://cdn.glitch.global/b4fe08b2-a216-4ca6-a836-38b072b573c1/create_bot.gif)
+![Creating the bot gif](https://raw.githubusercontent.com/Awakened-Redstone/Awakened-Redstone/master/assets/images/autowhitelist/create_bot_v2.gif)
 </details>
 
 <details>
 <summary>Important settings</summary>
 
-![Important settings](https://cdn.glitch.global/b4fe08b2-a216-4ca6-a836-38b072b573c1/bot_sttings.gif)
+![Important settings gif](https://raw.githubusercontent.com/Awakened-Redstone/Awakened-Redstone/master/assets/images/autowhitelist/bot_settings_v2.gif)
 </details>
 
 <details>
@@ -44,7 +44,7 @@ Configuring the mod can be a bit complicated, you can find a tutorial below.
 <details>
 <summary>Adding to your server</summary>
 
-![Adding to your server](https://cdn.glitch.global/0efc937f-9a16-4877-a535-7e0839b5f61c/Peek%202022-06-17%2022-44.gif?v=1655516745674)
+![Adding to your server gif](https://github.com/Awakened-Redstone/Awakened-Redstone/blob/master/assets/images/autowhitelist/adding_bot.gif?raw=true)
 </details>
 
 <details>
