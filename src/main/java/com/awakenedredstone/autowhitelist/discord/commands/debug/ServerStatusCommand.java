@@ -18,17 +18,17 @@ import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 public class ServerStatusCommand {
     public static void register(CommandDispatcher<DiscordCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("serverstatus")
-                .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
-                .executes((source) -> {
-                    execute(source.getSource());
-                    return 0;
-                }));
+            .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
+            .executes((source) -> {
+                execute(source.getSource());
+                return 0;
+            }));
         dispatcher.register(CommandManager.literal("serverinfo")
-                .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
-                .executes((source) -> {
-                    execute(source.getSource());
-                    return 0;
-                }));
+            .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
+            .executes((source) -> {
+                execute(source.getSource());
+                return 0;
+            }));
     }
 
     protected static void execute(DiscordCommandSource source) {
@@ -46,18 +46,16 @@ public class ServerStatusCommand {
             embedBuilder.setTitle("Server Status Log");
             embedBuilder.setDescription("**Server status:** " + (getServerStatus(server).equals("Running.") ? (l > 2000L ? String.format("Running %sms behind.", l) : "Running.") : getServerStatus(server)));
 
-            String output = "" +
-                    "\n" + "**MSPT:** " + String.format("%.2f", MSPT) + " ms" +
-                    "\n" + "**TPS:** " + String.format("%.2f", TPS) +
-                    "\n" + "**MAX TPS:** " + String.format("%.2f", MAX_POSSIBLE_TPS);
+            String output = "\n" + "**MSPT:** " + String.format("%.2f", MSPT) + " ms" +
+                "\n" + "**TPS:** " + String.format("%.2f", TPS) +
+                "\n" + "**MAX TPS:** " + String.format("%.2f", MAX_POSSIBLE_TPS);
             embedBuilder.addField("Server timings", output, true);
 
-            StringBuilder serverInformation = new StringBuilder();
-            serverInformation.append("**Server game version:** ").append(server.getVersion()).append("\n");
-            serverInformation.append("**Total whitelisted players:** ").append(playerManager.getWhitelistedNames().length).append("\n");
-            serverInformation.append("**Total online players:** ").append(server.getCurrentPlayerCount()).append("/").append(server.getMaxPlayerCount());
+            String serverInformation = "**Server game version:** " + server.getVersion() + "\n" +
+                "**Total whitelisted players:** " + playerManager.getWhitelistedNames().length + "\n" +
+                "**Total online players:** " + server.getCurrentPlayerCount() + "/" + server.getMaxPlayerCount();
 
-            embedBuilder.addField("Server information", serverInformation.toString(), true);
+            embedBuilder.addField("Server information", serverInformation, true);
 
             source.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
         });

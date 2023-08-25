@@ -14,17 +14,17 @@ import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 public class BotStatusCommand {
     public static void register(CommandDispatcher<DiscordCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("botstatus")
-                .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
-                .executes((source) -> {
-                    execute(source.getSource());
-                    return 0;
-                }));
+            .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
+            .executes((source) -> {
+                execute(source.getSource());
+                return 0;
+            }));
         dispatcher.register(CommandManager.literal("botinfo")
-                .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
-                .executes((source) -> {
-                    execute(source.getSource());
-                    return 0;
-                }));
+            .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
+            .executes((source) -> {
+                execute(source.getSource());
+                return 0;
+            }));
     }
 
     protected static void execute(DiscordCommandSource source) {
@@ -37,7 +37,7 @@ public class BotStatusCommand {
 
             jda.getRestPing().queue(restPing -> {
                 String output = "\n" + "**Gateway ping:** " + jda.getGatewayPing() + " ms" +
-                        "\n" + "**Rest ping:** " + restPing + " ms";
+                    "\n" + "**Rest ping:** " + restPing + " ms";
 
                 embedBuilder.addField("Discord timings", output, false);
 

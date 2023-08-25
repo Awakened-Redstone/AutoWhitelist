@@ -109,9 +109,7 @@ public abstract class LuckpermsEntry extends EntryData {
         }
 
         @Override
-        public void purgeInvalid() {
-
-        }
+        public void purgeInvalid() {/**/}
 
         @Override
         public EntryData deserialize(JsonObject data) {
@@ -156,7 +154,7 @@ public abstract class LuckpermsEntry extends EntryData {
         }
 
         @Override
-        public void purgeInvalid() {}
+        public void purgeInvalid() {/**/}
 
         @Override
         public EntryData deserialize(JsonObject data) {

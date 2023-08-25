@@ -37,6 +37,10 @@ public class ConfigData {
     @Comment("The whitelist entry settings, please refer to the documentation to set them up")
     public List<EntryData> entries = new ArrayList<>();
 
+    public static boolean idConstraint(List<String> roles) {
+        return roles.stream().allMatch(v -> Pattern.compile("\\d+").matcher(v).matches());
+    }
+
     public enum BotActivity {
         NONE(null),
         RESET(null),
@@ -58,9 +62,5 @@ public class ConfigData {
         public Activity getActivity() {
             return activityType == null ? null : Activity.of(activityType, Text.translatable("bot.activity.message").getString());
         }
-    }
-
-    public static boolean idConstraint(List<String> roles) {
-        return roles.stream().allMatch(v -> Pattern.compile("\\d+").matcher(v).matches());
     }
 }

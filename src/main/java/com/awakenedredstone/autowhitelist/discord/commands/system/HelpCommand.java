@@ -37,7 +37,7 @@ public class HelpCommand {
 
             source.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
             return map.size();
-            
+
         })).then(CommandManager.argument("command", StringArgumentType.greedyString()).executes((context) -> {
             ParseResults<DiscordCommandSource> parseResults = dispatcher.parse(StringArgumentType.getString(context, "command"), context.getSource());
             if (parseResults.getContext().getNodes().isEmpty()) {

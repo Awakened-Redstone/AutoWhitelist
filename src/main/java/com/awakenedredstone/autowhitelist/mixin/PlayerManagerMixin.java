@@ -16,9 +16,12 @@ import static net.minecraft.server.PlayerManager.WHITELIST_FILE;
 
 @Mixin(PlayerManager.class)
 public class PlayerManagerMixin {
-    @Shadow @Final @Mutable private Whitelist whitelist;
+    @Shadow
+    @Final
+    @Mutable
+    private Whitelist whitelist;
 
-    @Inject(method = "<init>", at = @At(value = "FIELD", target="Lnet/minecraft/server/PlayerManager;whitelist:Lnet/minecraft/server/Whitelist;", shift = At.Shift.AFTER, opcode = Opcodes.PUTFIELD) )
+    @Inject(method = "<init>", at = @At(value = "FIELD", target = "Lnet/minecraft/server/PlayerManager;whitelist:Lnet/minecraft/server/Whitelist;", shift = At.Shift.AFTER, opcode = Opcodes.PUTFIELD))
     private void whitelist(CallbackInfo ci) {
         whitelist = new ExtendedWhitelist(WHITELIST_FILE);
     }

@@ -16,7 +16,8 @@ import java.util.Objects;
 
 public final class DiscordCommandSource {
     private final User user;
-    @Nullable private final Member member;
+    @Nullable
+    private final Member member;
     private final Message message;
     private final MessageChannelUnion channel;
     private final CommandType type;
@@ -37,7 +38,7 @@ public final class DiscordCommandSource {
         this.member = member;
         this.message = message;
         this.channel = channel;
-        this.resultConsumer = (context, success, result) -> {};
+        this.resultConsumer = (context, success, result) -> {/**/};
         this.type = type;
         this.event = event;
     }
@@ -71,7 +72,7 @@ public final class DiscordCommandSource {
     }
 
     public <T extends MessageChannelUnion> T getChannel() {
-        return (T)channel;
+        return (T) channel;
     }
 
     public DiscordBrigadierHelper getApi() {
@@ -88,8 +89,8 @@ public final class DiscordCommandSource {
         if (obj == null || obj.getClass() != this.getClass()) return false;
         var that = (DiscordCommandSource) obj;
         return Objects.equals(this.user, that.user) &&
-                Objects.equals(this.message, that.message) &&
-                Objects.equals(this.channel, that.channel);
+            Objects.equals(this.message, that.message) &&
+            Objects.equals(this.channel, that.channel);
     }
 
     @Override
@@ -100,9 +101,9 @@ public final class DiscordCommandSource {
     @Override
     public String toString() {
         return "DiscordCommandSource[" +
-                "user=" + user + ", " +
-                "message=" + message + ", " +
-                "channel=" + channel + ']';
+            "user=" + user + ", " +
+            "message=" + message + ", " +
+            "channel=" + channel + ']';
     }
 
     public CommandType getType() {

@@ -27,6 +27,14 @@ public class CommandManager {
         this.dispatcher.setConsumer((context, success, result) -> context.getSource().onCommandComplete(context, success, result));
     }
 
+    public static LiteralArgumentBuilder<DiscordCommandSource> literal(String literal) {
+        return LiteralArgumentBuilder.literal(literal);
+    }
+
+    public static <T> RequiredArgumentBuilder<DiscordCommandSource, T> argument(String name, ArgumentType<T> type) {
+        return RequiredArgumentBuilder.argument(name, type);
+    }
+
     public int execute(DiscordCommandSource commandSource, String command) {
         StringReader stringReader = new StringReader(command);
         if (stringReader.canRead() && stringReader.peek() == '/') {
@@ -78,13 +86,5 @@ public class CommandManager {
         }
 
         return 0;
-    }
-
-    public static LiteralArgumentBuilder<DiscordCommandSource> literal(String literal) {
-        return LiteralArgumentBuilder.literal(literal);
-    }
-
-    public static <T> RequiredArgumentBuilder<DiscordCommandSource, T> argument(String name, ArgumentType<T> type) {
-        return RequiredArgumentBuilder.argument(name, type);
     }
 }

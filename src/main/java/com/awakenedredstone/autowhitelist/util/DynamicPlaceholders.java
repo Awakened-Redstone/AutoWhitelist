@@ -18,8 +18,8 @@ public class DynamicPlaceholders {
     public static Text parseText(Text inputText, String player) {
         Map<String, Text> placeholders = Map.of("player", Text.literal(player));
         return Placeholders.parseText(inputText, PlaceholderContext.of(AutoWhitelist.server),
-                Placeholders.PLACEHOLDER_PATTERN_CUSTOM,
-                id -> getPlaceholder(id, placeholders));
+            Placeholders.PLACEHOLDER_PATTERN_CUSTOM,
+            id -> getPlaceholder(id, placeholders));
     }
 
     private static PlaceholderHandler getPlaceholder(String id, Map<String, Text> placeholders) {

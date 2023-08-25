@@ -25,7 +25,7 @@ public class TestCommand {
     public static void execute(DiscordCommandSource source) {
         EmbedBuilder embedBuilder = new EmbedBuilder();
         String description = "";
-        description +=        Markdown.formatText(TextUtil.placeholder(Text.literal("Bold").formatted(Formatting.BOLD)));
+        description += Markdown.formatText(TextUtil.placeholder(Text.literal("Bold").formatted(Formatting.BOLD)));
         description += "\n" + Markdown.formatText(TextUtil.placeholder(Text.literal("Italic").formatted(Formatting.ITALIC)));
         description += "\n" + Markdown.formatText(TextUtil.placeholder(Text.literal("Strikethrough").formatted(Formatting.STRIKETHROUGH)));
         description += "\n" + Markdown.formatText(TextUtil.placeholder(Text.literal("Underline").formatted(Formatting.UNDERLINE)));

@@ -49,10 +49,10 @@ public class CoreEvents {
         ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.server.getPlayerManager().getWhitelist();
 
         List<ExtendedGameProfile> players = whitelist.getEntries().stream()
-                .filter(entry -> ((ServerConfigEntryMixin<?>) entry).getKey() instanceof ExtendedGameProfile)
-                .filter(entry -> user.getId().equals(((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getDiscordId()))
-                .map(v -> (ExtendedGameProfile) ((ServerConfigEntryMixin<?>) v).getKey())
-                .toList();
+            .filter(entry -> ((ServerConfigEntryMixin<?>) entry).getKey() instanceof ExtendedGameProfile)
+            .filter(entry -> user.getId().equals(((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getDiscordId()))
+            .map(v -> (ExtendedGameProfile) ((ServerConfigEntryMixin<?>) v).getKey())
+            .toList();
 
         if (players.size() > 1) {
             AutoWhitelist.LOGGER.error("Found more than one registered user with same discord id: {}", user.getId(), new FailedToUpdateWhitelistException("Could not update the whitelist, found multiple"));

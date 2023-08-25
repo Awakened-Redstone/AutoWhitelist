@@ -17,20 +17,6 @@ public class ExtendedWhitelistEntry extends WhitelistEntry {
         super(profileFromJson(json));
     }
 
-    public ExtendedGameProfile getProfile() {
-        return (ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey();
-    }
-
-    @Override
-    protected void write(JsonObject json) {
-        if (((ServerConfigEntryMixin<?>) this).getKey() != null && ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getId() != null) {
-            json.addProperty("uuid", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getId().toString());
-            json.addProperty("name", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getName());
-            json.addProperty("role", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getRole());
-            json.addProperty("discordId", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getDiscordId());
-        }
-    }
-
     private static ExtendedGameProfile profileFromJson(JsonObject json) {
         if (json.has("uuid") && json.has("name") && json.has("discordId") && json.has("role")) {
             String string = json.get("uuid").getAsString();
@@ -45,6 +31,20 @@ public class ExtendedWhitelistEntry extends WhitelistEntry {
             return new ExtendedGameProfile(uuid, json.get("name").getAsString(), json.get("role").getAsString(), json.get("discordId").getAsString());
         } else {
             return null;
+        }
+    }
+
+    public ExtendedGameProfile getProfile() {
+        return (ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey();
+    }
+
+    @Override
+    protected void write(JsonObject json) {
+        if (((ServerConfigEntryMixin<?>) this).getKey() != null && ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getId() != null) {
+            json.addProperty("uuid", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getId().toString());
+            json.addProperty("name", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getName());
+            json.addProperty("role", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getRole());
+            json.addProperty("discordId", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getDiscordId());
         }
     }
 }

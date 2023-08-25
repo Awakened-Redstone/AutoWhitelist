@@ -17,17 +17,6 @@ public class WhitelistCacheEntry extends ServerConfigEntry<ExtendedGameProfile> 
         this(profileFromJson(json));
     }
 
-    public ExtendedGameProfile getProfile() {
-        return (ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey();
-    }
-
-    @Override
-    protected void write(JsonObject json) {
-        json.addProperty("uuid", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getId().toString());
-        json.addProperty("name", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getName());
-        json.addProperty("discordId", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getDiscordId());
-    }
-
     private static ExtendedGameProfile profileFromJson(JsonObject json) {
         String string = json.get("uuid").getAsString();
 
@@ -39,5 +28,16 @@ public class WhitelistCacheEntry extends ServerConfigEntry<ExtendedGameProfile> 
         }
 
         return new ExtendedGameProfile(uuid, json.get("name").getAsString(), null, json.get("discordId").getAsString());
+    }
+
+    public ExtendedGameProfile getProfile() {
+        return (ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey();
+    }
+
+    @Override
+    protected void write(JsonObject json) {
+        json.addProperty("uuid", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getId().toString());
+        json.addProperty("name", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getName());
+        json.addProperty("discordId", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getDiscordId());
     }
 }

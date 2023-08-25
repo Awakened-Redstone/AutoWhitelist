@@ -27,19 +27,16 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
 public class Bot extends Thread {
+    public static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+    public static ScheduledFuture<?> scheduledUpdate;
+    public static JDA jda = null;
+    public static Guild guild = null;
+    private static Bot instance;
     public Bot() {
         super("AutoWhitelist Bot");
         this.setDaemon(true);
         this.setUncaughtExceptionHandler(new net.minecraft.util.logging.UncaughtExceptionHandler(AutoWhitelist.LOGGER));
     }
-
-    private static Bot instance;
-
-    public static ScheduledFuture<?> scheduledUpdate;
-    public static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
-
-    public static JDA jda = null;
-    public static Guild guild = null;
 
     public static void stopBot(boolean force) {
         AutoWhitelist.LOGGER.info("Stopping scheduled events");

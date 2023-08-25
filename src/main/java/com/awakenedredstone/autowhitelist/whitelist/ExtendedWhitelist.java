@@ -76,18 +76,18 @@ public class ExtendedWhitelist extends Whitelist {
 
     public List<ExtendedWhitelistEntry> getFromDiscordId(String id) {
         return values().stream()
-                .filter(entry -> entry instanceof ExtendedWhitelistEntry)
-                .filter(entry -> ((ServerConfigEntryMixin<?>) entry).getKey() instanceof ExtendedGameProfile profile && profile.getDiscordId().equals(id))
-                .map(v -> (ExtendedWhitelistEntry) v)
-                .toList();
+            .filter(entry -> entry instanceof ExtendedWhitelistEntry)
+            .filter(entry -> ((ServerConfigEntryMixin<?>) entry).getKey() instanceof ExtendedGameProfile profile && profile.getDiscordId().equals(id))
+            .map(v -> (ExtendedWhitelistEntry) v)
+            .toList();
     }
 
     @Nullable
     public GameProfile getFromUsername(String var5) {
         return values().stream()
-                .filter(entry -> ((GameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getName().equals(var5))
-                .map(whitelistEntry -> (GameProfile) ((ServerConfigEntryMixin<?>) whitelistEntry).getKey())
-                .findFirst().orElse(null);
+            .filter(entry -> ((GameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getName().equals(var5))
+            .map(whitelistEntry -> (GameProfile) ((ServerConfigEntryMixin<?>) whitelistEntry).getKey())
+            .findFirst().orElse(null);
     }
 
     public enum Type {

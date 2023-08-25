@@ -6,11 +6,11 @@ import com.mojang.brigadier.CommandDispatcher;
 
 public class DiscordBrigadierHelper {
     public static DiscordBrigadierHelper INSTANCE = new DiscordBrigadierHelper();
+    private final CommandManager commandManager = new CommandManager();
+
     public static CommandDispatcher<DiscordCommandSource> dispatcher() {
         return DiscordBrigadierHelper.INSTANCE.commandManager.dispatcher;
     }
-
-    private final CommandManager commandManager = new CommandManager();
 
     public CommandManager getCommandManager() {
         return this.commandManager;

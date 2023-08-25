@@ -22,27 +22,27 @@ public class AutoWhitelistCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("autowhitelist")
-                .requires(Permission.require("autowhitelist.command", 3))
-                .then(CommandManager.literal("reload")
-                        .executes(context -> executeReload(context.getSource()))
-                        .then(CommandManager.literal("bot")
-                                .executes(context -> executeSpecificReload(context.getSource(), ReloadableObjects.BOT))
-                        ).then(CommandManager.literal("config")
-                                .executes(context -> executeSpecificReload(context.getSource(), ReloadableObjects.CONFIG))
-                        ).then(CommandManager.literal("cache")
-                                .executes(context -> executeSpecificReload(context.getSource(), ReloadableObjects.CACHE))
-                        )
-                ).then(CommandManager.literal("entries")
-                        .executes(context -> executeEntries(context.getSource()))
-                ).then(CommandManager.literal("info")
-                        .executes(context -> executeInfo(context.getSource()))
+            .requires(Permission.require("autowhitelist.command", 3))
+            .then(CommandManager.literal("reload")
+                .executes(context -> executeReload(context.getSource()))
+                .then(CommandManager.literal("bot")
+                    .executes(context -> executeSpecificReload(context.getSource(), ReloadableObjects.BOT))
+                ).then(CommandManager.literal("config")
+                    .executes(context -> executeSpecificReload(context.getSource(), ReloadableObjects.CONFIG))
+                ).then(CommandManager.literal("cache")
+                    .executes(context -> executeSpecificReload(context.getSource(), ReloadableObjects.CACHE))
                 )
+            ).then(CommandManager.literal("entries")
+                .executes(context -> executeEntries(context.getSource()))
+            ).then(CommandManager.literal("info")
+                .executes(context -> executeInfo(context.getSource()))
+            )
         );
     }
 
     public static int executeInfo(ServerCommandSource source) {
         String text = "Mod information:" +
-                "    Bot: " + (Bot.jda == null ? "offline" : "online");
+            "    Bot: " + (Bot.jda == null ? "offline" : "online");
         return Bot.jda != null ? 1 : 0;
     }
 
