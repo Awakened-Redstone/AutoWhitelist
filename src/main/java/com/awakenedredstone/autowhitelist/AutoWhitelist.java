@@ -50,6 +50,17 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
     public static MinecraftServer server;
     public static Map<String, EntryData> whitelistDataMap = new HashMap<>();
 
+    static {
+        CONFIG = Configs.createAndLoad(builder -> {
+            builder.registerDeserializer(JsonObject.class, EntryData.class, (jsonObject, m) -> EntryData.deserialize(((JsonPrimitive) jsonObject.get("type")).asString(), jsonObject));
+            builder.registerSerializer(EntryData.class, (entryData, marshaller) -> {
+                JsonObject json = entryData.serialize();
+                json.put("type", new JsonPrimitive(entryData.getType().name()));
+                return json;
+            });
+        });
+    }
+
     public static void updateWhitelist() {
         PlayerManager playerManager = server.getPlayerManager();
         ExtendedWhitelist whitelist = (ExtendedWhitelist) playerManager.getWhitelist();
@@ -84,7 +95,21 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
     public static void removePlayer(ExtendedGameProfile profile) {
         if (server.getPlayerManager().getWhitelist().isAllowed(profile)) {
             server.getPlayerManager().getWhitelist().remove(new ExtendedWhitelistEntry(profile));
-            whitelistDataMap.get(profile.getRole()).removeUser(profile);;
+            whitelistDataMap.get(profile.getRole()).removeUser(profile);
+        }
+    }
+
+    public static ServerCommandSource getCommandSource() {
+        ServerWorld serverWorld = server.getOverworld();
+        return new ServerCommandSource(server, serverWorld == null ? Vec3d.ZERO : Vec3d.of(serverWorld.getSpawnPos()), Vec2f.ZERO,
+            serverWorld, 4, "AutoWhitelist", Text.literal("AutoWhitelist"), server, null);
+    }
+
+    public static void loadWhitelistCache() {
+        try {
+            WHITELIST_CACHE.load();
+        } catch (Exception exception) {
+            LOGGER.warn("Failed to load whitelist cache: ", exception);
         }
     }
 
@@ -117,44 +142,21 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             AutoWhitelist.server = server;
             CONFIG.load();
             loadWhitelistCache();
+        });
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> AutoWhitelistCommand.register(dispatcher));
+        ServerLifecycleEvents.SERVER_STOPPING.register((server -> Bot.stopBot(false)));
+        ServerLifecycleEvents.SERVER_STARTED.register((server -> {
+            new Bot().start();
             if (!server.isOnlineMode()) {
-                LOGGER.warn("Offline server detected!");
+                LOGGER.warn("**** OFFLINE SERVER DETECTED!");
                 LOGGER.warn("This mod does not offer support for offline servers!");
                 LOGGER.warn("Using a whitelist on an offline server offers little to no protection");
                 LOGGER.warn("AutoWhitelist may not work properly, fully or at all on an offline server");
             }
-        });
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> AutoWhitelistCommand.register(dispatcher));
-        ServerLifecycleEvents.SERVER_STOPPING.register((server -> Bot.stopBot(false)));
-        ServerLifecycleEvents.SERVER_STARTED.register((server -> new Bot().start()));
+        }));
 
         Placeholders.register(new Identifier(MOD_ID, "prefix"),
-                (ctx, arg) -> PlaceholderResult.value(Text.literal(AutoWhitelist.CONFIG.prefix()))
+            (ctx, arg) -> PlaceholderResult.value(Text.literal(AutoWhitelist.CONFIG.prefix()))
         );
-    }
-
-    public static ServerCommandSource getCommandSource() {
-        ServerWorld serverWorld = server.getOverworld();
-        return new ServerCommandSource(server, serverWorld == null ? Vec3d.ZERO : Vec3d.of(serverWorld.getSpawnPos()), Vec2f.ZERO,
-                serverWorld, 4, "AutoWhitelist", Text.literal("AutoWhitelist"), server, null);
-    }
-
-    public static void loadWhitelistCache() {
-        try {
-            WHITELIST_CACHE.load();
-        } catch (Exception exception) {
-            LOGGER.warn("Failed to load whitelist cache: ", exception);
-        }
-    }
-
-    static {
-        CONFIG = Configs.createAndLoad(builder -> {
-            builder.registerDeserializer(JsonObject.class, EntryData.class, (jsonObject, m) -> EntryData.deserialize(((JsonPrimitive) jsonObject.get("type")).asString(), jsonObject));
-            builder.registerSerializer(EntryData.class, (entryData, marshaller) -> {
-                JsonObject json = entryData.serialize();
-                json.put("type", new JsonPrimitive(entryData.getType().name()));
-                return json;
-            });
-        });
     }
 }
