@@ -131,7 +131,6 @@ modrinth {
     uploadFile = remapJar
     dependencies = [
             new ModDependency("fabric-language-kotlin", "required"),
-            new ModDependency("owo-lib", "required"),
             new ModDependency("luckperms", "optional")
     ]
 }
