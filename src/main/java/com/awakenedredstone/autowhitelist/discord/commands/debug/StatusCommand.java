@@ -19,14 +19,14 @@ import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 public class StatusCommand {
     public static void register(CommandDispatcher<DiscordCommandSource> dispatcher) {
         LiteralCommandNode<DiscordCommandSource> literalCommandNode = dispatcher.register(CommandManager.literal("status")
-            .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
+            .requires((source) -> AutoWhitelist.CONFIG.admins.stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
             .executes((source) -> {
                 execute(source.getSource());
                 return 0;
             }));
 
         dispatcher.register(CommandManager.literal("info")
-            .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
+            .requires((source) -> AutoWhitelist.CONFIG.admins.stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
             .executes((source) -> {
                 execute(source.getSource());
                 return 0;

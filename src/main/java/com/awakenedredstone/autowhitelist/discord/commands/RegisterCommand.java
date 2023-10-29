@@ -128,7 +128,7 @@ public class RegisterCommand {
                     MessageCreateAction feedbackMessage = channel.sendMessage(message);
                     feedbackMessage.queue(message_ -> {
                         whitelist.add(new ExtendedWhitelistEntry(extendedProfile));
-                        if (!AutoWhitelist.CONFIG.enableWhitelistCache()) {
+                        if (AutoWhitelist.CONFIG.enableWhitelistCache) {
                             AutoWhitelist.WHITELIST_CACHE.add(new WhitelistCacheEntry(extendedProfile));
                         }
                         entry.registerUser(profile);

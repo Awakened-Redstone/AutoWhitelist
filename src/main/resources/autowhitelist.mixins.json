@@ -1,16 +1,16 @@
 {
-  "required": true,
-  "minVersion": "0.8",
-  "package": "com.awakenedredstone.autowhitelist.mixin",
-  "compatibilityLevel": "JAVA_8",
-  "mixins": [
-    "PlayerManagerMixin",
-    "ServerConfigEntryMixin",
-    "ServerLoginNetworkHandlerMixin"
-  ],
-  "client": [
-  ],
-  "injectors": {
-    "defaultRequire": 1
+    "required": true,
+    "minVersion": "0.8",
+    "package": "com.awakenedredstone.autowhitelist.mixin",
+    "compatibilityLevel": "JAVA_8",
+    "mixins": [
+        "PlayerManagerMixin",
+        "ServerConfigEntryMixin",
+        "ServerLoginNetworkHandlerAccessor"
+    ],
+    "client": [
+    ],
+    "injectors": {
+        "defaultRequire": 1
   }
 }

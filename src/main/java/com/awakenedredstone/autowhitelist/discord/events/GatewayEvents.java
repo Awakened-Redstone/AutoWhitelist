@@ -11,7 +11,7 @@ public class GatewayEvents {
 
     @SubscribeEvent
     public void onMessage(MessageReceivedEvent e) {
-        String prefix = AutoWhitelist.CONFIG.prefix();
+        String prefix = AutoWhitelist.CONFIG.prefix;
         if (e.isWebhookMessage() || e.getAuthor().isBot()) return;
         Message message = e.getMessage();
         String messageRaw = message.getContentRaw().toLowerCase();

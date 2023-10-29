@@ -31,7 +31,7 @@ public class HelpCommand {
             embedBuilder.setFooter(Text.translatable("command.feedback.message.signature").getString());
 
             for (String string : map.values()) {
-                embedBuilder.appendDescription(Text.literal("`" + AutoWhitelist.CONFIG.prefix() + string + "` | ").append(Text.translatable("command.description." + string.split(" ", 2)[0])).getString());
+                embedBuilder.appendDescription(Text.literal("`" + AutoWhitelist.CONFIG.prefix + string + "` | ").append(Text.translatable("command.description." + string.split(" ", 2)[0])).getString());
                 embedBuilder.appendDescription("\n");
             }
 
@@ -54,11 +54,11 @@ public class HelpCommand {
 
                 for (String string : map.values()) {
                     String result = parseResults.getReader().getString();
-                    embedBuilder.appendDescription(Text.literal("`" + AutoWhitelist.CONFIG.prefix() + result + " " + string + "` | ").append(Text.translatable("command.description." + result)).getString());
+                    embedBuilder.appendDescription(Text.literal("`" + AutoWhitelist.CONFIG.prefix + result + " " + string + "` | ").append(Text.translatable("command.description." + result)).getString());
                 }
                 if (map.isEmpty()) {
                     String result = parseResults.getReader().getString();
-                    embedBuilder.appendDescription(Text.literal("`" + AutoWhitelist.CONFIG.prefix() + result + "` | ").append(Text.translatable("command.description." + result)).getString());
+                    embedBuilder.appendDescription(Text.literal("`" + AutoWhitelist.CONFIG.prefix + result + "` | ").append(Text.translatable("command.description." + result)).getString());
                 }
                 if (source.getType() == DiscordCommandSource.CommandType.SLASH_COMMAND) {
 //                    ((SlashCommandInteractionEvent)source.getEvent()).replyEmbeds(embedBuilder.build()).queue();

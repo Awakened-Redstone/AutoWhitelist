@@ -89,7 +89,7 @@ public class Bot extends Thread {
             guild = null;
             instance = null;
             DiscordBrigadierHelper.INSTANCE = new DiscordBrigadierHelper();
-            JDABuilder builder = JDABuilder.createDefault(AutoWhitelist.CONFIG.token());
+            JDABuilder builder = JDABuilder.createDefault(AutoWhitelist.CONFIG.token);
             builder.setEventManager(new AnnotatedEventManager());
             builder.addEventListeners(new CoreEvents());
             builder.addEventListeners(new GatewayEvents());
@@ -97,8 +97,8 @@ public class Bot extends Thread {
             builder.setMemberCachePolicy(MemberCachePolicy.ALL);
             jda = builder.build();
 
-            if (AutoWhitelist.CONFIG.botActivityType() != ConfigData.BotActivity.NONE) {
-                jda.getPresence().setActivity(AutoWhitelist.CONFIG.botActivityType().getActivity());
+            if (AutoWhitelist.CONFIG.botActivityType != ConfigData.BotActivity.NONE) {
+                jda.getPresence().setActivity(AutoWhitelist.CONFIG.botActivityType.getActivity());
             }
 
             TestCommand.register(DiscordBrigadierHelper.dispatcher());

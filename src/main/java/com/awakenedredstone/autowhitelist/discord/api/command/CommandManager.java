@@ -56,7 +56,7 @@ public class CommandManager {
                 if (i > 10) {
                     mutableText.append(ScreenTexts.ELLIPSIS);
                 }
-                mutableText.append(exception.getInput().substring(Math.max(0, i - 10), i).replaceFirst("^/", AutoWhitelist.CONFIG.prefix()));
+                mutableText.append(exception.getInput().substring(Math.max(0, i - 10), i).replaceFirst("^/", AutoWhitelist.CONFIG.prefix));
                 if (i < exception.getInput().length()) {
                     MutableText text = Text.literal(exception.getInput().substring(i)).formatted(net.minecraft.util.Formatting.RED, net.minecraft.util.Formatting.UNDERLINE);
                     mutableText.append(text);
@@ -69,17 +69,17 @@ public class CommandManager {
         } catch (Exception exception) {
             MutableText mutableText2 = Text.literal(exception.getMessage() == null ? exception.getClass().getName() : exception.getMessage());
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.error("Command exception: {}{}", AutoWhitelist.CONFIG.prefix(), command);
+                LOGGER.error("Command exception: {}{}", AutoWhitelist.CONFIG.prefix, command);
                 StackTraceElement[] stackTraceElements = exception.getStackTrace();
                 for (int j = 0; j < Math.min(stackTraceElements.length, 3); ++j) {
                     mutableText2.append("\n\n").append(stackTraceElements[j].getMethodName()).append("\n ").append(stackTraceElements[j].getFileName()).append(":").append(String.valueOf(stackTraceElements[j].getLineNumber()));
                 }
             }
             MutableText mutableText = Text.translatable("command.failed").styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, mutableText2)));
-            if (AutoWhitelist.CONFIG.devVersion()) {
+            if (AutoWhitelist.CONFIG.devVersion) {
                 mutableText.append("\n");
                 mutableText.append(Text.literal(Util.getInnermostMessage(exception)));
-                LOGGER.error("'{}{}' threw an exception", AutoWhitelist.CONFIG.prefix(), command);
+                LOGGER.error("'{}{}' threw an exception", AutoWhitelist.CONFIG.prefix, command);
             }
             commandSource.sendError(mutableText);
             return 0;

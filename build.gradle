@@ -35,8 +35,9 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    compileOnly "blue.endless:jankson:1.2.1"
-    annotationProcessor modImplementation("io.wispforest:owo-lib:${project.owo_version}")
+    api include("blue.endless:jankson:${project.jankson_version}")
+
+    //annotationProcessor modImplementation("io.wispforest:owo-lib:${project.owo_version}")
     include modImplementation("xyz.nucleoid:server-translations-api:${project.translation_api_version}")
     include modImplementation("eu.pb4:placeholder-api:${project.placeholder_api_version}")
 

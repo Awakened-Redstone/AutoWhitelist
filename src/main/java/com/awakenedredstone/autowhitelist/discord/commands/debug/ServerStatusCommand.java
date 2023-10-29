@@ -3,8 +3,10 @@ package com.awakenedredstone.autowhitelist.discord.commands.debug;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.discord.api.command.CommandManager;
 import com.awakenedredstone.autowhitelist.discord.api.command.DiscordCommandSource;
+import com.awakenedredstone.autowhitelist.util.LinedStringBuilder;
 import com.mojang.brigadier.CommandDispatcher;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.minecraft.SharedConstants;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.util.Util;
@@ -18,13 +20,13 @@ import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 public class ServerStatusCommand {
     public static void register(CommandDispatcher<DiscordCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("serverstatus")
-            .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
+            .requires((source) -> AutoWhitelist.CONFIG.admins.stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
             .executes((source) -> {
                 execute(source.getSource());
                 return 0;
             }));
         dispatcher.register(CommandManager.literal("serverinfo")
-            .requires((source) -> AutoWhitelist.CONFIG.admins().stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
+            .requires((source) -> AutoWhitelist.CONFIG.admins.stream().anyMatch(v -> Objects.equals(v, source.getUser().getId())))
             .executes((source) -> {
                 execute(source.getSource());
                 return 0;
@@ -51,11 +53,12 @@ public class ServerStatusCommand {
                 "\n" + "**MAX TPS:** " + String.format("%.2f", MAX_POSSIBLE_TPS);
             embedBuilder.addField("Server timings", output, true);
 
-            String serverInformation = "**Server game version:** " + server.getVersion() + "\n" +
-                "**Total whitelisted players:** " + playerManager.getWhitelistedNames().length + "\n" +
-                "**Total online players:** " + server.getCurrentPlayerCount() + "/" + server.getMaxPlayerCount();
+            LinedStringBuilder serverInformation = new LinedStringBuilder();
+            serverInformation.appendLine("**Server version:** ", SharedConstants.getGameVersion().getName());
+            serverInformation.appendLine("**Total whitelisted players:** ", playerManager.getWhitelistedNames().length);
+            serverInformation.appendLine("**Total online players:** ", playerManager.getCurrentPlayerCount(), "/", playerManager.getMaxPlayerCount());
 
-            embedBuilder.addField("Server information", serverInformation, true);
+            embedBuilder.addField("Server information", serverInformation.toString(), true);
 
             source.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
         });

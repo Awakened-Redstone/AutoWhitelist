@@ -5,36 +5,63 @@ import com.awakenedredstone.autowhitelist.commands.api.Permission;
 import com.awakenedredstone.autowhitelist.discord.Bot;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
 import com.awakenedredstone.autowhitelist.util.ExtendedGameProfile;
+import com.awakenedredstone.autowhitelist.util.LinedStringBuilder;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
+import net.dv8tion.jda.api.JDAInfo;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
+import net.minecraft.SharedConstants;
+import net.minecraft.server.PlayerManager;
 import net.minecraft.server.WhitelistEntry;
-import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 
 import java.util.Collection;
+import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
+import static net.minecraft.server.command.CommandManager.literal;
 
 public class AutoWhitelistCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("autowhitelist")
+        dispatcher.register(literal("autowhitelist")
             .requires(Permission.require("autowhitelist.command", 3))
-            .then(CommandManager.literal("reload")
+            .then(literal("dump")
+              .executes(context -> {
+                  context.getSource().sendFeedback(() -> Text.literal("AutoWhitelist data dump..."), false);
+                  PlayerManager playerManager = AutoWhitelist.getServer().getPlayerManager();
+
+                  LinedStringBuilder dump = new LinedStringBuilder();
+                  dump.appendLine("Server version: ", SharedConstants.getGameVersion().getName());
+                  dump.appendLine("Mod loader: ", AutoWhitelist.getServer().getServerModName());
+                  dump.appendLine("Total whitelisted players: ", playerManager.getWhitelistedNames().length);
+                  Optional<ModContainer> luckperms = FabricLoader.getInstance().getModContainer("luckperms");
+                  dump.appendLine("Luckperms versions: ", luckperms.isPresent() ? luckperms.get().getMetadata().getVersion().getFriendlyString() : "Not present");
+                  dump.appendLine("JDA version: ", JDAInfo.VERSION);
+                  Collection<ModContainer> mods = FabricLoader.getInstance().getAllMods().stream().filter(mod -> !isCoreMod(mod.getMetadata().getId())).toList();
+                  dump.appendLine("Found ", mods.size(), " other mods");
+                  dump.append("Total entries: ", AutoWhitelist.CONFIG.entries.size());
+
+                  context.getSource().sendFeedback(() -> Text.literal(dump.toString()), false);
+                  return 0;
+              })
+            ).then(literal("reload")
                 .executes(context -> executeReload(context.getSource()))
-                .then(CommandManager.literal("bot")
+                .then(literal("bot")
                     .executes(context -> executeSpecificReload(context.getSource(), ReloadableObjects.BOT))
-                ).then(CommandManager.literal("config")
+                ).then(literal("config")
                     .executes(context -> executeSpecificReload(context.getSource(), ReloadableObjects.CONFIG))
-                ).then(CommandManager.literal("cache")
+                ).then(literal("cache")
                     .executes(context -> executeSpecificReload(context.getSource(), ReloadableObjects.CACHE))
                 )
-            ).then(CommandManager.literal("entries")
+            ).then(literal("entries")
                 .executes(context -> executeEntries(context.getSource()))
-            ).then(CommandManager.literal("info")
+            ).then(literal("info")
                 .executes(context -> executeInfo(context.getSource()))
             )
         );
@@ -101,6 +128,19 @@ public class AutoWhitelistCommand {
         }
 
         return 0;
+    }
+
+    private static boolean isCoreMod(String modid) {
+        return Pattern.compile("^fabric(-\\w+)+-v\\d$").matcher(modid).matches() || equals(modid, "java", "minecraft", "fabricloader", "autowhitelist",
+          "placeholder-api", "server_translations_api", "packet_tweaker", "fabric-language-kotlin", "fabric-api", "fabric-api-base");
+    }
+
+    private static boolean equals(String stringA, String... stringB) {
+        //return true if stringA equals to any of stringB
+        for (String string : stringB) {
+            if (stringA.equals(string)) return true;
+        }
+        return false;
     }
 
     private enum ReloadableObjects {

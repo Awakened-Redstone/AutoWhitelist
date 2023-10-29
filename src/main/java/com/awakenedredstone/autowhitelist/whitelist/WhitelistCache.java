@@ -27,7 +27,7 @@ public class WhitelistCache extends ServerConfigList<ExtendedGameProfile, Whitel
 
     @Override
     public void add(WhitelistCacheEntry entry) {
-        if (AutoWhitelist.CONFIG.enableWhitelistCache()) super.add(entry);
+        if (AutoWhitelist.CONFIG.enableWhitelistCache) super.add(entry);
     }
 
     @Nullable

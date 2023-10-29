@@ -29,7 +29,7 @@ public class CoreEvents {
 
     @SubscribeEvent
     public void onReady(ReadyEvent e) {
-        guild = jda.getGuildById(AutoWhitelist.CONFIG.discordServerId());
+        guild = jda.getGuildById(AutoWhitelist.CONFIG.discordServerId);
         AutoWhitelist.LOGGER.info("Finishing setup.");
         if (scheduledUpdate != null) {
             scheduledUpdate.cancel(false);
@@ -39,7 +39,7 @@ public class CoreEvents {
         }
 
         AutoWhitelist.LOGGER.info("Parsing registered users.");
-        scheduledUpdate = executorService.scheduleWithFixedDelay(new DiscordDataProcessor(), 0, AutoWhitelist.CONFIG.updatePeriod(), TimeUnit.SECONDS);
+        scheduledUpdate = executorService.scheduleWithFixedDelay(new DiscordDataProcessor(), 0, AutoWhitelist.CONFIG.updatePeriod, TimeUnit.SECONDS);
         AutoWhitelist.LOGGER.info("Load complete.");
     }
 
