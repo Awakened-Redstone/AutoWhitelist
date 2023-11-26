@@ -50,7 +50,10 @@ public class ConfigData extends Config {
     }*/
 
     public String toString() {
-        return super.toString().replace(token, "TOKEN REMOVED FOR SAFETY");
+        return super.toString()
+          .replace(token, "[REDACTED]")
+          .replace(clientId, "[REDACTED]")
+          .replace(discordServerId, "[REDACTED]");
     }
 
     public enum BotActivity {
