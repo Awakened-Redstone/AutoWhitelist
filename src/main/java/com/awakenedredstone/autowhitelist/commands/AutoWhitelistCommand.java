@@ -6,6 +6,7 @@ import com.awakenedredstone.autowhitelist.discord.Bot;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
 import com.awakenedredstone.autowhitelist.util.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.util.LinedStringBuilder;
+import com.awakenedredstone.autowhitelist.util.ModData;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
@@ -39,17 +40,30 @@ public class AutoWhitelistCommand {
                   LinedStringBuilder dump = new LinedStringBuilder();
                   dump.appendLine("Server version: ", SharedConstants.getGameVersion().getName());
                   dump.appendLine("Mod loader: ", AutoWhitelist.getServer().getServerModName());
+                  if (ModData.isModLoaded("fabricloader")) {
+                      dump.appendLine("Fabric loader: ", ModData.getVersion("fabricloader"));
+                  }
+                  if (ModData.isModLoaded("quilt_loader")) {
+                      dump.appendLine("Quilt loader: ", ModData.getVersion("quilt_loader"));
+                  }
+                  dump.appendLine("Mod version: ", ModData.getVersion("autowhitelist"));
                   dump.appendLine("Total whitelisted players: ", playerManager.getWhitelistedNames().length);
-                  Optional<ModContainer> luckperms = FabricLoader.getInstance().getModContainer("luckperms");
-                  dump.appendLine("Luckperms versions: ", luckperms.isPresent() ? luckperms.get().getMetadata().getVersion().getFriendlyString() : "Not present");
+                  dump.appendLine("Luckperms versions: ", ModData.getVersion("luckperms"));
                   dump.appendLine("JDA version: ", JDAInfo.VERSION);
                   Collection<ModContainer> mods = FabricLoader.getInstance().getAllMods().stream().filter(mod -> !isCoreMod(mod.getMetadata().getId())).toList();
-                  dump.appendLine("Found ", mods.size(), " other mods");
-                  dump.append("Total entries: ", AutoWhitelist.CONFIG.entries.size());
+                  dump.appendLine("Found ", mods.size(), " other non \"core\" mods");
+                  dump.appendLine("Total entries: ", AutoWhitelist.CONFIG.entries.size());
+                  dump.appendLine("Config exists: ", AutoWhitelist.CONFIG.configExists());
+                  dump.appendLine("Config loaded: ", AutoWhitelist.CONFIG.tryLoad());
 
                   context.getSource().sendFeedback(() -> Text.literal(dump.toString()), false);
                   return 0;
-              })
+              }).then(literal("config")
+                .executes(context -> {
+                    context.getSource().sendFeedback(() -> Text.literal(AutoWhitelist.CONFIG.toString()), false);
+                    return 0;
+                })
+              )
             ).then(literal("reload")
                 .executes(context -> executeReload(context.getSource()))
                 .then(literal("bot")

@@ -13,14 +13,9 @@ import org.slf4j.LoggerFactory;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public class JanksonBuilder implements ModInitializer {
+public class JanksonBuilder {
     public static final Logger LOGGER = LoggerFactory.getLogger("CherryBlossomConfigAPI");
     public static final Jankson JANKSON;
-
-    @Override
-    public void onInitialize() {
-
-    }
 
     /**
      * Creates a Jankson instance with the default serializers and deserializers, it takes a consumer as parameter

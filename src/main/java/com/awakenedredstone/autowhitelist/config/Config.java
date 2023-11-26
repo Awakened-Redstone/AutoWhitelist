@@ -47,7 +47,7 @@ public abstract class Config {
      */
     @SuppressWarnings({"unchecked"})
     public void load() {
-        if (!Files.exists(this.getFileLocation())) {
+        if (!configExists()) {
             this.save();
             return;
         }
@@ -73,7 +73,28 @@ public abstract class Config {
         }
     }
 
+    public boolean tryLoad() {
+        if (!configExists()) {
+            return false;
+        }
+
+        try {
+            this.interpreter.fromJson(Files.readString(this.getFileLocation(), StandardCharsets.UTF_8), this.getClass());
+        } catch (IOException | SyntaxError e) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean configExists() {
+        return Files.exists(this.getFileLocation());
+    }
+
     public <T> void registerListener(String key, Consumer<T> listener) {
         this.listeners.put(key, (Consumer<Object>) listener);
+    }
+
+    public String toString() {
+        return this.interpreter.toJson(this).toJson(JsonGrammar.JANKSON);
     }
 }

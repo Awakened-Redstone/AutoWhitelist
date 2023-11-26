@@ -11,7 +11,8 @@ public class LinedStringBuilder {
     }
 
     public LinedStringBuilder appendLine(String... content) {
-        append(content).append("\n");
+        if (!stringBuilder.isEmpty()) append("\n");
+        append(content);
         return this;
     }
 
@@ -23,12 +24,14 @@ public class LinedStringBuilder {
     }
 
     public LinedStringBuilder appendLine(Object... content) {
-        append(content).append("\n");
+        if (!stringBuilder.isEmpty()) append("\n");
+        append(content);
         return this;
     }
 
     public LinedStringBuilder appendLine(String content) {
-        stringBuilder.append(content).append("\n");
+        if (!stringBuilder.isEmpty()) stringBuilder.append("\n");
+        stringBuilder.append(content);
         return this;
     }
 

@@ -1,9 +1,6 @@
 package com.awakenedredstone.autowhitelist.config;
 
-import blue.endless.jankson.Comment;
-import blue.endless.jankson.Jankson;
-import blue.endless.jankson.JsonObject;
-import blue.endless.jankson.JsonPrimitive;
+import blue.endless.jankson.*;
 import com.awakenedredstone.autowhitelist.util.JanksonBuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.minecraft.text.Text;
@@ -51,6 +48,10 @@ public class ConfigData extends Config {
     /*public static boolean idConstraint(List<String> roles) {
         return roles.stream().allMatch(v -> Pattern.compile("\\d+").matcher(v).matches());
     }*/
+
+    public String toString() {
+        return super.toString().replace(token, "TOKEN REMOVED FOR SAFETY");
+    }
 
     public enum BotActivity {
         NONE(null),
