@@ -40,16 +40,6 @@ body:
       placeholder: 'Example: 1.0.4-beta.2'
     validations:
       required: true
-  - type: dropdown
-    id: version_type
-    attributes:
-      label: Version type
-      description: What version of AutoWhitelist are you running?
-      options:
-        - Lite
-        - Full
-    validations:
-      required: true
   - type: textarea
     id: expected
     attributes:
