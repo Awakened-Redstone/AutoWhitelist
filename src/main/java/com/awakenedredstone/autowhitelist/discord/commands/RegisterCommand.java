@@ -52,6 +52,7 @@ public class RegisterCommand {
 
             String id = member.getId();
             List<Role> roles = member.getRoles();
+            roles.add(member.getGuild().getPublicRole());
 
             boolean accepted = !Collections.disjoint(roles.stream().map(Role::getId).toList(), new ArrayList<>(AutoWhitelist.whitelistDataMap.keySet()));
             if (accepted) {
