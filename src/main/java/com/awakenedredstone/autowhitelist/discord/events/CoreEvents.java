@@ -33,6 +33,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static com.awakenedredstone.autowhitelist.discord.Bot.*;
+import static com.awakenedredstone.autowhitelist.discord.BotHelper.getRolesForMember;
 import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 
 public class CoreEvents {
@@ -106,7 +107,7 @@ public class CoreEvents {
                 return;
             }
 
-            List<String> validRoles = member.getRoles().stream().map(Role::getId).filter(whitelistDataMap::containsKey).toList();
+            List<String> validRoles = getRolesForMember(member).stream().map(Role::getId).filter(whitelistDataMap::containsKey).toList();
             if (validRoles.isEmpty()) {
                 ExtendedGameProfile profile = profiles.get(0);
                 AutoWhitelist.removePlayer(profile);
