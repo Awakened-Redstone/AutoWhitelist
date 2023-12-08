@@ -23,6 +23,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.awakenedredstone.autowhitelist.discord.Bot.*;
+import static com.awakenedredstone.autowhitelist.discord.BotHelper.getRolesForMember;
 import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 
 public class CoreEvents {
@@ -89,7 +90,8 @@ public class CoreEvents {
                 return;
             }
 
-            if (roleOptional.isEmpty()) {
+            List<String> validRoles = getRolesForMember(member).stream().map(Role::getId).filter(whitelistDataMap::containsKey).toList();
+            if (validRoles.isEmpty()) {
                 ExtendedGameProfile profile = profiles.get(0);
                 AutoWhitelist.removePlayer(profile);
                 return;

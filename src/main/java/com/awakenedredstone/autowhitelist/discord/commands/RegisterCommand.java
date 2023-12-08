@@ -51,10 +51,8 @@ public class RegisterCommand {
                 Text.translatable("command.feedback.received.message"), 10);
 
             String id = member.getId();
-            List<Role> roles = member.getRoles();
-            roles.add(member.getGuild().getPublicRole());
 
-            boolean accepted = !Collections.disjoint(roles.stream().map(Role::getId).toList(), new ArrayList<>(AutoWhitelist.whitelistDataMap.keySet()));
+            boolean accepted = !Collections.disjoint(getRolesForMember(member).stream().map(Role::getId).toList(), new ArrayList<>(whitelistDataMap.keySet()));
             if (accepted) {
                 MinecraftServer server = AutoWhitelist.server;
                 ExtendedWhitelist whitelist = (ExtendedWhitelist) server.getPlayerManager().getWhitelist();

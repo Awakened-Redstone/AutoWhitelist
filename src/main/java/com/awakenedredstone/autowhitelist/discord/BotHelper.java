@@ -1,6 +1,10 @@
 package com.awakenedredstone.autowhitelist.discord;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
@@ -10,7 +14,8 @@ import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.minecraft.text.Text;
 
-import java.awt.*;
+import java.awt.Color;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class BotHelper extends Bot {
@@ -72,6 +77,12 @@ public class BotHelper extends Bot {
     public static void sendTempSimpleMessage(MessageChannel channel, Text message, int seconds) {
         MessageCreateAction messageAction = channel.sendMessage(message.getString());
         messageAction.queue(m -> m.delete().queueAfter(seconds, TimeUnit.SECONDS));
+    }
+
+    public static List<Role> getRolesForMember(Member member) {
+        List<Role> roles = member.getRoles();
+        roles.add(member.getGuild().getPublicRole());
+        return roles;
     }
 
     public enum MessageType {

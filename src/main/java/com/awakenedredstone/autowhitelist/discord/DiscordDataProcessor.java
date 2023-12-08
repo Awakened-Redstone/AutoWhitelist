@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.awakenedredstone.autowhitelist.discord.Bot.guild;
+import static com.awakenedredstone.autowhitelist.discord.BotHelper.getRolesForMember;
 import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 
 public class DiscordDataProcessor implements Runnable {
@@ -30,7 +31,7 @@ public class DiscordDataProcessor implements Runnable {
 
             List<Member> members = guild.findMembers(v -> {
                 if (v.getUser().isBot()) return false;
-                return hasRole(v.getRoles());
+                return hasRole(getRolesForMember(v));
             }).get();
             List<String> memberIds = members.stream().map(ISnowflake::getId).toList();
 
@@ -47,7 +48,7 @@ public class DiscordDataProcessor implements Runnable {
             }
 
             for (Member member : members) {
-                String role = getTopRole(member.getRoles()).get();
+                String role = getTopRole(getRolesForMember(member)).get();
                 List<ExtendedGameProfile> profiles = whitelist.getProfilesFromDiscordId(member.getId());
                 if (profiles.isEmpty()) continue;
                 if (profiles.size() > 1) {
