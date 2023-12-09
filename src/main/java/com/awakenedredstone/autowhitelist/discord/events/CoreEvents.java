@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static com.awakenedredstone.autowhitelist.AutoWhitelist.whitelistDataMap;
 import static com.awakenedredstone.autowhitelist.discord.Bot.*;
 import static com.awakenedredstone.autowhitelist.discord.BotHelper.getRolesForMember;
 import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
@@ -78,7 +79,7 @@ public class CoreEvents {
 
     private void updateUser(Member member) {
         analyzeTimings("BotEventListener#updateUser", () -> {
-            Optional<String> roleOptional = getTopRole(member.getRoles());
+            Optional<String> roleOptional = getTopRole(getRolesForMember(member));
 
             ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.server.getPlayerManager().getWhitelist();
 
@@ -90,14 +91,13 @@ public class CoreEvents {
                 return;
             }
 
-            List<String> validRoles = getRolesForMember(member).stream().map(Role::getId).filter(whitelistDataMap::containsKey).toList();
-            if (validRoles.isEmpty()) {
+            if (roleOptional.isEmpty()) {
                 ExtendedGameProfile profile = profiles.get(0);
                 AutoWhitelist.removePlayer(profile);
                 return;
             }
             String role = roleOptional.get();
-            EntryData entry = AutoWhitelist.whitelistDataMap.get(role);
+            EntryData entry = whitelistDataMap.get(role);
             ExtendedGameProfile profile = profiles.get(0);
             if (!profile.getRole().equals(role)) {
                 whitelist.add(new ExtendedWhitelistEntry(profile.withRole(role)));
@@ -110,14 +110,14 @@ public class CoreEvents {
 
     private boolean hasRole(List<Role> roles) {
         for (Role r : roles)
-            if (AutoWhitelist.whitelistDataMap.containsKey(r.getId())) return true;
+            if (whitelistDataMap.containsKey(r.getId())) return true;
 
         return false;
     }
 
     private Optional<String> getTopRole(List<Role> roles) {
         for (Role r : roles)
-            if (AutoWhitelist.whitelistDataMap.containsKey(r.getId())) return Optional.of(r.getId());
+            if (whitelistDataMap.containsKey(r.getId())) return Optional.of(r.getId());
 
         return Optional.empty();
     }

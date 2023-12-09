@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import static com.awakenedredstone.autowhitelist.AutoWhitelist.whitelistDataMap;
 import static com.awakenedredstone.autowhitelist.discord.BotHelper.*;
 import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 
@@ -51,10 +52,11 @@ public class RegisterCommand {
                 Text.translatable("command.feedback.received.message"), 10);
 
             String id = member.getId();
+            List<Role> roles = getRolesForMember(member);
 
-            boolean accepted = !Collections.disjoint(getRolesForMember(member).stream().map(Role::getId).toList(), new ArrayList<>(whitelistDataMap.keySet()));
+            boolean accepted = !Collections.disjoint(roles.stream().map(Role::getId).toList(), new ArrayList<>(whitelistDataMap.keySet()));
             if (accepted) {
-                MinecraftServer server = AutoWhitelist.server;
+                MinecraftServer server = AutoWhitelist.getServer();
                 ExtendedWhitelist whitelist = (ExtendedWhitelist) server.getPlayerManager().getWhitelist();
 
                 boolean hasAccountWhitelisted = whitelist.getEntries().stream().map(entry -> {
@@ -70,8 +72,8 @@ public class RegisterCommand {
                     return;
                 }
 
-                String highestRole = roles.stream().map(Role::getId).filter(AutoWhitelist.whitelistDataMap::containsKey).findFirst().get();
-                EntryData entry = AutoWhitelist.whitelistDataMap.get(highestRole);
+                String highestRole = roles.stream().map(Role::getId).filter(whitelistDataMap::containsKey).findFirst().get();
+                EntryData entry = whitelistDataMap.get(highestRole);
                 try {
                     entry.assertSafe();
                 } catch (Throwable e) {
