@@ -53,9 +53,8 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
     public static final ConfigData CONFIG;
     public static final File WHITELIST_CACHE_FILE = new File("whitelist-cache.json");
     public static final WhitelistCache WHITELIST_CACHE = new WhitelistCache(WHITELIST_CACHE_FILE);
-    @Deprecated
-    public static MinecraftServer server;
-    public static Map<String, EntryData> whitelistDataMap = new HashMap<>();
+    public static final Map<String, EntryData> ENTRY_MAP_CACHE = new HashMap<>();
+    private static MinecraftServer server;
 
     static {
         CONFIG = new ConfigData();
@@ -82,7 +81,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
 
         for (GameProfile profile : profiles) {
             if (profile instanceof ExtendedGameProfile extended) {
-                EntryData entry = whitelistDataMap.get(extended.getRole());
+                EntryData entry = ENTRY_MAP_CACHE.get(extended.getRole());
                 if (entry.shouldUpdate(extended)) entry.updateUser(extended);
             }
         }
@@ -95,7 +94,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
     public static void removePlayer(ExtendedGameProfile profile) {
         if (server.getPlayerManager().getWhitelist().isAllowed(profile)) {
             server.getPlayerManager().getWhitelist().remove(new ExtendedWhitelistEntry(profile));
-            whitelistDataMap.get(profile.getRole()).removeUser(profile);
+            ENTRY_MAP_CACHE.get(profile.getRole()).removeUser(profile);
         }
     }
 
@@ -134,8 +133,8 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
         }
 
         CONFIG.<List<EntryData>>registerListener("entries", newEntries -> {
-            whitelistDataMap.clear();
-            newEntries.forEach(entry -> entry.getRoleIds().forEach(id -> AutoWhitelist.whitelistDataMap.put(id, entry)));
+            ENTRY_MAP_CACHE.clear();
+            newEntries.forEach(entry -> entry.getRoleIds().forEach(id -> AutoWhitelist.ENTRY_MAP_CACHE.put(id, entry)));
         });
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
@@ -182,7 +181,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             if (roleOptional.isEmpty()) return;
             String role = roleOptional.get();
 
-            EntryData entry = AutoWhitelist.whitelistDataMap.get(role);
+            EntryData entry = AutoWhitelist.ENTRY_MAP_CACHE.get(role);
             if (hasException(entry::assertSafe)) return;
 
             Whitelist whitelist = server.getPlayerManager().getWhitelist();
@@ -195,7 +194,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
     @Unique
     private Optional<String> getTopRole(List<Role> roles) {
         for (Role r : roles)
-            if (AutoWhitelist.whitelistDataMap.containsKey(r.getId())) return Optional.of(r.getId());
+            if (AutoWhitelist.ENTRY_MAP_CACHE.containsKey(r.getId())) return Optional.of(r.getId());
 
         return Optional.empty();
     }
