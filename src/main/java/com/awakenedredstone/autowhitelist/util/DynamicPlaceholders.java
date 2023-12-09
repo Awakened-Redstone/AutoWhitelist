@@ -5,6 +5,7 @@ import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.PlaceholderHandler;
 import eu.pb4.placeholders.api.PlaceholderResult;
 import eu.pb4.placeholders.api.Placeholders;
+import eu.pb4.placeholders.api.parsers.PatternPlaceholderParser;
 import net.minecraft.text.Text;
 
 import java.util.Map;
@@ -18,7 +19,7 @@ public class DynamicPlaceholders {
     public static Text parseText(Text inputText, String player) {
         Map<String, Text> placeholders = Map.of("player", Text.literal(player));
         return Placeholders.parseText(inputText, PlaceholderContext.of(AutoWhitelist.getServer()),
-            Placeholders.PLACEHOLDER_PATTERN_CUSTOM,
+          PatternPlaceholderParser.PLACEHOLDER_PATTERN_CUSTOM,
             id -> getPlaceholder(id, placeholders));
     }
 

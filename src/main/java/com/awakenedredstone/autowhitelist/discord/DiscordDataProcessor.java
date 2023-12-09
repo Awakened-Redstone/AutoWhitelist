@@ -65,15 +65,21 @@ public class DiscordDataProcessor implements Runnable {
     }
 
     private boolean hasRole(List<Role> roles) {
-        for (Role r : roles)
-            if (AutoWhitelist.ENTRY_MAP_CACHE.containsKey(r.getId())) return true;
+        for (Role r : roles) {
+            if (AutoWhitelist.ENTRY_MAP_CACHE.containsKey(r.getId())) {
+                return true;
+            }
+        }
 
         return false;
     }
 
     private Optional<String> getTopRole(List<Role> roles) {
-        for (Role r : roles)
-            if (AutoWhitelist.ENTRY_MAP_CACHE.containsKey(r.getId())) return Optional.of(r.getId());
+        for (Role r : roles) {
+            if (AutoWhitelist.ENTRY_MAP_CACHE.containsKey(r.getId())) {
+                return Optional.of(r.getId());
+            }
+        }
 
         return Optional.empty();
     }

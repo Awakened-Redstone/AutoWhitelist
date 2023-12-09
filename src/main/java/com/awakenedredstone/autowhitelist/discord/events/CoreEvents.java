@@ -105,7 +105,7 @@ public class CoreEvents {
 
     private Optional<String> getTopRole(List<Role> roles) {
         for (Role r : roles) {
-            if (whitelistDataMap.containsKey(r.getId())) {
+            if (AutoWhitelist.ENTRY_MAP_CACHE.containsKey(r.getId())) {
                 return Optional.of(r.getId());
             }
         }

@@ -13,7 +13,6 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public class JanksonBuilder {
-    public static final Logger LOGGER = LoggerFactory.getLogger("CherryBlossomConfigAPI");
     public static final Jankson JANKSON;
 
     /**
