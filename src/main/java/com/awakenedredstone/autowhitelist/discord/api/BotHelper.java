@@ -9,7 +9,7 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.minecraft.text.Text;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.concurrent.TimeUnit;
 
 import static com.awakenedredstone.autowhitelist.discord.Bot.jda;

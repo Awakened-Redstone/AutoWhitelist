@@ -23,7 +23,10 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.awakenedredstone.autowhitelist.AutoWhitelist.whitelistDataMap;
-import static com.awakenedredstone.autowhitelist.discord.Bot.*;
+import static com.awakenedredstone.autowhitelist.discord.Bot.executorService;
+import static com.awakenedredstone.autowhitelist.discord.Bot.guild;
+import static com.awakenedredstone.autowhitelist.discord.Bot.jda;
+import static com.awakenedredstone.autowhitelist.discord.Bot.scheduledUpdate;
 import static com.awakenedredstone.autowhitelist.discord.BotHelper.getRolesForMember;
 import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 

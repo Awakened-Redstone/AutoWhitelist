@@ -16,7 +16,11 @@ import net.minecraft.server.PlayerManager;
 import net.minecraft.server.WhitelistEntry;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class EntryData {
     private static final Map<EntryType, EntryData> entryTypes = new HashMap<>();

@@ -1,6 +1,8 @@
 package com.awakenedredstone.autowhitelist.config;
 
-import blue.endless.jankson.*;
+import blue.endless.jankson.Comment;
+import blue.endless.jankson.JsonObject;
+import blue.endless.jankson.JsonPrimitive;
 import com.awakenedredstone.autowhitelist.util.JanksonBuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.minecraft.text.Text;

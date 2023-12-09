@@ -27,7 +27,10 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.awakenedredstone.autowhitelist.AutoWhitelist.whitelistDataMap;
-import static com.awakenedredstone.autowhitelist.discord.BotHelper.*;
+import static com.awakenedredstone.autowhitelist.discord.BotHelper.MessageType;
+import static com.awakenedredstone.autowhitelist.discord.BotHelper.getRolesForMember;
+import static com.awakenedredstone.autowhitelist.discord.BotHelper.sendFeedbackMessage;
+import static com.awakenedredstone.autowhitelist.discord.BotHelper.sendTempFeedbackMessage;
 import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 
 public class RegisterCommand {
