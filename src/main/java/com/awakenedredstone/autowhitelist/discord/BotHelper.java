@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
+//TODO: Rewrite for cleaner code and better uses
 public class BotHelper extends Bot {
 
     public static void sendFeedbackMessage(MessageChannel channel, Text title, Text message) {

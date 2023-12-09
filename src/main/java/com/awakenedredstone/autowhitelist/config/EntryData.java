@@ -80,20 +80,20 @@ public abstract class EntryData {
 
         @Override
         public void assertSafe() {
-            if (AutoWhitelist.server.getScoreboard().getTeam(team) == null) {
+            if (AutoWhitelist.getServer().getScoreboard().getTeam(team) == null) {
                 throw new AssertionError(String.format("The team \"%s\" does not exist!", team));
             }
         }
 
         @Override
         public void purgeInvalid() {
-            Scoreboard scoreboard = AutoWhitelist.server.getScoreboard();
+            Scoreboard scoreboard = AutoWhitelist.getServer().getScoreboard();
             net.minecraft.scoreboard.Team serverTeam = scoreboard.getTeam(team);
             if (serverTeam == null) {
                 AutoWhitelist.LOGGER.error("Could not check for invalid players on team \"{}\", got \"null\" when trying to get \"net.minecraft.scoreboard.Team\" from \"{}\"", team, team, new InvalidTeamNameException("Tried to get \"net.minecraft.scoreboard.Team\" from \"" + team + "\" but got \"null\"."));
                 return;
             }
-            PlayerManager playerManager = AutoWhitelist.server.getPlayerManager();
+            PlayerManager playerManager = AutoWhitelist.getServer().getPlayerManager();
             ExtendedWhitelist whitelist = (ExtendedWhitelist) playerManager.getWhitelist();
             Collection<? extends WhitelistEntry> entries = whitelist.getEntries();
             List<GameProfile> profiles = entries.stream().map(v -> (GameProfile) ((ServerConfigEntryMixin<?>) v).getKey()).toList();
@@ -107,13 +107,13 @@ public abstract class EntryData {
 
         @Override
         public <T extends GameProfile> void registerUser(T profile) {
-            net.minecraft.scoreboard.Team serverTeam = AutoWhitelist.server.getScoreboard().getTeam(team);
-            AutoWhitelist.server.getScoreboard().addPlayerToTeam(profile.getName(), serverTeam);
+            net.minecraft.scoreboard.Team serverTeam = AutoWhitelist.getServer().getScoreboard().getTeam(team);
+            AutoWhitelist.getServer().getScoreboard().addPlayerToTeam(profile.getName(), serverTeam);
         }
 
         @Override
         public <T extends GameProfile> void removeUser(T profile) {
-            AutoWhitelist.server.getScoreboard().clearPlayerTeam(profile.getName());
+            AutoWhitelist.getServer().getScoreboard().clearPlayerTeam(profile.getName());
         }
 
         @Override
@@ -123,7 +123,7 @@ public abstract class EntryData {
 
         @Override
         public <T extends GameProfile> boolean shouldUpdate(T profile) {
-            ServerScoreboard scoreboard = AutoWhitelist.server.getScoreboard();
+            ServerScoreboard scoreboard = AutoWhitelist.getServer().getScoreboard();
             net.minecraft.scoreboard.Team serverTeam = scoreboard.getTeam(team);
 
             if (serverTeam == null) {
@@ -163,12 +163,12 @@ public abstract class EntryData {
 
         @Override
         public <T extends GameProfile> void registerUser(T profile) {
-            AutoWhitelist.server.getCommandManager().executeWithPrefix(AutoWhitelist.getCommandSource(), DynamicPlaceholders.parseText(addCommand, profile.getName()).getString());
+            AutoWhitelist.getServer().getCommandManager().executeWithPrefix(AutoWhitelist.getCommandSource(), DynamicPlaceholders.parseText(addCommand, profile.getName()).getString());
         }
 
         @Override
         public <T extends GameProfile> void removeUser(T profile) {
-            AutoWhitelist.server.getCommandManager().executeWithPrefix(AutoWhitelist.getCommandSource(), DynamicPlaceholders.parseText(removeCommand, profile.getName()).getString());
+            AutoWhitelist.getServer().getCommandManager().executeWithPrefix(AutoWhitelist.getCommandSource(), DynamicPlaceholders.parseText(removeCommand, profile.getName()).getString());
         }
 
         @Override
@@ -184,7 +184,7 @@ public abstract class EntryData {
 
         @Override
         public void assertSafe() {
-            var root = AutoWhitelist.server.getCommandManager().getDispatcher().getRoot();
+            var root = AutoWhitelist.getServer().getCommandManager().getDispatcher().getRoot();
             String addCmdStart = addCommand.split(" ", 2)[0];
             if (root.getChild(addCmdStart) == null && !StringUtils.isBlank(addCmdStart)) {
                 if (addCmdStart.startsWith("/")) {

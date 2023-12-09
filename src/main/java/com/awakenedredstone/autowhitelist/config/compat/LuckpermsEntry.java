@@ -74,7 +74,7 @@ public abstract class LuckpermsEntry extends EntryData {
     protected CompletableFuture<User> getUser(GameProfile profile) {
         UserManager userManager = getUserManager();
         CompletableFuture<User> future;
-        if (AutoWhitelist.server.getPlayerManager().getPlayer(profile.getId()) == null) {
+        if (AutoWhitelist.getServer().getPlayerManager().getPlayer(profile.getId()) == null) {
             future = userManager.loadUser(profile.getId());
         } else {
             future = CompletableFuture.completedFuture(userManager.getUser(profile.getId()));

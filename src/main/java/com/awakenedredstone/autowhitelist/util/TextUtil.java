@@ -7,6 +7,6 @@ import net.minecraft.text.Text;
 
 public class TextUtil {
     public static Text placeholder(Text text) {
-        return Placeholders.parseText(text, PlaceholderContext.of(AutoWhitelist.server));
+        return Placeholders.parseText(text, PlaceholderContext.of(AutoWhitelist.getServer()));
     }
 }
