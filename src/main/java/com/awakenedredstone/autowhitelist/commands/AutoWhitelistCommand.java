@@ -37,7 +37,9 @@ public class AutoWhitelistCommand {
                   PlayerManager playerManager = AutoWhitelist.getServer().getPlayerManager();
 
                   LinedStringBuilder dump = new LinedStringBuilder();
-                  dump.appendLine("Server version: ", SharedConstants.getGameVersion().getName());
+                  dump.appendLine();
+                  dump.appendLine("AutoWhitelist data dump");
+                  dump.appendLine("Minecraft version: ", SharedConstants.getGameVersion().getName());
                   dump.appendLine("Mod loader: ", AutoWhitelist.getServer().getServerModName());
                   if (ModData.isModLoaded("fabricloader")) {
                       dump.appendLine("Fabric loader: ", ModData.getVersion("fabricloader"));
