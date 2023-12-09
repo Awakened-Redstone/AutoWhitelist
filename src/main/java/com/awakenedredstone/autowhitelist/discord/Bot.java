@@ -26,7 +26,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
 public class Bot extends Thread {
-    public static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+    public static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
     public static ScheduledFuture<?> scheduledUpdate;
     public static JDA jda = null;
     public static Guild guild = null;
@@ -49,8 +49,8 @@ public class Bot extends Thread {
             scheduledUpdate = null;
         }
 
-        if (force) executorService.shutdownNow();
-        else executorService.shutdown();
+        if (force) EXECUTOR_SERVICE.shutdownNow();
+        else EXECUTOR_SERVICE.shutdown();
 
         if (jda != null) {
             AutoWhitelist.LOGGER.info("Stopping the bot");
