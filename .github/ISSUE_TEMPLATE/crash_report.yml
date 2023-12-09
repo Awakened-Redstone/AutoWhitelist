@@ -30,7 +30,7 @@ body:
         All good? Then continue to fill the issue by providing the following
         information about it:
   - type: input
-    id: version
+    id: mod_version
     attributes:
       label: Version information
       description: >-
@@ -41,7 +41,7 @@ body:
     validations:
       required: true
   - type: input
-    id: version
+    id: mc_version
     attributes:
       label: Minecraft version
       description: >-
