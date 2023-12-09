@@ -4,7 +4,6 @@ import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.awakenedredstone.autowhitelist.discord.api.DiscordBrigadierHelper;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
 import com.awakenedredstone.autowhitelist.util.DynamicPlaceholders;
 import com.awakenedredstone.autowhitelist.util.InvalidTeamNameException;

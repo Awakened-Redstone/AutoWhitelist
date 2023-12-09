@@ -20,7 +20,6 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 

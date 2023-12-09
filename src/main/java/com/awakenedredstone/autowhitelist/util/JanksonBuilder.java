@@ -3,7 +3,6 @@ package com.awakenedredstone.autowhitelist.util;
 import blue.endless.jankson.Jankson;
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonPrimitive;
-import net.fabricmc.api.ModInitializer;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
