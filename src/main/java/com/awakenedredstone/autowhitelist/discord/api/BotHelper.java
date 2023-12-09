@@ -1,5 +1,6 @@
 package com.awakenedredstone.autowhitelist.discord.api;
 
+import com.awakenedredstone.autowhitelist.discord.Bot;
 import com.awakenedredstone.autowhitelist.discord.api.util.Markdown;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Role;
@@ -12,6 +13,7 @@ import net.minecraft.text.Text;
 import java.awt.Color;
 import java.util.concurrent.TimeUnit;
 
+@Deprecated
 public class BotHelper {
     public static void sendFeedbackMessage(MessageChannel channel, Text title, Text message) {
         EmbedBuilder embedBuilder = new EmbedBuilder();

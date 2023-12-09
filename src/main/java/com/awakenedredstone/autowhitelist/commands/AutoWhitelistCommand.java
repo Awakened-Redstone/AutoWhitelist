@@ -18,6 +18,7 @@ import net.minecraft.server.PlayerManager;
 import net.minecraft.server.WhitelistEntry;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Collection;
 import java.util.regex.Pattern;
@@ -155,7 +156,9 @@ public class AutoWhitelistCommand {
         return false;
     }
 
-    private enum ReloadableObjects {
+    @Deprecated(forRemoval = true, since = "1.0.0-alpha.10")
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.0.0-beta.1")
+    public enum ReloadableObjects {
         BOT,
         CONFIG,
         CACHE
