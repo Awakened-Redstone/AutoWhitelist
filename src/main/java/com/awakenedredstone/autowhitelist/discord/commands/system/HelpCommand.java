@@ -1,6 +1,7 @@
 package com.awakenedredstone.autowhitelist.discord.commands.system;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
+import com.awakenedredstone.autowhitelist.discord.Bot;
 import com.awakenedredstone.autowhitelist.discord.api.command.CommandManager;
 import com.awakenedredstone.autowhitelist.discord.api.command.DiscordCommandSource;
 import com.google.common.collect.Iterables;
@@ -14,8 +15,6 @@ import net.minecraft.text.Text;
 
 import java.util.Map;
 
-import static com.awakenedredstone.autowhitelist.discord.Bot.jda;
-
 public class HelpCommand {
     private static final SimpleCommandExceptionType FAILED_EXCEPTION = new SimpleCommandExceptionType(Text.translatable("commands.help.failed"));
 
@@ -26,7 +25,7 @@ public class HelpCommand {
             EmbedBuilder embedBuilder = new EmbedBuilder();
             DiscordCommandSource source = context.getSource();
 
-            embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
+            embedBuilder.setAuthor(Bot.jda.getSelfUser().getName(), "https://discord.com", Bot.jda.getSelfUser().getAvatarUrl());
             embedBuilder.setTitle(Text.translatable("command.name.help").getString());
             embedBuilder.setFooter(Text.translatable("command.feedback.message.signature").getString());
 
@@ -48,7 +47,7 @@ public class HelpCommand {
                 EmbedBuilder embedBuilder = new EmbedBuilder();
                 DiscordCommandSource source = context.getSource();
 
-                embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
+                embedBuilder.setAuthor(Bot.jda.getSelfUser().getName(), "https://discord.com", Bot.jda.getSelfUser().getAvatarUrl());
                 embedBuilder.setTitle(Text.translatable("command.name.help").getString());
                 embedBuilder.setFooter(Text.translatable("command.feedback.message.signature").getString());
 
