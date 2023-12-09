@@ -12,12 +12,10 @@ import net.minecraft.text.Text;
 import java.awt.Color;
 import java.util.concurrent.TimeUnit;
 
-import static com.awakenedredstone.autowhitelist.discord.Bot.jda;
-
 public class BotHelper {
     public static void sendFeedbackMessage(MessageChannel channel, Text title, Text message) {
         EmbedBuilder embedBuilder = new EmbedBuilder();
-        embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
+        embedBuilder.setAuthor(Bot.jda.getSelfUser().getName(), "https://discord.com", Bot.jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
         embedBuilder.setFooter(Text.translatable("command.feedback.message.signature").getString());
@@ -27,7 +25,7 @@ public class BotHelper {
 
     public static void sendFeedbackMessage(MessageChannel channel, Text title, Text message, MessageType type) {
         EmbedBuilder embedBuilder = new EmbedBuilder();
-        embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
+        embedBuilder.setAuthor(Bot.jda.getSelfUser().getName(), "https://discord.com", Bot.jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
         embedBuilder.setFooter(Text.translatable("command.feedback.message.signature").getString());
@@ -38,7 +36,7 @@ public class BotHelper {
 
     public static void sendTempFeedbackMessage(MessageChannel channel, Text title, Text message, int seconds) {
         EmbedBuilder embedBuilder = new EmbedBuilder();
-        embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
+        embedBuilder.setAuthor(Bot.jda.getSelfUser().getName(), "https://discord.com", Bot.jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
         embedBuilder.setFooter(String.format("This message will be deleted %s seconds after being sent.", seconds));
@@ -48,7 +46,7 @@ public class BotHelper {
 
     public static MessageCreateData generateFeedbackMessage(Text title, Text message) {
         EmbedBuilder embedBuilder = new EmbedBuilder();
-        embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
+        embedBuilder.setAuthor(Bot.jda.getSelfUser().getName(), "https://discord.com", Bot.jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
         embedBuilder.setFooter(Text.translatable("command.feedback.message.signature").getString());
@@ -57,7 +55,7 @@ public class BotHelper {
 
     public static MessageCreateData generateFeedbackMessage(Text title, Text message, MessageType type) {
         EmbedBuilder embedBuilder = new EmbedBuilder();
-        embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
+        embedBuilder.setAuthor(Bot.jda.getSelfUser().getName(), "https://discord.com", Bot.jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(Markdown.formatText(title));
         embedBuilder.setDescription(Markdown.formatText(message));
         embedBuilder.setFooter(Text.translatable("command.feedback.message.signature").getString());

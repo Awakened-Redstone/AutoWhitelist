@@ -23,7 +23,6 @@ import java.util.Collection;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static com.awakenedredstone.autowhitelist.util.Debugger.analyzeTimings;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class AutoWhitelistCommand {
@@ -116,10 +115,10 @@ public class AutoWhitelistCommand {
     public static int executeReload(ServerCommandSource source) {
         source.sendFeedback(() -> Text.literal("Reloading AutoWhitelist configurations, please wait."), true);
 
-        analyzeTimings("Configs#load", AutoWhitelist.CONFIG::load);
-        analyzeTimings("AutoWhitelist#loadWhitelistCache", AutoWhitelist::loadWhitelistCache);
+        AutoWhitelist.CONFIG.load();
+        AutoWhitelist.loadWhitelistCache();
         source.sendFeedback(() -> Text.literal("Restarting bot, please wait."), true);
-        analyzeTimings("Bot#reloadBot", () -> Bot.getInstance().reloadBot(source));
+        Bot.getInstance().reloadBot(source);
 
         return 0;
     }
@@ -128,15 +127,15 @@ public class AutoWhitelistCommand {
         switch (type) {
             case BOT -> {
                 source.sendFeedback(() -> Text.literal("Restarting bot, please wait."), true);
-                analyzeTimings("Bot#reloadBot", () -> Bot.getInstance().reloadBot(source));
+                Bot.getInstance().reloadBot(source);
             }
             case CONFIG -> {
                 source.sendFeedback(() -> Text.literal("Reloading configurations."), true);
-                analyzeTimings("Configs#load", AutoWhitelist.CONFIG::load);
+                AutoWhitelist.CONFIG.load();
             }
             case CACHE -> {
                 source.sendFeedback(() -> Text.literal("Reloading cache."), true);
-                analyzeTimings("AutoWhitelist#loadWhitelistCache", AutoWhitelist::loadWhitelistCache);
+                AutoWhitelist.loadWhitelistCache();
             }
         }
 

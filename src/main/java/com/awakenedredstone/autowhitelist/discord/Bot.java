@@ -7,7 +7,6 @@ import com.awakenedredstone.autowhitelist.discord.api.GatewayIntents;
 import com.awakenedredstone.autowhitelist.discord.commands.RegisterCommand;
 import com.awakenedredstone.autowhitelist.discord.commands.debug.BotStatusCommand;
 import com.awakenedredstone.autowhitelist.discord.commands.debug.ServerStatusCommand;
-import com.awakenedredstone.autowhitelist.discord.commands.debug.StatusCommand;
 import com.awakenedredstone.autowhitelist.discord.commands.development.TestCommand;
 import com.awakenedredstone.autowhitelist.discord.commands.system.HelpCommand;
 import com.awakenedredstone.autowhitelist.discord.commands.system.PingCommand;
@@ -106,7 +105,6 @@ public class Bot extends Thread {
             PingCommand.register(DiscordBrigadierHelper.dispatcher());
             BotStatusCommand.register(DiscordBrigadierHelper.dispatcher());
             ServerStatusCommand.register(DiscordBrigadierHelper.dispatcher());
-            StatusCommand.register(DiscordBrigadierHelper.dispatcher());
             RegisterCommand.register(DiscordBrigadierHelper.dispatcher());
 
             instance = this;
