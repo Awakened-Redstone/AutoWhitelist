@@ -16,6 +16,7 @@ import net.minecraft.text.Text;
 
 import java.awt.Color;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class BotHelper extends Bot {
@@ -80,7 +81,7 @@ public class BotHelper extends Bot {
     }
 
     public static List<Role> getRolesForMember(Member member) {
-        List<Role> roles = member.getRoles();
+        List<Role> roles = new ArrayList<>(member.getRoles());
         roles.add(member.getGuild().getPublicRole());
         return roles;
     }
