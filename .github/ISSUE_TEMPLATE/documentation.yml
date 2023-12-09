@@ -1,0 +1,31 @@
+name: Documentation
+description: Issues and suggestions for the documentation
+title: "[Documentation]: "
+labels:
+  - T-enhancement
+  - T-documentation
+body:
+  - type: textarea
+    id: target
+    attributes:
+      label: What on the documentation is being suggested to be changed
+      description: >-
+        A simple description of the area or page to be changed/added
+      placeholder: 'Tutorial section'
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the change
+      description: >-
+        A clear and concise description of the documentation change.
+      placeholder: 'Missing information for [...]'
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: >-
+        Add any other context or screenshots about the feature request here.
