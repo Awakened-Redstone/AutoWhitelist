@@ -6,7 +6,6 @@ import com.awakenedredstone.autowhitelist.discord.api.GatewayIntents;
 import com.awakenedredstone.autowhitelist.discord.command.InfoCommand;
 import com.awakenedredstone.autowhitelist.discord.command.RegisterCommand;
 import com.awakenedredstone.autowhitelist.discord.events.CoreEvents;
-import com.awakenedredstone.autowhitelist.discord.events.GatewayEvents;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
@@ -18,11 +17,14 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.exceptions.InvalidTokenException;
-import net.dv8tion.jda.api.hooks.AnnotatedEventManager;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.command.ServerCommandSource;
+/*? if >=1.19 {*//*
 import net.minecraft.text.Text;
+*//*?} else {*/
+import net.minecraft.text.LiteralText;
+/*?} */
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,7 +96,7 @@ public class Bot extends Thread {
         }
         if (jda != null) jda.shutdown();
 
-        source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Discord bot starting."), true);
+        source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/("Discord bot starting."), true);
 
         //noinspection CallToThreadRun
         run();

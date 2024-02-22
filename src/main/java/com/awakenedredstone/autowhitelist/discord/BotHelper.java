@@ -7,6 +7,9 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.utils.messages.*;
+/*? if <1.19 {*/
+import net.minecraft.text.TranslatableText;
+/*?}*/
 import net.minecraft.text.Text;
 
 import java.awt.Color;
@@ -45,7 +48,7 @@ public class BotHelper extends Bot {
         embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
-        embedBuilder.setFooter(/*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.feedback.message.signature").getString());
+        embedBuilder.setFooter(/*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.feedback.message.signature").getString());
         return new MessageCreateBuilder().setEmbeds(embedBuilder.build()).build();
     }
 
@@ -55,7 +58,7 @@ public class BotHelper extends Bot {
         embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
-        embedBuilder.setFooter(/*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.feedback.message.signature").getString());
+        embedBuilder.setFooter(/*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.feedback.message.signature").getString());
         embedBuilder.setColor(type.hexColor);
         return new MessageCreateBuilder().addEmbeds(embedBuilder.build()).build();
     }
@@ -66,7 +69,7 @@ public class BotHelper extends Bot {
         embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
-        embedBuilder.setFooter(/*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.feedback.message.signature").getString());
+        embedBuilder.setFooter(/*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.feedback.message.signature").getString());
         embedBuilder.setColor(type.hexColor);
         return new MessageEditBuilder().setEmbeds(embedBuilder.build()).build();
     }
@@ -107,7 +110,7 @@ public class BotHelper extends Bot {
             embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
             embedBuilder.setTitle(title.getString());
             embedBuilder.setDescription(message.getString());
-            embedBuilder.setFooter(/*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.feedback.message.signature").getString());
+            embedBuilder.setFooter(/*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.feedback.message.signature").getString());
             return embedBuilder;
         }
 

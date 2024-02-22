@@ -9,7 +9,11 @@ import com.awakenedredstone.autowhitelist.config.annotation.RegexConstraint;
 import com.awakenedredstone.autowhitelist.util.JanksonBuilder;
 import com.awakenedredstone.autowhitelist.util.TimeParser;
 import net.dv8tion.jda.api.entities.Activity;
+/*? if >=1.19 {*//*
 import net.minecraft.text.Text;
+*//*?} else {*/
+import net.minecraft.text.TranslatableText;
+/*?} */
 
 import java.util.ArrayList;
 import java.util.List;
@@ -97,7 +101,7 @@ public class ConfigData extends Config {
         }
 
         public Activity getActivity() {
-            return activityType == null ? null : Activity.of(activityType, /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("discord.bot.activity.message").getString());
+            return activityType == null ? null : Activity.of(activityType, /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("discord.bot.activity.message").getString());
         }
     }
 }

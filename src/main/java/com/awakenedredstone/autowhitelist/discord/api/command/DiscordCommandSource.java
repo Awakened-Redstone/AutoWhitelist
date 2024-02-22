@@ -10,6 +10,9 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.Event;
 import net.minecraft.text.Text;
+/*? if <1.19 {*/
+import net.minecraft.text.LiteralText;
+/*?}*/
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -48,7 +51,7 @@ public final class DiscordCommandSource {
     }
 
     public void sendError(Text message) {
-        BotHelper.sendFeedbackMessage(channel, /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(" "), message, BotHelper.MessageType.ERROR);
+        BotHelper.sendFeedbackMessage(channel, /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/(" "), message, BotHelper.MessageType.ERROR);
     }
 
     public void onCommandComplete(CommandContext<DiscordCommandSource> context, boolean success, int result) {

@@ -25,6 +25,9 @@ import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.minecraft.server.MinecraftServer;
+/*? if <1.19 {*/
+import net.minecraft.text.TranslatableText;
+/*?}*/
 import net.minecraft.text.Text;
 
 import java.util.*;
@@ -35,7 +38,7 @@ import java.util.function.Function;
 public class InfoCommand extends SlashCommand {
     public InfoCommand() {
         this.name = "info";
-        this.help = /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.description.info").getString();
+        this.help = /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.description.info").getString();
 
         this.guildOnly = true;
     }
@@ -80,19 +83,19 @@ public class InfoCommand extends SlashCommand {
             ExtendedGameProfile profile = entry.getProfile();
 
             EmbedBuilder embed = BotHelper.Feedback.defaultEmbed(
-              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.info.title"),
-              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.info.description")
+              /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.info.title"),
+              /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.info.description")
             );
 
             String[] fields = new String[]{"username", "role", "lock"};
             for (String field : fields) {
-                Text title = /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.info.field.%s.title".formatted(field));
+                Text title = /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.info.field.%s.title".formatted(field));
                 if (title.getString().isEmpty()) continue;
 
                 String descriptionKey = "command.info.field.%s.description".formatted(field);
                 Text description = switch (field) {
-                    case "username" -> /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/(descriptionKey, profile.getName());
-                    case "role" -> /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/(descriptionKey, "<@&" + profile.getRole() + ">");
+                    case "username" -> /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/(descriptionKey, profile.getName());
+                    case "role" -> /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/(descriptionKey, "<@&" + profile.getRole() + ">");
                     case "lock" -> {
                         String time = "future";
                         if (profile.getLockedUntil() == -1) {
@@ -101,7 +104,7 @@ public class InfoCommand extends SlashCommand {
                             time = "past";
                         }
                         String timeKey = "." + time;
-                        yield /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/(descriptionKey + timeKey, BotHelper.formatDiscordTimestamp(profile.getLockedUntil()));
+                        yield /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/(descriptionKey + timeKey, BotHelper.formatDiscordTimestamp(profile.getLockedUntil()));
                     }
                     default -> Text.of("");
                 };
@@ -153,8 +156,8 @@ public class InfoCommand extends SlashCommand {
             }
         } else {
             EmbedBuilder embed = BotHelper.Feedback.defaultEmbed(
-              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.info.missing.title"),
-              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.info.missing.description")
+              /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.info.missing.title"),
+              /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.info.missing.description")
             );
 
             //Check if account qualifies for registration
@@ -171,15 +174,15 @@ public class InfoCommand extends SlashCommand {
             ButtonEventHandler buttonEventHandler = new ButtonEventHandler().addConsumer(btnId(eventId, "register"), buttonEvent -> {
                 Modal.Builder builder = Modal.create(
                   btnId(eventId, "register"),
-                  /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("discord.modal.register.title").getString()
+                  /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("discord.modal.register.title").getString()
                 ).addComponents(
                   ActionRow.of(
                     TextInput.create(
                       "username",
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("discord.modal.register.input.label").getString(),
+                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("discord.modal.register.input.label").getString(),
                       TextInputStyle.SHORT
                     ).setPlaceholder(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("discord.modal.register.input.placeholder").getString()
+                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("discord.modal.register.input.placeholder").getString()
                     ).setRequired(true).build()
                   )
                 );

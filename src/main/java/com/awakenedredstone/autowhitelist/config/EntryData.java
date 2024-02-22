@@ -175,12 +175,12 @@ public abstract class EntryData {
 
         @Override
         public <T extends GameProfile> void registerUser(T profile) {
-            AutoWhitelist.getServer().getCommandManager().executeWithPrefix(AutoWhitelist.getCommandSource(), DynamicPlaceholders.parseText(addCommand, profile.getName()).getString());
+            AutoWhitelist.getServer().getCommandManager()./*? if >=1.19 {*//*executeWithPrefix*//*?} else {*/execute/*?}*/(AutoWhitelist.getCommandSource(), DynamicPlaceholders.parseText(addCommand, profile.getName()).getString());
         }
 
         @Override
         public <T extends GameProfile> void removeUser(T profile) {
-            AutoWhitelist.getServer().getCommandManager().executeWithPrefix(AutoWhitelist.getCommandSource(), DynamicPlaceholders.parseText(removeCommand, profile.getName()).getString());
+            AutoWhitelist.getServer().getCommandManager()./*? if >=1.19 {*//*executeWithPrefix*//*?} else {*/execute/*?}*/(AutoWhitelist.getCommandSource(), DynamicPlaceholders.parseText(removeCommand, profile.getName()).getString());
         }
 
         @Override

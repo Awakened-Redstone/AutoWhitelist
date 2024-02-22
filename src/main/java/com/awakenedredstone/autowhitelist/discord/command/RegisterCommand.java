@@ -17,17 +17,18 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.requests.restaction.MessageEditAction;
-import net.dv8tion.jda.api.requests.restaction.WebhookMessageEditAction;
-import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.minecraft.server.MinecraftServer;
+/*? if >=1.19 {*//*
 import net.minecraft.text.Text;
+*//*?} else {*/
+import net.minecraft.text.TranslatableText;
+/*?} */
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.*;
@@ -39,7 +40,7 @@ public class RegisterCommand extends CommandBase {
 
     public RegisterCommand() {
         this.name = "register";
-        this.description = /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.description.register").getString();
+        this.description = /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.description.register").getString();
     }
 
     public static void execute(Member member, String username, ReplyCallback replyCallback) {
@@ -48,8 +49,8 @@ public class RegisterCommand extends CommandBase {
         MessageCreateData initialReply = BotHelper.buildEmbedMessage(
           false,
             BotHelper.Feedback.buildEmbed(
-              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.feedback.received.title"),
-              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.feedback.received.message"),
+              /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.feedback.received.title"),
+              /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.feedback.received.message"),
               BotHelper.MessageType.NORMAL
             )
         );
@@ -77,8 +78,8 @@ public class RegisterCommand extends CommandBase {
                     replyCallback.editMessage(
                       BotHelper.buildEmbedMessage(true,
                         BotHelper.Feedback.buildEmbed(
-                          /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.same_username.title"),
-                          /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.same_username.message"),
+                          /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.same_username.title"),
+                          /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.same_username.message"),
                           BotHelper.MessageType.WARNING
                         )
                       )
@@ -91,8 +92,8 @@ public class RegisterCommand extends CommandBase {
                         replyCallback.editMessage(
                           BotHelper.buildEmbedMessage(true,
                             BotHelper.Feedback.buildEmbed(
-                              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.already_registered.title"),
-                              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.already_registered.message"),
+                              /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.already_registered.title"),
+                              /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.already_registered.message"),
                               BotHelper.MessageType.WARNING
                             )
                           )
@@ -101,8 +102,8 @@ public class RegisterCommand extends CommandBase {
                         replyCallback.editMessage(
                           BotHelper.buildEmbedMessage(true,
                             BotHelper.Feedback.buildEmbed(
-                              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.locked.title"),
-                              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.locked.message", BotHelper.formatDiscordTimestamp(whitelistedAccount.get().getProfile().getLockedUntil())),
+                              /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.locked.title"),
+                              /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.locked.message", BotHelper.formatDiscordTimestamp(whitelistedAccount.get().getProfile().getLockedUntil())),
                               BotHelper.MessageType.WARNING
                             )
                           )
@@ -120,8 +121,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                     BotHelper.buildEmbedMessage(true,
                         BotHelper.Feedback.buildEmbed(
-                          /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.fail.title"),
-                          /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.fatal.exception", e.getMessage()),
+                          /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.fail.title"),
+                          /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.fatal.exception", e.getMessage()),
                         BotHelper.MessageType.ERROR
                         )
                     )
@@ -134,8 +135,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   BotHelper.buildEmbedMessage(true,
                     BotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.few_args.title"),
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.few_args.message"),
+                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.few_args.title"),
+                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.few_args.message"),
                       BotHelper.MessageType.WARNING
                     )
                   )
@@ -147,8 +148,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   BotHelper.buildEmbedMessage(true,
                     BotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.too_many_args.title"),
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.too_many_args.message"),
+                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.too_many_args.title"),
+                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.too_many_args.message"),
                       BotHelper.MessageType.WARNING
                     )
                   )
@@ -162,8 +163,8 @@ public class RegisterCommand extends CommandBase {
                     replyCallback.editMessage(
                       BotHelper.buildEmbedMessage(true,
                         BotHelper.Feedback.buildEmbed(
-                          /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.invalid_username.title"),
-                          /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.invalid_username.message.too_long"),
+                          /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.invalid_username.title"),
+                          /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.invalid_username.message.too_long"),
                           BotHelper.MessageType.WARNING
                         )
                       )
@@ -173,8 +174,8 @@ public class RegisterCommand extends CommandBase {
                     replyCallback.editMessage(
                         BotHelper.buildEmbedMessage(true,
                             BotHelper.Feedback.buildEmbed(
-                            /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.invalid_username.title"),
-                            /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.invalid_username.message.too_short"),
+                            /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.invalid_username.title"),
+                            /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.invalid_username.message.too_short"),
                             BotHelper.MessageType.WARNING
                             )
                         )
@@ -187,8 +188,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   BotHelper.buildEmbedMessage(true,
                     BotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.fail.title"),
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fail.account_data", arg),
+                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.fail.title"),
+                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.fail.account_data", arg),
                       BotHelper.MessageType.ERROR
                     )
                   )
@@ -200,8 +201,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   BotHelper.buildEmbedMessage(true,
                     BotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.player_banned.title"),
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.player_banned.message"),
+                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.player_banned.title"),
+                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.player_banned.message"),
                       BotHelper.MessageType.ERROR
                     )
                   )
@@ -213,8 +214,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   BotHelper.buildEmbedMessage(true,
                     BotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.username_already_registered.title"),
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.username_already_registered.message"),
+                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.username_already_registered.title"),
+                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.username_already_registered.message"),
                       BotHelper.MessageType.ERROR
                     )
                   )
@@ -223,8 +224,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   BotHelper.buildEmbedMessage(true,
                     BotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.last_steps.title"),
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.last_steps.message"),
+                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.last_steps.title"),
+                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.last_steps.message"),
                       BotHelper.MessageType.INFO
                     )
                   )
@@ -233,8 +234,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   BotHelper.buildEmbedMessage(true,
                     BotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.last_steps.title"),
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.last_steps.message"),
+                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.last_steps.title"),
+                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.last_steps.message"),
                       BotHelper.MessageType.INFO
                     )
                   )
@@ -255,8 +256,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   BotHelper.buildEmbedMessage(true,
                     BotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.success.title"),
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.success.message"),
+                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.success.title"),
+                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.success.message"),
                       BotHelper.MessageType.SUCCESS
                     )
                   )
@@ -266,8 +267,8 @@ public class RegisterCommand extends CommandBase {
             replyCallback.editMessage(
               BotHelper.buildEmbedMessage(true,
                 BotHelper.Feedback.buildEmbed(
-                  /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fail.not_allowed.title"),
-                  /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fail.not_allowed.message"),
+                  /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.fail.not_allowed.title"),
+                  /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.fail.not_allowed.message"),
                   BotHelper.MessageType.NORMAL
                 )
               )

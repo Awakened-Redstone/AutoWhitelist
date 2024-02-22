@@ -18,11 +18,11 @@ import net.minecraft.SharedConstants;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.WhitelistEntry;
 import net.minecraft.server.command.ServerCommandSource;
-/*? if >=1.19 {*/
+/*? if >=1.19 {*//*
 import net.minecraft.text.Text;
-/*?} else {*//*
+*//*?} else {*/
 import net.minecraft.text.LiteralText;
-*//*?} */
+/*?} */
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Collection;
@@ -40,7 +40,7 @@ public class AutoWhitelistCommand {
             .then(
               literal("dump")
                 .executes(context -> {
-                    context.getSource().sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("AutoWhitelist data dump..."), false);
+                    context.getSource().sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/("AutoWhitelist data dump..."), false);
                     PlayerManager playerManager = AutoWhitelist.getServer().getPlayerManager();
 
                     LinedStringBuilder dump = new LinedStringBuilder();
@@ -59,12 +59,12 @@ public class AutoWhitelistCommand {
                     dump.appendLine("Config exists: ", AutoWhitelist.CONFIG.configExists());
                     dump.appendLine("Config loaded: ", AutoWhitelist.CONFIG.tryLoad());
 
-                    context.getSource().sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(dump.toString()), false);
+                    context.getSource().sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/(dump.toString()), false);
                     return 0;
                 }).then(
                   literal("config")
                     .executes(context -> {
-                        context.getSource().sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(AutoWhitelist.CONFIG.toString()), false);
+                        context.getSource().sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/(AutoWhitelist.CONFIG.toString()), false);
                         return 0;
                     })
                 )
@@ -97,9 +97,9 @@ public class AutoWhitelistCommand {
         return Bot.jda != null ? 1 : 0;
     }
 
-    public static int executeEntries(ServerCommandSource source) /*? if <1.19 {*//*throws CommandSyntaxException*//*?} */ {
+    public static int executeEntries(ServerCommandSource source) /*? if <1.19 {*/throws CommandSyntaxException/*?} */ {
         if (source.getPlayer() != null) {
-            source.getPlayer().sendMessage(/*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Loading info..."), true);
+            source.getPlayer().sendMessage(/*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/("Loading info..."), true);
         }
 
         Collection<? extends WhitelistEntry> entries = ((ExtendedWhitelist) source.getServer().getPlayerManager().getWhitelist()).getEntries();
@@ -117,19 +117,19 @@ public class AutoWhitelistCommand {
         profiles.filter(profile -> profile instanceof ExtendedGameProfile).forEach(player -> list.append("    ").append(player.getName()).append("\n"));
 
         if (source.getPlayer() != null) {
-            source.getPlayer().sendMessage(/*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(""), true);
+            source.getPlayer().sendMessage(/*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/(""), true);
         }
 
-        source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(list.toString()), false);
+        source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/(list.toString()), false);
         return 0;
     }
 
     public static int executeReload(ServerCommandSource source) {
-        source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Reloading AutoWhitelist configurations, please wait."), true);
+        source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/("Reloading AutoWhitelist configurations, please wait."), true);
 
         AutoWhitelist.CONFIG.load();
         AutoWhitelist.loadWhitelistCache();
-        source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Restarting bot, please wait."), true);
+        source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/("Restarting bot, please wait."), true);
         Bot.getInstance().reloadBot(source);
 
         return 0;
@@ -138,15 +138,15 @@ public class AutoWhitelistCommand {
     public static int executeSpecificReload(ServerCommandSource source, ReloadableObjects type) {
         switch (type) {
             case BOT -> {
-                source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Restarting bot, please wait."), true);
+                source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/("Restarting bot, please wait."), true);
                 Bot.getInstance().reloadBot(source);
             }
             case CONFIG -> {
-                source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Reloading configurations."), true);
+                source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/("Reloading configurations."), true);
                 AutoWhitelist.CONFIG.load();
             }
             case CACHE -> {
-                source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Reloading cache."), true);
+                source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/("Reloading cache."), true);
                 AutoWhitelist.loadWhitelistCache();
             }
         }
