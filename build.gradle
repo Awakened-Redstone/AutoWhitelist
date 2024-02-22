@@ -15,7 +15,7 @@ repositories {
     maven { url "https://m2.chew.pro/snapshots" }
 }
 
-def CHANGELOG = new File("CHANGELOG.md").exists() ? new File("CHANGELOG.md").text : "No changelog provided";
+def CHANGELOG = new File("CHANGELOG.md").exists() ? new File("CHANGELOG.md").text : "No changelog provided"
 def minecraft_version = stonecutter.current.version
 def mod_version = project.mod_version
 
@@ -131,7 +131,7 @@ tasks.register('remapMavenJar', net.fabricmc.loom.task.RemapJarTask) {
 build.dependsOn remapMavenJar
 
 modrinth {
-    String projectVersion = project.version.toString();
+    String projectVersion = project.version.toString()
     List<String> projectVersionNumber = projectVersion.split("-", 2)
     String projectVersionName = "Release ${projectVersionNumber[0]}"
     if (projectVersion.contains("beta")) {
