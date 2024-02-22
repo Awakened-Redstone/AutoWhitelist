@@ -4,12 +4,13 @@ import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.commands.api.Permission;
 import com.awakenedredstone.autowhitelist.discord.Bot;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
-import com.awakenedredstone.autowhitelist.util.ExtendedGameProfile;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.util.LinedStringBuilder;
 import com.awakenedredstone.autowhitelist.util.ModData;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.dv8tion.jda.api.JDAInfo;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
@@ -17,7 +18,11 @@ import net.minecraft.SharedConstants;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.WhitelistEntry;
 import net.minecraft.server.command.ServerCommandSource;
+/*? if >=1.19 {*/
 import net.minecraft.text.Text;
+/*?} else {*//*
+import net.minecraft.text.LiteralText;
+*//*?} */
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Collection;
@@ -29,54 +34,58 @@ import static net.minecraft.server.command.CommandManager.literal;
 public class AutoWhitelistCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(literal("autowhitelist")
+        dispatcher.register(
+          literal("autowhitelist")
             .requires(Permission.require("autowhitelist.command", 3))
-            .then(literal("dump")
-              .executes(context -> {
-                  context.getSource().sendFeedback(() -> Text.literal("AutoWhitelist data dump..."), false);
-                  PlayerManager playerManager = AutoWhitelist.getServer().getPlayerManager();
-
-                  LinedStringBuilder dump = new LinedStringBuilder();
-                  dump.appendLine();
-                  dump.appendLine("AutoWhitelist data dump");
-                  dump.appendLine("Minecraft version: ", SharedConstants.getGameVersion().getName());
-                  dump.appendLine("Mod loader: ", AutoWhitelist.getServer().getServerModName());
-                  if (ModData.isModLoaded("fabricloader")) {
-                      dump.appendLine("Fabric loader: ", ModData.getVersion("fabricloader"));
-                  }
-                  if (ModData.isModLoaded("quilt_loader")) {
-                      dump.appendLine("Quilt loader: ", ModData.getVersion("quilt_loader"));
-                  }
-                  dump.appendLine("Mod version: ", ModData.getVersion("autowhitelist"));
-                  dump.appendLine("Total whitelisted players: ", playerManager.getWhitelistedNames().length);
-                  dump.appendLine("Luckperms versions: ", ModData.getVersion("luckperms"));
-                  dump.appendLine("JDA version: ", JDAInfo.VERSION);
-                  Collection<ModContainer> mods = FabricLoader.getInstance().getAllMods().stream().filter(mod -> !isCoreMod(mod.getMetadata().getId())).toList();
-                  dump.appendLine("Found ", mods.size(), " other non \"core\" mods");
-                  dump.appendLine("Total entries: ", AutoWhitelist.CONFIG.entries.size());
-                  dump.appendLine("Config exists: ", AutoWhitelist.CONFIG.configExists());
-                  dump.appendLine("Config loaded: ", AutoWhitelist.CONFIG.tryLoad());
-
-                  context.getSource().sendFeedback(() -> Text.literal(dump.toString()), false);
-                  return 0;
-              }).then(literal("config")
+            .then(
+              literal("dump")
                 .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.literal(AutoWhitelist.CONFIG.toString()), false);
+                    context.getSource().sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("AutoWhitelist data dump..."), false);
+                    PlayerManager playerManager = AutoWhitelist.getServer().getPlayerManager();
+
+                    LinedStringBuilder dump = new LinedStringBuilder();
+                    dump.appendLine();
+                    dump.appendLine("AutoWhitelist data dump");
+                    dump.appendLine("Minecraft version: ", SharedConstants.getGameVersion().getName());
+                    dump.appendLine("Mod loader: ", AutoWhitelist.getServer().getServerModName());
+                    dump.appendLine("Loader version: ", getLoaderVersion());
+                    dump.appendLine("Mod version: ", ModData.getVersion("autowhitelist"));
+                    dump.appendLine("Total whitelisted players: ", playerManager.getWhitelistedNames().length);
+                    dump.appendLine("Luckperms versions: ", ModData.getVersion("luckperms"));
+                    dump.appendLine("JDA version: ", JDAInfo.VERSION);
+                    Collection<ModContainer> mods = FabricLoader.getInstance().getAllMods().stream().filter(mod -> !isCoreMod(mod.getMetadata().getId())).toList();
+                    dump.appendLine("Found ", mods.size(), " other non \"core\" mods");
+                    dump.appendLine("Total entries: ", AutoWhitelist.CONFIG.entries.size());
+                    dump.appendLine("Config exists: ", AutoWhitelist.CONFIG.configExists());
+                    dump.appendLine("Config loaded: ", AutoWhitelist.CONFIG.tryLoad());
+
+                    context.getSource().sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(dump.toString()), false);
                     return 0;
-                })
-              )
-            ).then(literal("reload")
+                }).then(
+                  literal("config")
+                    .executes(context -> {
+                        context.getSource().sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(AutoWhitelist.CONFIG.toString()), false);
+                        return 0;
+                    })
+                )
+            ).then(
+              literal("reload")
                 .executes(context -> executeReload(context.getSource()))
-                .then(literal("bot")
+                .then(
+                  literal("bot")
                     .executes(context -> executeSpecificReload(context.getSource(), ReloadableObjects.BOT))
-                ).then(literal("config")
+                ).then(
+                  literal("config")
                     .executes(context -> executeSpecificReload(context.getSource(), ReloadableObjects.CONFIG))
-                ).then(literal("cache")
+                ).then(
+                  literal("cache")
                     .executes(context -> executeSpecificReload(context.getSource(), ReloadableObjects.CACHE))
                 )
-            ).then(literal("entries")
+            ).then(
+              literal("entries")
                 .executes(context -> executeEntries(context.getSource()))
-            ).then(literal("info")
+            ).then(
+              literal("info")
                 .executes(context -> executeInfo(context.getSource()))
             )
         );
@@ -84,13 +93,13 @@ public class AutoWhitelistCommand {
 
     public static int executeInfo(ServerCommandSource source) {
         String text = "Mod information:" +
-            "    Bot: " + (Bot.jda == null ? "offline" : "online");
+          "    Bot: " + (Bot.jda == null ? "offline" : "online");
         return Bot.jda != null ? 1 : 0;
     }
 
-    public static int executeEntries(ServerCommandSource source) {
+    public static int executeEntries(ServerCommandSource source) /*? if <1.19 {*//*throws CommandSyntaxException*//*?} */ {
         if (source.getPlayer() != null) {
-            source.getPlayer().sendMessage(Text.literal("Loading info..."), true);
+            source.getPlayer().sendMessage(/*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Loading info..."), true);
         }
 
         Collection<? extends WhitelistEntry> entries = ((ExtendedWhitelist) source.getServer().getPlayerManager().getWhitelist()).getEntries();
@@ -108,19 +117,19 @@ public class AutoWhitelistCommand {
         profiles.filter(profile -> profile instanceof ExtendedGameProfile).forEach(player -> list.append("    ").append(player.getName()).append("\n"));
 
         if (source.getPlayer() != null) {
-            source.getPlayer().sendMessage(Text.literal(""), true);
+            source.getPlayer().sendMessage(/*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(""), true);
         }
 
-        source.sendFeedback(() -> Text.literal(list.toString()), false);
+        source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(list.toString()), false);
         return 0;
     }
 
     public static int executeReload(ServerCommandSource source) {
-        source.sendFeedback(() -> Text.literal("Reloading AutoWhitelist configurations, please wait."), true);
+        source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Reloading AutoWhitelist configurations, please wait."), true);
 
         AutoWhitelist.CONFIG.load();
         AutoWhitelist.loadWhitelistCache();
-        source.sendFeedback(() -> Text.literal("Restarting bot, please wait."), true);
+        source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Restarting bot, please wait."), true);
         Bot.getInstance().reloadBot(source);
 
         return 0;
@@ -129,15 +138,15 @@ public class AutoWhitelistCommand {
     public static int executeSpecificReload(ServerCommandSource source, ReloadableObjects type) {
         switch (type) {
             case BOT -> {
-                source.sendFeedback(() -> Text.literal("Restarting bot, please wait."), true);
+                source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Restarting bot, please wait."), true);
                 Bot.getInstance().reloadBot(source);
             }
             case CONFIG -> {
-                source.sendFeedback(() -> Text.literal("Reloading configurations."), true);
+                source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Reloading configurations."), true);
                 AutoWhitelist.CONFIG.load();
             }
             case CACHE -> {
-                source.sendFeedback(() -> Text.literal("Reloading cache."), true);
+                source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Reloading cache."), true);
                 AutoWhitelist.loadWhitelistCache();
             }
         }
@@ -148,6 +157,32 @@ public class AutoWhitelistCommand {
     private static boolean isCoreMod(String modid) {
         return Pattern.compile("^fabric(-\\w+)+-v\\d$").matcher(modid).matches() || equals(modid, "java", "minecraft", "fabricloader", "autowhitelist",
           "placeholder-api", "server_translations_api", "packet_tweaker", "fabric-language-kotlin", "fabric-api", "fabric-api-base");
+    }
+
+    private static String getLoaderName() {
+        if (FabricLoader.getInstance().isModLoaded("connectormod")) {
+            return "Forge - Via Connector";
+        }
+
+        return switch (AutoWhitelist.getServer().getServerModName()) {
+            case "fabric" -> "Fabric";
+            case "quilt" -> "Quilt";
+            case "forge" -> "Forge";
+            case "neoforge" -> "NeoForge";
+            default -> "Unknown";
+        };
+    }
+
+    private static String getLoaderVersion() {
+        if (FabricLoader.getInstance().isModLoaded("connectormod")) {
+            return ModData.getVersion("connectormod");
+        }
+
+        return switch (AutoWhitelist.getServer().getServerModName()) {
+            case "fabric" -> ModData.getVersion("fabricloader");
+            case "quilt" -> ModData.getVersion("quilt_loader");
+            default -> "unknown";
+        };
     }
 
     private static boolean equals(String stringA, String... stringB) {

@@ -2,39 +2,57 @@ package com.awakenedredstone.autowhitelist.discord;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.config.ConfigData;
-import com.awakenedredstone.autowhitelist.discord.api.DiscordBrigadierHelper;
 import com.awakenedredstone.autowhitelist.discord.api.GatewayIntents;
-import com.awakenedredstone.autowhitelist.discord.commands.RegisterCommand;
-import com.awakenedredstone.autowhitelist.discord.commands.debug.BotStatusCommand;
-import com.awakenedredstone.autowhitelist.discord.commands.debug.ServerStatusCommand;
-import com.awakenedredstone.autowhitelist.discord.commands.development.TestCommand;
-import com.awakenedredstone.autowhitelist.discord.commands.system.HelpCommand;
-import com.awakenedredstone.autowhitelist.discord.commands.system.PingCommand;
+import com.awakenedredstone.autowhitelist.discord.command.InfoCommand;
+import com.awakenedredstone.autowhitelist.discord.command.RegisterCommand;
 import com.awakenedredstone.autowhitelist.discord.events.CoreEvents;
 import com.awakenedredstone.autowhitelist.discord.events.GatewayEvents;
+import com.jagrosh.jdautilities.command.Command;
+import com.jagrosh.jdautilities.command.CommandClient;
+import com.jagrosh.jdautilities.command.CommandClientBuilder;
+import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.exceptions.InvalidTokenException;
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.function.Consumer;
 
 public class Bot extends Thread {
+    public static final Logger LOGGER = LoggerFactory.getLogger("AutoWhitelist Bot");
     public static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
+    public static EventWaiter eventWaiter;
     public static ScheduledFuture<?> scheduledUpdate;
     public static JDA jda = null;
     public static Guild guild = null;
     private static Bot instance;
+
     public Bot() {
         super("AutoWhitelist Bot");
         this.setDaemon(true);
         this.setUncaughtExceptionHandler(new net.minecraft.util.logging.UncaughtExceptionHandler(AutoWhitelist.LOGGER));
+        if (instance != null) {
+            LOGGER.warn("Bot instance already exists, stopping the previous instance");
+            instance.interrupt();
+        }
+        instance = this;
     }
 
     public static void stopBot(boolean force) {
@@ -76,22 +94,69 @@ public class Bot extends Thread {
         }
         if (jda != null) jda.shutdown();
 
-        source.sendFeedback(() -> Text.literal("Discord bot starting."), true);
+        source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Discord bot starting."), true);
 
         //noinspection CallToThreadRun
         run();
     }
 
-    public void run() {
+    private boolean validateConfigs() {
+        if (StringUtils.isBlank(AutoWhitelist.CONFIG.token)) {
+            LOGGER.error("Invalid bot token, please review your configurations.");
+            return false;
+        }
+        if (StringUtils.isBlank(AutoWhitelist.CONFIG.discordServerId)) {
+            LOGGER.error("Invalid discord server id, please review your configurations.");
+            return false;
+        }
         try {
-            jda = null;
-            guild = null;
-            instance = null;
-            DiscordBrigadierHelper.INSTANCE = new DiscordBrigadierHelper();
+            Long.parseLong(AutoWhitelist.CONFIG.discordServerId);
+        } catch (NumberFormatException e) {
+            LOGGER.error("Discord server id is not a valid 32-bit integer, please review your configurations.");
+            return false;
+        }
+        for (String admin : AutoWhitelist.CONFIG.admins) {
+            try {
+                Long.parseLong(admin);
+            } catch (NumberFormatException e) {
+                LOGGER.error("Invalid admin id: \"{}\" is not a valid 32-bit integer, please review your configurations.", admin);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void run() {
+        if (!validateConfigs()) {
+            LOGGER.error("Refusing to initiate the Discord bot, invalid configuration");
+            return;
+        }
+
+        jda = null;
+        guild = null;
+
+        try {
+            CommandClientBuilder commandBuilder = new CommandClientBuilder()
+              .setPrefix(AutoWhitelist.CONFIG.prefix)
+              .setOwnerId("0")
+              .setHelpConsumer(helpConsumer())
+              .addCommands(
+                RegisterCommand.INSTANCE.new TextCommand()
+              ).addSlashCommands(
+                RegisterCommand.INSTANCE.new SlashCommand(),
+                new InfoCommand()
+              ).setActivity(null);
+
+            if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+                commandBuilder.setOwnerId("387745099204919297").forceGuildOnly("387760260166844418");
+            }
+
+            CommandClient commands = commandBuilder.build();
+
+
             JDABuilder builder = JDABuilder.createDefault(AutoWhitelist.CONFIG.token);
-            builder.setEventManager(new AnnotatedEventManager());
-            builder.addEventListeners(new CoreEvents());
-            builder.addEventListeners(new GatewayEvents());
+            //builder.setEventManager(new AnnotatedEventManager());
+            builder.addEventListeners(new CoreEvents(), commands);
             builder.enableIntents(GatewayIntents.BASIC);
             builder.setMemberCachePolicy(MemberCachePolicy.ALL);
             jda = builder.build();
@@ -99,19 +164,64 @@ public class Bot extends Thread {
             if (AutoWhitelist.CONFIG.botActivityType != ConfigData.BotActivity.NONE) {
                 jda.getPresence().setActivity(AutoWhitelist.CONFIG.botActivityType.getActivity());
             }
-
-            TestCommand.register(DiscordBrigadierHelper.dispatcher());
-            HelpCommand.register(DiscordBrigadierHelper.dispatcher());
-            PingCommand.register(DiscordBrigadierHelper.dispatcher());
-            BotStatusCommand.register(DiscordBrigadierHelper.dispatcher());
-            ServerStatusCommand.register(DiscordBrigadierHelper.dispatcher());
-            RegisterCommand.register(DiscordBrigadierHelper.dispatcher());
-
-            instance = this;
         } catch (InvalidTokenException e) {
             AutoWhitelist.LOGGER.error("Invalid bot token, please review your configurations.");
-        } catch (Exception e) {
-            AutoWhitelist.LOGGER.error("Failed to start bot!", e);
+        } catch (Throwable e) {
+            AutoWhitelist.LOGGER.error("An unexpected error occurred while starting the bot", e);
         }
+    }
+
+    @Override
+    public void interrupt() {
+        super.interrupt();
+        stopBot(true);
+        instance = null;
+    }
+
+    private Consumer<CommandEvent> helpConsumer() {
+        return (event) -> {
+            EmbedBuilder builder = new EmbedBuilder().setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
+            Command.Category category;
+            List<MessageEmbed.Field> fields = new ArrayList<>();
+            for (Command command : event.getClient().getCommands()) {
+                if ((!command.isHidden() && !command.isOwnerCommand()) || event.isOwner()) {
+
+                    String command_ = "\n`" +
+                      event.getClient().getPrefix() +
+                      (AutoWhitelist.CONFIG.prefix == null ? " " : "") +
+                      command.getName() +
+                      (command.getArguments() == null ? "" : " " + command.getArguments()) +
+                      "` __ __ | __ __ " + command.getHelp();
+
+                    category = command.getCategory();
+                    fields.add(new MessageEmbed.Field(category == null ? "No Category" : category.getName(), command_, false));
+                }
+            }
+
+            List<MessageEmbed.Field> mergedFields = new ArrayList<>();
+            String commands = "";
+            String lastName = "";
+            for (MessageEmbed.Field field : fields) {
+                if (Objects.equals(field.getName(), lastName)) {
+                    commands += "\n" + field.getValue();
+                    if (fields.get(fields.size() - 1) == field) {
+                        mergedFields.add(new MessageEmbed.Field(lastName, commands, false));
+                    }
+                } else if (!commands.isEmpty()) {
+                    mergedFields.add(new MessageEmbed.Field(lastName, commands, false));
+                    commands = "";
+                    commands += "\n" + field.getValue();
+                    lastName = field.getName();
+                } else if (fields.size() > 1) {
+                    commands += field.getValue();
+                    lastName = field.getName();
+                } else {
+                    mergedFields.add(new MessageEmbed.Field(field.getName(), field.getValue(), false));
+                }
+            }
+
+            mergedFields.forEach(builder::addField);
+            event.reply(builder.build());
+        };
     }
 }

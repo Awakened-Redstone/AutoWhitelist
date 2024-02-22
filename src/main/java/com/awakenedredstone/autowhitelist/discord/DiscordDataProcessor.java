@@ -2,7 +2,7 @@ package com.awakenedredstone.autowhitelist.discord;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.config.EntryData;
-import com.awakenedredstone.autowhitelist.util.ExtendedGameProfile;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import net.dv8tion.jda.api.entities.ISnowflake;
