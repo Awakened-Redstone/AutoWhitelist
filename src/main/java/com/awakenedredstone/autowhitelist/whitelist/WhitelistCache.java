@@ -1,7 +1,6 @@
 package com.awakenedredstone.autowhitelist.whitelist;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.awakenedredstone.autowhitelist.util.ExtendedGameProfile;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.server.ServerConfigEntry;
@@ -32,10 +31,10 @@ public class WhitelistCache extends ServerConfigList<ExtendedGameProfile, Whitel
 
     @Nullable
     public WhitelistCacheEntry get(GameProfile key) {
-        return super.get(new ExtendedGameProfile(key.getId(), key.getName(), null, null));
+        return super.get(new ExtendedGameProfile(key.getId(), key.getName(), null, null, -1));
     }
 
     public void remove(GameProfile key) {
-        super.remove(new ExtendedGameProfile(key.getId(), key.getName(), null, null));
+        super.remove(new ExtendedGameProfile(key.getId(), key.getName(), null, null, -1));
     }
 }

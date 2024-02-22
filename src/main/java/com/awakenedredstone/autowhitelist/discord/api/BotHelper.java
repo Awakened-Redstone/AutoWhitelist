@@ -20,7 +20,7 @@ public class BotHelper {
         embedBuilder.setAuthor(Bot.jda.getSelfUser().getName(), "https://discord.com", Bot.jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
-        embedBuilder.setFooter(Text.translatable("command.feedback.message.signature").getString());
+        embedBuilder.setFooter(/*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.feedback.message.signature").getString());
         MessageCreateAction messageAction = channel.sendMessageEmbeds(embedBuilder.build());
         messageAction.queue();
     }
@@ -30,7 +30,7 @@ public class BotHelper {
         embedBuilder.setAuthor(Bot.jda.getSelfUser().getName(), "https://discord.com", Bot.jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
-        embedBuilder.setFooter(Text.translatable("command.feedback.message.signature").getString());
+        embedBuilder.setFooter(/*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.feedback.message.signature").getString());
         embedBuilder.setColor(type.hexColor);
         MessageCreateAction messageAction = channel.sendMessageEmbeds(embedBuilder.build());
         messageAction.queue();
@@ -51,7 +51,7 @@ public class BotHelper {
         embedBuilder.setAuthor(Bot.jda.getSelfUser().getName(), "https://discord.com", Bot.jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(title.getString());
         embedBuilder.setDescription(message.getString());
-        embedBuilder.setFooter(Text.translatable("command.feedback.message.signature").getString());
+        embedBuilder.setFooter(/*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.feedback.message.signature").getString());
         return new MessageCreateBuilder().setEmbeds(embedBuilder.build()).build();
     }
 
@@ -60,7 +60,7 @@ public class BotHelper {
         embedBuilder.setAuthor(Bot.jda.getSelfUser().getName(), "https://discord.com", Bot.jda.getSelfUser().getAvatarUrl());
         embedBuilder.setTitle(Markdown.formatText(title));
         embedBuilder.setDescription(Markdown.formatText(message));
-        embedBuilder.setFooter(Text.translatable("command.feedback.message.signature").getString());
+        embedBuilder.setFooter(/*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.feedback.message.signature").getString());
         embedBuilder.setColor(type.hexColor);
         return new MessageCreateBuilder().setEmbeds(embedBuilder.build()).build();
     }

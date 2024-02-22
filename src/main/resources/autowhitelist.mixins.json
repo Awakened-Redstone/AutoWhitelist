@@ -6,7 +6,9 @@
     "mixins": [
         "PlayerManagerMixin",
         "ServerConfigEntryMixin",
-        "ServerLoginNetworkHandlerAccessor"
+        "ServerLoginNetworkHandlerAccessor",
+        "compat.JanksonAcessor",
+        "compat.POJODeserializerAccessor"
     ],
     "client": [
     ],

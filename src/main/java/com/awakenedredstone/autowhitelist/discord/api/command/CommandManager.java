@@ -7,12 +7,12 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.command.CommandException;
-import net.minecraft.screen.ScreenTexts;
-import net.minecraft.text.HoverEvent;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.text.Texts;
+import net.fabricmc.loader.api.FabricLoader;
+/*? if >=1.19 {*/import net.minecraft.screen.ScreenTexts;/*?} */
+import net.minecraft.text.*;
+/*? if >=1.19 {*/
+/*?} else {*//*
+*//*?} */
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Util;
 import org.apache.logging.log4j.LogManager;
@@ -43,31 +43,28 @@ public class CommandManager {
 
         try {
             return this.dispatcher.execute(stringReader, commandSource);
-        } catch (CommandException exception) {
-            commandSource.sendError(exception.getTextMessage());
-            return 0;
         } catch (CommandSyntaxException exception) {
             int i;
             if (exception.getInput() != null && exception.getCursor() >= 0) {
                 i = Math.min(exception.getInput().length(), exception.getCursor());
-                MutableText mutableText = Text.empty().formatted(net.minecraft.util.Formatting.GRAY);
+                MutableText mutableText = /*? if >=1.19 {*/Text.empty()/*?} else {*//*LiteralText.EMPTY.copy()*//*?}*/.formatted(net.minecraft.util.Formatting.GRAY);
                 mutableText.append(Texts.toText(exception.getRawMessage()));
                 mutableText.append("\n");
                 if (i > 10) {
-                    mutableText.append(ScreenTexts.ELLIPSIS);
+                    mutableText.append(/*? if >=1.19 {*/ScreenTexts.ELLIPSIS/*?} else {*//*"..."*//*?}*/);
                 }
                 mutableText.append(exception.getInput().substring(Math.max(0, i - 10), i).replaceFirst("^/", AutoWhitelist.CONFIG.prefix));
                 if (i < exception.getInput().length()) {
-                    MutableText text = Text.literal(exception.getInput().substring(i)).formatted(net.minecraft.util.Formatting.RED, net.minecraft.util.Formatting.UNDERLINE);
+                    MutableText text = /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(exception.getInput().substring(i)).formatted(net.minecraft.util.Formatting.RED, net.minecraft.util.Formatting.UNDERLINE);
                     mutableText.append(text);
                 }
-                mutableText.append(Text.translatable("command.context.here").formatted(net.minecraft.util.Formatting.RED, Formatting.ITALIC));
+                mutableText.append(/*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.context.here").formatted(net.minecraft.util.Formatting.RED, Formatting.ITALIC));
                 commandSource.sendError(mutableText);
             } else {
                 commandSource.sendError(Texts.toText(exception.getRawMessage()));
             }
         } catch (Exception exception) {
-            MutableText mutableText2 = Text.literal(exception.getMessage() == null ? exception.getClass().getName() : exception.getMessage());
+            MutableText mutableText2 = /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(exception.getMessage() == null ? exception.getClass().getName() : exception.getMessage());
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.error("Command exception: {}{}", AutoWhitelist.CONFIG.prefix, command);
                 StackTraceElement[] stackTraceElements = exception.getStackTrace();
@@ -75,10 +72,10 @@ public class CommandManager {
                     mutableText2.append("\n\n").append(stackTraceElements[j].getMethodName()).append("\n ").append(stackTraceElements[j].getFileName()).append(":").append(String.valueOf(stackTraceElements[j].getLineNumber()));
                 }
             }
-            MutableText mutableText = Text.translatable("command.failed").styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, mutableText2)));
-            if (AutoWhitelist.CONFIG.devVersion) {
+            MutableText mutableText = /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.failed").styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, mutableText2)));
+            if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
                 mutableText.append("\n");
-                mutableText.append(Text.literal(Util.getInnermostMessage(exception)));
+                mutableText.append(/*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(Util.getInnermostMessage(exception)));
                 LOGGER.error("'{}{}' threw an exception", AutoWhitelist.CONFIG.prefix, command);
             }
             commandSource.sendError(mutableText);

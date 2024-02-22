@@ -1,17 +1,25 @@
 [<img src="https://storage.ko-fi.com/cdn/brandasset/kofi_button_blue.png" width="30%"/>](https://ko-fi.com/awakenedredstone)
 
-### You can find the lite version at https://modrinth.com/mod/autowhitelist-lite
+<br/>
 
 **The mod may not work properly with other discord integration mods if they use a different version of JDA**
 <br/>
+
 AutoWhitelist is a mod made to automate the whitelisting of players based on their Discord role.  
 Its main purpose is to make the whitelisting of Twitch subscribers and Youtube channel members easy.
 <br/>
 <br/>
+This mod works on top of the vanilla whitelist, so make sure to enable the vanilla whitelist, you can do that by changing `white-list` on `server.properties` to `true` or by running `whitelist on` on the server console
+<br/>
+<br/>
+
+#### The mod does not support running the register command on DMs!
 
 #### You can set the bot message text with a <u>datapack</u>, more about it can be found <u>[here](https://github.com/Awakened-Redstone/AutoWhitelist/wiki/Custom-messages)</u>
 
 Configuring the mod can be a bit complicated, you can find a tutorial below.
+<br/>
+The configuration file can be found at `config/autowhitelist.json5`, it is auto-generated after the mod is run for the first time
 <br/>
 <br/>
 
@@ -49,7 +57,7 @@ Configuring the mod can be a bit complicated, you can find a tutorial below.
 <summary>Final steps</summary>
 
 On the config file, `entries` will be empty by default, there you will configure what the server will do when whitelisting the players.
-There are **4** types of entries, for vanilla you have `TEAM` and `COMMAND`, if you have luckperms you can also use `LUCKPERMS_GROUP` and `LUCKPERMS_PERMISSION`.
+There are **5** types of entries, for vanilla you have `TEAM` and `COMMAND`, if you have luckperms you can also use `LUCKPERMS_GROUP` and `LUCKPERMS_PERMISSION`.
 All of them takes a list of `roleIds` that will be used to whitelist the players, and a `type` that will be used to determine what the server will do when whitelisting the players.
 The default format is
 ```json5
@@ -97,7 +105,7 @@ This was added on 1.0.0 Alpha 6!
 <summary>Luckperms examples</summary>
 
 <details>
-<summary>Group examples</summary>
+<summary>Group example</summary>
 
 ```json5
 {
@@ -108,7 +116,7 @@ This was added on 1.0.0 Alpha 6!
 ```
 </details>
 <details>
-<summary>Permission examples</summary>
+<summary>Permission example</summary>
 
 ```json5
 {
@@ -186,6 +194,15 @@ When a player looses the role or leaves the discord server they are automaticall
 <br/>  
 To reload settings run `/autowhitelist reload [bot|config]` to reload only one thing or `/autowhitelist reload` to reload everything
 
+### About porting
+Porting to other platforms is fully allowed, as long as:
+1. A link to the original Modrinth page is put within the first 5 lines of the project description
+2. Credits are given to the original author
+3. The ported version is free and open source
+4. The config structure allows a seamless or easy migration from/to the original version
+
+
 <br/>
 
+A native Forge version will **not** be made, but I <u>**may**</u> add compatibility with [Connector](https://modrinth.com/mod/connector) if required  
 ![No froge](https://i.ibb.co/yphNcXz/fabric-only-banner.png)

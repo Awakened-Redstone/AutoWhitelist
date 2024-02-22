@@ -8,7 +8,6 @@
     "Awakened Redstone"
   ],
   "license": "LGPL-3",
-  "icon": "assets/autowhitelist/icon.png",
   "environment": "server",
   "entrypoints": {
     "server": [
@@ -19,9 +18,9 @@
     "autowhitelist.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.14.22",
+    "fabricloader": "*",
     "fabric-lifecycle-events-v1": "*",
     "fabric-language-kotlin": "*",
-    "minecraft": "1.20.2"
+    "minecraft": "~${minecraft_version}"
   }
 }

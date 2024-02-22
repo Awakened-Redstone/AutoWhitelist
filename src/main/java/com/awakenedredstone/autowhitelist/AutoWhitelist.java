@@ -7,20 +7,25 @@ import com.awakenedredstone.autowhitelist.config.compat.LuckpermsEntry;
 import com.awakenedredstone.autowhitelist.discord.Bot;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
 import com.awakenedredstone.autowhitelist.mixin.ServerLoginNetworkHandlerAccessor;
-import com.awakenedredstone.autowhitelist.util.ExtendedGameProfile;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import com.awakenedredstone.autowhitelist.whitelist.WhitelistCache;
 import com.awakenedredstone.autowhitelist.whitelist.WhitelistCacheEntry;
 import com.mojang.authlib.GameProfile;
+/*? if >=1.19 {*/
 import eu.pb4.placeholders.api.PlaceholderResult;
 import eu.pb4.placeholders.api.Placeholders;
+/*?} else {*//*
+import eu.pb4.placeholders.PlaceholderAPI;
+import eu.pb4.placeholders.PlaceholderResult;
+*//*?} */
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.command./*? if >=1.19 {*/v2/*?} else {*//*v1*//*?}*/.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
@@ -30,7 +35,11 @@ import net.minecraft.server.Whitelist;
 import net.minecraft.server.WhitelistEntry;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
+/*? if >=1.19 {*/
 import net.minecraft.text.Text;
+/*?} else {*//*
+import net.minecraft.text.LiteralText;
+*//*?} */
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
@@ -72,8 +81,8 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             GameProfile cachedProfile = server.getUserCache().getByUuid(profile.getId()).orElse(null);
 
             if (!profile.getName().equals(cachedProfile.getName()) && profile instanceof ExtendedGameProfile extendedProfile) {
-                getCommandSource().sendFeedback(() -> Text.literal("Fixing bad entry from " + profile.getName()), true);
-                whitelist.add(new ExtendedWhitelistEntry(new ExtendedGameProfile(cachedProfile.getId(), cachedProfile.getName(), extendedProfile.getRole(), extendedProfile.getDiscordId())));
+                getCommandSource().sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Fixing bad entry from " + profile.getName()), true);
+                whitelist.add(new ExtendedWhitelistEntry(new ExtendedGameProfile(cachedProfile.getId(), cachedProfile.getName(), extendedProfile.getRole(), extendedProfile.getDiscordId(), extendedProfile.getLockedUntil())));
             }
         }
 
@@ -101,7 +110,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
     public static ServerCommandSource getCommandSource() {
         ServerWorld serverWorld = server.getOverworld();
         return new ServerCommandSource(server, serverWorld == null ? Vec3d.ZERO : Vec3d.of(serverWorld.getSpawnPos()), Vec2f.ZERO,
-            serverWorld, 4, "AutoWhitelist", Text.literal("AutoWhitelist"), server, null);
+            serverWorld, 4, "AutoWhitelist", /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("AutoWhitelist"), server, null);
     }
 
     public static void loadWhitelistCache() {
@@ -142,7 +151,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             CONFIG.load();
             loadWhitelistCache();
         });
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> AutoWhitelistCommand.register(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, /*? if >=1.19 {*/registryAccess,/*?} */ environment) -> AutoWhitelistCommand.register(dispatcher));
         ServerLifecycleEvents.SERVER_STOPPING.register((server -> Bot.stopBot(false)));
         ServerLifecycleEvents.SERVER_STARTED.register((server -> {
             new Bot().start();
@@ -154,8 +163,8 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             }
         }));
 
-        Placeholders.register(new Identifier(MOD_ID, "prefix"),
-            (ctx, arg) -> PlaceholderResult.value(Text.literal(AutoWhitelist.CONFIG.prefix))
+        /*? if >=1.19{*/Placeholders/*?} else {*//*PlaceholderAPI*//*?}*/.register(new Identifier(MOD_ID, "prefix"),
+            (ctx/*? if >=1.19 {*/, arg/*?} */) -> PlaceholderResult.value(/*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(AutoWhitelist.CONFIG.prefix))
         );
 
         ServerLoginConnectionEvents.QUERY_START.register((handler, server, sender, synchronizer) -> {
@@ -185,7 +194,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             if (hasException(entry::assertSafe)) return;
 
             Whitelist whitelist = server.getPlayerManager().getWhitelist();
-            ExtendedGameProfile extendedProfile = new ExtendedGameProfile(profile.getId(), profile.getName(), role, discordId);
+            ExtendedGameProfile extendedProfile = new ExtendedGameProfile(profile.getId(), profile.getName(), role, discordId, CONFIG.lockTime());
             whitelist.add(new ExtendedWhitelistEntry(extendedProfile));
             entry.registerUser(profile);
         });
@@ -193,8 +202,11 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
 
     @Unique
     private Optional<String> getTopRole(List<Role> roles) {
-        for (Role r : roles)
-            if (AutoWhitelist.ENTRY_MAP_CACHE.containsKey(r.getId())) return Optional.of(r.getId());
+        for (Role role : roles) {
+            if (AutoWhitelist.ENTRY_MAP_CACHE.containsKey(role.getId())) {
+                return Optional.of(role.getId());
+            }
+        }
 
         return Optional.empty();
     }

@@ -1,27 +1,30 @@
 import com.modrinth.minotaur.dependencies.ModDependency
 
 plugins {
-    id "fabric-loom" version "1.1-SNAPSHOT"
+    id "fabric-loom" version "1.5-SNAPSHOT"
     id "maven-publish"
     id "com.modrinth.minotaur" version "2.+"
 }
 
 repositories {
     mavenCentral()
-    maven { url 'https://m2.dv8tion.net/releases' }
-    maven { url 'https://maven.wispforest.io' }
-    maven { url 'https://maven.nucleoid.xyz' }
-    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url "https://m2.dv8tion.net/releases" }
+    maven { url "https://maven.wispforest.io" }
+    maven { url "https://maven.nucleoid.xyz" }
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+    maven { url "https://m2.chew.pro/snapshots" }
 }
 
-def CHANGELOG = new File('CHANGELOG.md').exists() ? new File('CHANGELOG.md').text : "No changelog provided"
+def CHANGELOG = new File("CHANGELOG.md").exists() ? new File("CHANGELOG.md").text : "No changelog provided";
+def minecraft_version = stonecutter.current.version
+def mod_version = project.mod_version
 
 archivesBaseName = project.archives_base_name
-version = project.mod_version
+version = "$mod_version+$minecraft_version"
 group = project.maven_group
-
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+base {
+    archivesName = archivesBaseName
+}
 
 configurations.configureEach {
     resolutionStrategy {
@@ -30,39 +33,56 @@ configurations.configureEach {
 }
 
 dependencies {
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    minecraft "com.mojang:minecraft:$minecraft_version"
+    mappings "net.fabricmc:yarn:$minecraft_version+build.$project.yarn_mappings:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    api include("blue.endless:jankson:${project.jankson_version}")
-
-    //annotationProcessor modImplementation("io.wispforest:owo-lib:${project.owo_version}")
-    include modImplementation("xyz.nucleoid:server-translations-api:${project.translation_api_version}")
+    // Mod dependencies
     include modImplementation("eu.pb4:placeholder-api:${project.placeholder_api_version}")
+    if (minecraft_version == "1.18.2") {
+        include modImplementation("fr.catcore:server-translations-api:${project.translation_api_version}")
+    } else {
+        include modImplementation("xyz.nucleoid:server-translations-api:${project.translation_api_version}")
+    }
 
-    modRuntimeOnly "net.fabricmc:fabric-language-kotlin:${project.kotlin_version}"
-
-    compileOnly 'net.luckperms:api:5.4'
-    modCompileOnly 'me.lucko:fabric-permissions-api:0.2-SNAPSHOT'
-
+    // Libraries
+    include api("blue.endless:jankson:${project.jankson_version}")
+    implementation "pw.chew:jda-chewtils:${project.chewtils_version}"
     include api("net.dv8tion:JDA:${project.jda_version}") {
         exclude module: 'opus-java'
     }
 
-    include 'com.fasterxml.jackson.core:jackson-annotations:2.10.1'
-    include 'com.fasterxml.jackson.core:jackson-databind:2.10.1'
-    include 'com.fasterxml.jackson.core:jackson-core:2.10.1'
-    include 'com.neovisionaries:nv-websocket-client:2.14'
-    include 'org.apache.commons:commons-collections4:4.1'
-    include 'com.squareup.okhttp3:okhttp:3.13.0'
-    include 'com.squareup.okio:okio:1.17.2'
-    include 'net.sf.trove4j:trove4j:3.0.3'
+    // JDA dependencies
+    include "com.fasterxml.jackson.core:jackson-annotations:2.14.1"
+    include "com.fasterxml.jackson.core:jackson-databind:2.14.1"
+    include "com.fasterxml.jackson.core:jackson-core:2.14.1"
+    include "com.neovisionaries:nv-websocket-client:2.14"
+    include "org.apache.commons:commons-collections4:4.4"
+    include "com.squareup.okhttp3:okhttp:4.10.0"
+    include "net.sf.trove4j:trove4j:3.0.3"
+
+    // Runtime only
+    modRuntimeOnly "net.fabricmc:fabric-language-kotlin:${project.kotlin_version}"
+
+    // Compile only
+    modCompileOnly "me.lucko:fabric-permissions-api:0.2-SNAPSHOT"
+    compileOnly "net.luckperms:api:5.4"
 }
 
-tasks.withType(JavaCompile) {
-    doFirst {
-        println "AnnotationProcessorPath for $name is ${options.getAnnotationProcessorPath().getFiles()}"
+loom {
+    runConfigs {
+        server {
+            ideConfigGenerated = true
+            runDir = "../../run"
+        }
+    }
+}
+
+if (stonecutter.current.active) {
+    rootProject.tasks.register("buildActive") {
+        group = "project"
+        dependsOn(tasks.named("build"))
     }
 }
 
@@ -73,17 +93,20 @@ compileJava {
 }
 
 processResources {
-	inputs.property "version", project.version
+    def map = [
+            "version"          : version,
+            "minecraft_version": minecraft_version
+    ]
 
-	filesMatching("fabric.mod.json") {
-		expand "version": project.version
-	}
+	inputs.properties map
+
+	filesMatching("fabric.mod.json") {expand map }
 }
 
 // ensure that the encoding is set to UTF-8, no matter what the system default is
 // this fixes some edge cases with special characters not displaying correctly
 // see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
 }
 
@@ -99,7 +122,8 @@ jar {
     from "LICENSE"
 }
 
-task remapMavenJar(type: net.fabricmc.loom.task.RemapJarTask, dependsOn: jar) {
+tasks.register('remapMavenJar', net.fabricmc.loom.task.RemapJarTask) {
+    dependsOn jar
     input = jar.archiveFile
     archiveFileName = "${archivesBaseName}-${project.version}-maven.jar"
     addNestedDependencies = false

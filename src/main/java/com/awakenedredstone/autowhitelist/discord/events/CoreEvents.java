@@ -6,30 +6,36 @@ import com.awakenedredstone.autowhitelist.discord.Bot;
 import com.awakenedredstone.autowhitelist.discord.BotHelper;
 import com.awakenedredstone.autowhitelist.discord.DiscordDataProcessor;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
-import com.awakenedredstone.autowhitelist.util.ExtendedGameProfile;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.util.FailedToUpdateWhitelistException;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
-import net.dv8tion.jda.api.hooks.SubscribeEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-public class CoreEvents {
+public class CoreEvents extends ListenerAdapter {
+    @Override
+    public void onGenericEvent(@NotNull GenericEvent event) {
+        if (Bot.eventWaiter != null && !Bot.eventWaiter.isShutdown()) {
+            Bot.eventWaiter.onEvent(event);
+        }
+    }
 
-    @SubscribeEvent
-    public void onReady(ReadyEvent e) {
-        Bot.guild = Bot.jda.getGuildById(AutoWhitelist.CONFIG.discordServerId);
-        AutoWhitelist.LOGGER.info("Finishing setup.");
+    @Override
+    public void onReady(@NotNull ReadyEvent e) {
         if (Bot.scheduledUpdate != null) {
             Bot.scheduledUpdate.cancel(false);
             try {
@@ -37,12 +43,20 @@ public class CoreEvents {
             } catch (Exception ignored) {/**/}
         }
 
+        Bot.guild = Bot.jda.getGuildById(AutoWhitelist.CONFIG.discordServerId);
+        if (Bot.guild == null) {
+            AutoWhitelist.LOGGER.error("Could not find the guild with id {}", AutoWhitelist.CONFIG.discordServerId);
+            return;
+        }
+
         AutoWhitelist.LOGGER.info("Parsing registered users.");
         Bot.scheduledUpdate = Bot.EXECUTOR_SERVICE.scheduleWithFixedDelay(new DiscordDataProcessor(), 0, AutoWhitelist.CONFIG.updatePeriod, TimeUnit.SECONDS);
         AutoWhitelist.LOGGER.info("Load complete.");
+
+        Bot.eventWaiter = new EventWaiter();
     }
 
-    @SubscribeEvent
+    @Override
     public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent e) {
         User user = e.getUser();
         ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
@@ -64,12 +78,12 @@ public class CoreEvents {
         }
     }
 
-    @SubscribeEvent
+    @Override
     public void onGuildMemberRoleAdd(@NotNull GuildMemberRoleAddEvent e) {
         updateUser(e.getMember());
     }
 
-    @SubscribeEvent
+    @Override
     public void onGuildMemberRoleRemove(@NotNull GuildMemberRoleRemoveEvent e) {
         updateUser(e.getMember());
     }

@@ -1,9 +1,10 @@
 package com.awakenedredstone.autowhitelist.whitelist;
 
+import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
-import com.awakenedredstone.autowhitelist.util.ExtendedGameProfile;
 import com.google.gson.JsonObject;
 import net.minecraft.server.WhitelistEntry;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -13,25 +14,51 @@ public class ExtendedWhitelistEntry extends WhitelistEntry {
         super(profile);
     }
 
-    public ExtendedWhitelistEntry(JsonObject json) {
-        super(profileFromJson(json));
+    public ExtendedWhitelistEntry(JsonObject json, ExtendedWhitelist extendedWhitelist) {
+        super(profileFromJson(json, extendedWhitelist));
     }
 
-    private static ExtendedGameProfile profileFromJson(JsonObject json) {
-        if (json.has("uuid") && json.has("name") && json.has("discordId") && json.has("role")) {
-            String string = json.get("uuid").getAsString();
+    @Nullable
+    private static ExtendedGameProfile profileFromJson(JsonObject json, @Nullable ExtendedWhitelist extendedWhitelist) {
+        if (jsonHasAllKeys(json, "uuid", "name", "discordId", "role")) {
+            String uuidString = json.get("uuid").getAsString();
 
             UUID uuid;
             try {
-                uuid = UUID.fromString(string);
-            } catch (Throwable var4) {
+                uuid = UUID.fromString(uuidString);
+            } catch (Throwable e) {
                 return null;
             }
 
-            return new ExtendedGameProfile(uuid, json.get("name").getAsString(), json.get("role").getAsString(), json.get("discordId").getAsString());
+            long lockedUntil;
+            if (json.has("lockedUntil")) {
+                lockedUntil = json.get("lockedUntil").getAsLong();
+            } else {
+                lockedUntil = AutoWhitelist.CONFIG.lockTime();
+                if (extendedWhitelist != null) {
+                    extendedWhitelist.setDirty(true);
+                }
+            }
+
+            return new ExtendedGameProfile(
+              uuid,
+              json.get("name").getAsString(),
+              json.get("role").getAsString(),
+              json.get("discordId").getAsString(),
+              lockedUntil
+            );
         } else {
             return null;
         }
+    }
+
+    private static boolean jsonHasAllKeys(JsonObject json, String... keys) {
+        for (String key : keys) {
+            if (!json.has(key)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public ExtendedGameProfile getProfile() {
@@ -40,11 +67,14 @@ public class ExtendedWhitelistEntry extends WhitelistEntry {
 
     @Override
     protected void write(JsonObject json) {
-        if (((ServerConfigEntryMixin<?>) this).getKey() != null && ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getId() != null) {
-            json.addProperty("uuid", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getId().toString());
-            json.addProperty("name", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getName());
-            json.addProperty("role", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getRole());
-            json.addProperty("discordId", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getDiscordId());
+        ServerConfigEntryMixin<?> entry = (ServerConfigEntryMixin<?>) this;
+        ExtendedGameProfile profile = (ExtendedGameProfile) entry.getKey();
+        if (entry.getKey() != null && profile.getId() != null) {
+            json.addProperty("uuid", profile.getId().toString());
+            json.addProperty("name", profile.getName());
+            json.addProperty("role", profile.getRole());
+            json.addProperty("discordId", profile.getDiscordId());
+            json.addProperty("lockedUntil", profile.getLockedUntil());
         }
     }
 }

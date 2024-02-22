@@ -102,18 +102,30 @@ public abstract class EntryData {
                 if (profile == null) return true;
                 return !whitelist.isAllowed(profile);
             }).toList();
+            /*? if >=1.20 {*//*
+            invalidPlayers.forEach(player -> scoreboard.removeScoreHolderFromTeam(player, serverTeam));
+            *//*?} else {*/
             invalidPlayers.forEach(player -> scoreboard.removePlayerFromTeam(player, serverTeam));
+            /*?} */
         }
 
         @Override
         public <T extends GameProfile> void registerUser(T profile) {
             net.minecraft.scoreboard.Team serverTeam = AutoWhitelist.getServer().getScoreboard().getTeam(team);
+            /*? if >=1.20 {*//*
+            AutoWhitelist.getServer().getScoreboard().addScoreHolderToTeam(profile.getName(), serverTeam);
+            *//*?} else {*/
             AutoWhitelist.getServer().getScoreboard().addPlayerToTeam(profile.getName(), serverTeam);
+            /*?} */
         }
 
         @Override
         public <T extends GameProfile> void removeUser(T profile) {
+            /*? if >=1.20 {*//*
+            AutoWhitelist.getServer().getScoreboard().clearTeam(profile.getName());
+            *//*?} else {*/
             AutoWhitelist.getServer().getScoreboard().clearPlayerTeam(profile.getName());
+            /*?} */
         }
 
         @Override
@@ -131,7 +143,7 @@ public abstract class EntryData {
                 return false;
             }
 
-            return scoreboard.getPlayerTeam(profile.getName()) != serverTeam;
+            return scoreboard.getTeam(profile.getName()) != serverTeam;
         }
 
         @Override

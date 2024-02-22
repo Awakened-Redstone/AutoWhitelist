@@ -18,9 +18,9 @@ public class GatewayEvents {
         if (messageRaw.startsWith(prefix)) {
             String command = "/".concat(messageRaw.substring(prefix.length()));
             if (message.isFromGuild()) {
-                DiscordBrigadierHelper.INSTANCE.getCommandManager().execute(new DiscordCommandSource(e.getMember(), message, e.getChannel(), DiscordCommandSource.CommandType.MESSAGE, e), command);
+                //DiscordBrigadierHelper.INSTANCE.getCommandManager().execute(new DiscordCommandSource(e.getMember(), message, e.getChannel(), DiscordCommandSource.CommandType.MESSAGE, e), command);
             } else {
-                DiscordBrigadierHelper.INSTANCE.getCommandManager().execute(new DiscordCommandSource(e.getAuthor(), message, e.getChannel(), DiscordCommandSource.CommandType.MESSAGE, e), command);
+                //DiscordBrigadierHelper.INSTANCE.getCommandManager().execute(new DiscordCommandSource(e.getAuthor(), message, e.getChannel(), DiscordCommandSource.CommandType.MESSAGE, e), command);
             }
         }
     }

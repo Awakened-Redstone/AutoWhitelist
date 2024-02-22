@@ -48,7 +48,7 @@ public final class DiscordCommandSource {
     }
 
     public void sendError(Text message) {
-        BotHelper.sendFeedbackMessage(channel, Text.literal(" "), message, BotHelper.MessageType.ERROR);
+        BotHelper.sendFeedbackMessage(channel, /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(" "), message, BotHelper.MessageType.ERROR);
     }
 
     public void onCommandComplete(CommandContext<DiscordCommandSource> context, boolean success, int result) {
