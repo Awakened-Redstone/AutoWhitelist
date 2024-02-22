@@ -1,6 +1,7 @@
 package com.awakenedredstone.autowhitelist.util;
 
 /*? if >=1.19 {*//*
+import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.PlaceholderHandler;
 import eu.pb4.placeholders.api.PlaceholderResult;
