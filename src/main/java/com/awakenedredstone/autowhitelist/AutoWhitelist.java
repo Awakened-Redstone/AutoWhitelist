@@ -191,7 +191,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             String role = roleOptional.get();
 
             EntryData entry = AutoWhitelist.ENTRY_MAP_CACHE.get(role);
-            if (hasException(entry::assertSafe)) return;
+            if (hasException(entry::assertSafe, "Failed to use whitelist cache due to a broken entry, please check your config file!")) return;
 
             Whitelist whitelist = server.getPlayerManager().getWhitelist();
             ExtendedGameProfile extendedProfile = new ExtendedGameProfile(profile.getId(), profile.getName(), role, discordId, CONFIG.lockTime());
@@ -212,12 +212,12 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
     }
 
     @Unique
-    private boolean hasException(Runnable task) {
+    private boolean hasException(Runnable task, String message) {
         try {
             task.run();
             return false;
         } catch (Throwable e) {
-            LOGGER.error("Failed to use whitelist cache due to a broken entry, please check your config file!", e);
+            LOGGER.error(message, e);
             return true;
         }
     }
