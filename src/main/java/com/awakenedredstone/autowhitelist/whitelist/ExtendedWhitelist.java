@@ -23,6 +23,7 @@ public class ExtendedWhitelist extends Whitelist {
     protected ServerConfigEntry<GameProfile> fromJson(JsonObject json) {
         ExtendedWhitelistEntry entry = new ExtendedWhitelistEntry(json, this);
         try {
+            //noinspection unchecked,DataFlowIssue
             if (((ServerConfigEntryMixin<GameProfile>) entry).getKey() != null) return entry;
             else return new WhitelistEntry(json);
         } catch (ClassCastException e) {
@@ -65,9 +66,9 @@ public class ExtendedWhitelist extends Whitelist {
                     return false;
                 }
             }).forEach(whitelistEntry -> remove((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) whitelistEntry).getKey()));
-            case USERNAME -> values().stream().filter(entry -> {
-                return ((GameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getName().equals(key);
-            }).forEach(whitelistEntry -> remove((GameProfile) ((ServerConfigEntryMixin<?>) whitelistEntry).getKey()));
+            case USERNAME -> values().stream()
+              .filter(entry -> ((GameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getName().equals(key))
+              .forEach(whitelistEntry -> remove((GameProfile) ((ServerConfigEntryMixin<?>) whitelistEntry).getKey()));
         }
     }
 

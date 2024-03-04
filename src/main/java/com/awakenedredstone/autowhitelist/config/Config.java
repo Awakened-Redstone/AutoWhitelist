@@ -45,7 +45,6 @@ public abstract class Config {
      * Load the config represented by this wrapper from
      * its associated file, or create it if it does not exist
      */
-    @SuppressWarnings({"unchecked"})
     public void load() {
         if (!configExists()) {
             this.save();
@@ -91,10 +90,15 @@ public abstract class Config {
     }
 
     public <T> void registerListener(String key, Consumer<T> listener) {
+        //noinspection unchecked
         this.listeners.put(key, (Consumer<Object>) listener);
     }
 
     public String toString() {
         return this.interpreter.toJson(this).toJson(JsonGrammar.JANKSON);
+    }
+
+    public Jankson getInterpreter() {
+        return interpreter;
     }
 }

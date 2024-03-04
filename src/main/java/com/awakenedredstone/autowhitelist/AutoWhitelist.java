@@ -1,5 +1,8 @@
 package com.awakenedredstone.autowhitelist;
 
+import blue.endless.jankson.JsonArray;
+import blue.endless.jankson.JsonObject;
+import blue.endless.jankson.JsonPrimitive;
 import com.awakenedredstone.autowhitelist.commands.AutoWhitelistCommand;
 import com.awakenedredstone.autowhitelist.config.ConfigData;
 import com.awakenedredstone.autowhitelist.config.EntryData;
@@ -7,25 +10,26 @@ import com.awakenedredstone.autowhitelist.config.compat.LuckpermsEntry;
 import com.awakenedredstone.autowhitelist.discord.Bot;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
 import com.awakenedredstone.autowhitelist.mixin.ServerLoginNetworkHandlerAccessor;
+import com.awakenedredstone.autowhitelist.util.ModData;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import com.awakenedredstone.autowhitelist.whitelist.WhitelistCache;
 import com.awakenedredstone.autowhitelist.whitelist.WhitelistCacheEntry;
 import com.mojang.authlib.GameProfile;
-/*? if >=1.19 {*//*
+/*? if >=1.19 {*/
 import eu.pb4.placeholders.api.PlaceholderResult;
 import eu.pb4.placeholders.api.Placeholders;
-*//*?} else {*/
+/*?} else {*//*
 import eu.pb4.placeholders.PlaceholderAPI;
 import eu.pb4.placeholders.PlaceholderResult;
-/*?} */
+*//*?} */
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.command./*? if >=1.19 {*//*v2*//*?} else {*/v1/*?}*/.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.command./*? if >=1.19 {*/v2/*?} else {*//*v1*//*?}*/.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
@@ -35,20 +39,27 @@ import net.minecraft.server.Whitelist;
 import net.minecraft.server.WhitelistEntry;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
-/*? if >=1.19 {*//*
+/*? if >=1.19 {*/
 import net.minecraft.text.Text;
-*//*?} else {*/
+/*?} else {*//*
 import net.minecraft.text.LiteralText;
-/*?} */
+*//*?} */
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
+/*? if >=1.18.2 {*/
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+/*?} else {*//*
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+*//*?} */
 import org.spongepowered.asm.mixin.Unique;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -58,7 +69,7 @@ import java.util.Optional;
 @Environment(EnvType.SERVER)
 public class AutoWhitelist implements DedicatedServerModInitializer {
     public static final String MOD_ID = "autowhitelist";
-    public static final Logger LOGGER = LoggerFactory.getLogger("AutoWhitelist");
+    public static final /*? if >=1.18.2 {*/Logger/*?} else {*//*Logger*//*?} */ LOGGER = /*? if >=1.18.2 {*/LoggerFactory/*?} else {*//*LogManager*//*?} */.getLogger("AutoWhitelist");
     public static final ConfigData CONFIG;
     public static final File WHITELIST_CACHE_FILE = new File("whitelist-cache.json");
     public static final WhitelistCache WHITELIST_CACHE = new WhitelistCache(WHITELIST_CACHE_FILE);
@@ -78,11 +89,15 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
         List<GameProfile> profiles = entries.stream().map(v -> (GameProfile) ((ServerConfigEntryMixin<?>) v).getKey()).toList();
 
         for (GameProfile profile : profiles) {
+            if (server.getUserCache() == null) {
+                LOGGER.error("Failed to update whitelist, could not get user cache");
+                return;
+            }
             GameProfile cachedProfile = server.getUserCache().getByUuid(profile.getId()).orElse(null);
             if (cachedProfile == null) continue;
 
             if (!profile.getName().equals(cachedProfile.getName()) && profile instanceof ExtendedGameProfile extendedProfile) {
-                getCommandSource().sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/("Fixing bad entry from " + profile.getName()), true);
+                getCommandSource().sendFeedback(/*? if >=1.20 {*/() ->/*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Fixing bad entry from " + profile.getName()), true);
                 whitelist.add(new ExtendedWhitelistEntry(new ExtendedGameProfile(cachedProfile.getId(), cachedProfile.getName(), extendedProfile.getRole(), extendedProfile.getDiscordId(), extendedProfile.getLockedUntil())));
             }
         }
@@ -111,7 +126,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
     public static ServerCommandSource getCommandSource() {
         ServerWorld serverWorld = server.getOverworld();
         return new ServerCommandSource(server, serverWorld == null ? Vec3d.ZERO : Vec3d.of(serverWorld.getSpawnPos()), Vec2f.ZERO,
-            serverWorld, 4, "AutoWhitelist", /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/("AutoWhitelist"), server, null);
+            serverWorld, 4, "AutoWhitelist", /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("AutoWhitelist"), server, null);
     }
 
     public static void loadWhitelistCache() {
@@ -129,7 +144,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
         EntryData.register(new EntryData.Team(""));
         EntryData.register(new EntryData.Command("", ""));
         EntryData.register(new EntryData.Whitelist());
-        if (FabricLoader.getInstance().isModLoaded("luckperms")) {
+        if (ModData.isModLoaded("luckperms")) {
             EntryData.register(new LuckpermsEntry.Permission(""));
             EntryData.register(new LuckpermsEntry.Group(""));
         }
@@ -139,6 +154,50 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
                 WHITELIST_CACHE.save();
             } catch (IOException e) {
                 LOGGER.warn("Failed to save whitelist cache: ", e);
+            }
+        }
+
+        Path oldOptions = FabricLoader.getInstance().getConfigDir().resolve("autowhitelist");
+        if (oldOptions.toFile().exists() && oldOptions.resolve("autowhitelist.json").toFile().exists()) {
+            try {
+                JsonObject json = CONFIG.getInterpreter().load(oldOptions.resolve("autowhitelist.json").toFile());
+                if (json.containsKey("whitelistScheduledVerificationSeconds")) {
+                    CONFIG.updatePeriod = (short) MathHelper.clamp(json.getShort("whitelistScheduledVerificationSeconds", (short) 60), 10, 300);
+                }
+                if (json.containsKey("owners")) {
+                    //noinspection DataFlowIssue
+                    CONFIG.admins = ((JsonArray) json.get("owners")).stream().map(v -> ((JsonPrimitive) v).asString()).toList();
+                }
+                if (json.containsKey("prefix")) {
+                    CONFIG.prefix = json.get(String.class, "prefix");
+                }
+                if (json.containsKey("token")) {
+                    CONFIG.token = json.get(String.class, "token");
+                }
+                if (json.containsKey("discordServerId")) {
+                    CONFIG.discordServerId = json.get(String.class, "discordServerId");
+                }
+                if (json.containsKey("whitelist")) {
+                    JsonObject whitelist = json.getObject("whitelist");
+                    //noinspection DataFlowIssue
+                    whitelist.forEach((key, value) -> {
+                        if (value instanceof JsonArray) {
+                            JsonObject jsonObject = new JsonObject();
+                            jsonObject.put("roleIds", value);
+
+                            EntryData entry = new EntryData.Team(key);
+                            entry.populate(jsonObject);
+                            CONFIG.entries.add(entry);
+                        }
+                    });
+                }
+                CONFIG.save();
+                LOGGER.info("Successfully loaded old config file");
+
+                // Delete old config file
+                //oldOptions.toFile().delete();
+            } catch (Throwable e) {
+                LOGGER.error("Failed to load old config file", e);
             }
         }
 
@@ -152,10 +211,10 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             CONFIG.load();
             loadWhitelistCache();
         });
-        CommandRegistrationCallback.EVENT.register((dispatcher, /*? if >=1.19 {*//*registryAccess,*//*?} */ environment) -> AutoWhitelistCommand.register(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, /*? if >=1.19 {*/registryAccess,/*?} */ environment) -> AutoWhitelistCommand.register(dispatcher));
         ServerLifecycleEvents.SERVER_STOPPING.register((server -> Bot.stopBot(false)));
         ServerLifecycleEvents.SERVER_STARTED.register((server -> {
-            new Bot().start();
+            Bot.startInstance();
             if (!server.isOnlineMode()) {
                 LOGGER.warn("**** OFFLINE SERVER DETECTED!");
                 LOGGER.warn("This mod does not offer support for offline servers!");
@@ -164,8 +223,8 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             }
         }));
 
-        /*? if >=1.19{*//*Placeholders*//*?} else {*/PlaceholderAPI/*?}*/.register(new Identifier(MOD_ID, "prefix"),
-            (ctx/*? if >=1.19 {*//*, arg*//*?} */) -> PlaceholderResult.value(/*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/(AutoWhitelist.CONFIG.prefix))
+        /*? if >=1.19{*/Placeholders/*?} else {*//*PlaceholderAPI*//*?}*/.register(new Identifier(MOD_ID, "prefix"),
+            (ctx/*? if >=1.19 {*/, arg/*?} */) -> PlaceholderResult.value(/*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(AutoWhitelist.CONFIG.prefix))
         );
 
         ServerLoginConnectionEvents.QUERY_START.register((handler, server, sender, synchronizer) -> {

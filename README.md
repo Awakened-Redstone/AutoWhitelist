@@ -6,7 +6,7 @@
 <br/>
 
 AutoWhitelist is a mod made to automate the whitelisting of players based on their Discord role.  
-Its main purpose is to make the whitelisting of Twitch subscribers and Youtube channel members easy.
+Its main purpose is to make the whitelisting of Twitch subscribers and YouTube channel members easy.
 <br/>
 <br/>
 This mod works on top of the vanilla whitelist, so make sure to enable the vanilla whitelist, you can do that by changing `white-list` on `server.properties` to `true` or by running `whitelist on` on the server console

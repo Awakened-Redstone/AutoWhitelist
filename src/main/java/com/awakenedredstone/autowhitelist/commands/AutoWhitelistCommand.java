@@ -10,7 +10,6 @@ import com.awakenedredstone.autowhitelist.util.ModData;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.dv8tion.jda.api.JDAInfo;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
@@ -18,12 +17,11 @@ import net.minecraft.SharedConstants;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.WhitelistEntry;
 import net.minecraft.server.command.ServerCommandSource;
-/*? if >=1.19 {*//*
+/*? if >=1.19 {*/
 import net.minecraft.text.Text;
-*//*?} else {*/
+/*?} else {*//*
 import net.minecraft.text.LiteralText;
-/*?} */
-import org.jetbrains.annotations.ApiStatus;
+*//*?} */
 
 import java.util.Collection;
 import java.util.regex.Pattern;
@@ -40,31 +38,32 @@ public class AutoWhitelistCommand {
             .then(
               literal("dump")
                 .executes(context -> {
-                    context.getSource().sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/("AutoWhitelist data dump..."), false);
+                    context.getSource().sendFeedback(/*? if >=1.20 {*/() ->/*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("AutoWhitelist data dump..."), false);
                     PlayerManager playerManager = AutoWhitelist.getServer().getPlayerManager();
 
                     LinedStringBuilder dump = new LinedStringBuilder();
                     dump.appendLine();
                     dump.appendLine("AutoWhitelist data dump");
                     dump.appendLine("Minecraft version: ", SharedConstants.getGameVersion().getName());
-                    dump.appendLine("Mod loader: ", AutoWhitelist.getServer().getServerModName());
+                    dump.appendLine("Mod loader: ", getLoaderName());
                     dump.appendLine("Loader version: ", getLoaderVersion());
                     dump.appendLine("Mod version: ", ModData.getVersion("autowhitelist"));
                     dump.appendLine("Total whitelisted players: ", playerManager.getWhitelistedNames().length);
                     dump.appendLine("Luckperms versions: ", ModData.getVersion("luckperms"));
-                    dump.appendLine("JDA version: ", JDAInfo.VERSION);
                     Collection<ModContainer> mods = FabricLoader.getInstance().getAllMods().stream().filter(mod -> !isCoreMod(mod.getMetadata().getId())).toList();
                     dump.appendLine("Found ", mods.size(), " other non \"core\" mods");
                     dump.appendLine("Total entries: ", AutoWhitelist.CONFIG.entries.size());
                     dump.appendLine("Config exists: ", AutoWhitelist.CONFIG.configExists());
                     dump.appendLine("Config loaded: ", AutoWhitelist.CONFIG.tryLoad());
+                    dump.appendLine("JDA version: ", JDAInfo.VERSION);
+                    dump.appendLine("Bot status: ", Bot.jda == null ? "offline" : "online");
 
-                    context.getSource().sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/(dump.toString()), false);
+                    context.getSource().sendFeedback(/*? if >=1.20 {*/() ->/*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(dump.toString()), false);
                     return 0;
                 }).then(
                   literal("config")
                     .executes(context -> {
-                        context.getSource().sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/(AutoWhitelist.CONFIG.toString()), false);
+                        context.getSource().sendFeedback(/*? if >=1.20 {*/() ->/*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(AutoWhitelist.CONFIG.toString()), false);
                         return 0;
                     })
                 )
@@ -73,33 +72,39 @@ public class AutoWhitelistCommand {
                 .executes(context -> executeReload(context.getSource()))
                 .then(
                   literal("bot")
-                    .executes(context -> executeSpecificReload(context.getSource(), ReloadableObjects.BOT))
+                    .executes(context -> {
+                        ServerCommandSource source = context.getSource();
+                        source.sendFeedback(/*? if >=1.20 {*/() ->/*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Restarting bot, please wait."), true);
+                        Bot.getInstance().reloadBot(source);
+                        return 0;
+                    })
                 ).then(
                   literal("config")
-                    .executes(context -> executeSpecificReload(context.getSource(), ReloadableObjects.CONFIG))
+                    .executes(context -> {
+                        ServerCommandSource source = context.getSource();
+                        source.sendFeedback(/*? if >=1.20 {*/() ->/*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Reloading configurations."), true);
+                        AutoWhitelist.CONFIG.load();
+                        return 0;
+                    })
                 ).then(
                   literal("cache")
-                    .executes(context -> executeSpecificReload(context.getSource(), ReloadableObjects.CACHE))
+                    .executes(context -> {
+                        ServerCommandSource source = context.getSource();
+                        source.sendFeedback(/*? if >=1.20 {*/() ->/*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Reloading cache."), true);
+                        AutoWhitelist.loadWhitelistCache();
+                        return 0;
+                    })
                 )
             ).then(
               literal("entries")
                 .executes(context -> executeEntries(context.getSource()))
-            ).then(
-              literal("info")
-                .executes(context -> executeInfo(context.getSource()))
             )
         );
     }
 
-    public static int executeInfo(ServerCommandSource source) {
-        String text = "Mod information:" +
-          "    Bot: " + (Bot.jda == null ? "offline" : "online");
-        return Bot.jda != null ? 1 : 0;
-    }
-
-    public static int executeEntries(ServerCommandSource source) /*? if <1.19 {*/throws CommandSyntaxException/*?} */ {
+    public static int executeEntries(ServerCommandSource source) /*? if <1.19 {*//*throws CommandSyntaxException*//*?} */ {
         if (source.getPlayer() != null) {
-            source.getPlayer().sendMessage(/*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/("Loading info..."), true);
+            source.getPlayer().sendMessage(/*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Loading info..."), true);
         }
 
         Collection<? extends WhitelistEntry> entries = ((ExtendedWhitelist) source.getServer().getPlayerManager().getWhitelist()).getEntries();
@@ -117,41 +122,22 @@ public class AutoWhitelistCommand {
         profiles.filter(profile -> profile instanceof ExtendedGameProfile).forEach(player -> list.append("    ").append(player.getName()).append("\n"));
 
         if (source.getPlayer() != null) {
-            source.getPlayer().sendMessage(/*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/(""), true);
+            source.getPlayer().sendMessage(/*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(""), true);
         }
 
-        source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/(list.toString()), false);
-        return 0;
+        source.sendFeedback(/*? if >=1.20 {*/() ->/*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(list.toString()), false);
+        return 1;
     }
 
     public static int executeReload(ServerCommandSource source) {
-        source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/("Reloading AutoWhitelist configurations, please wait."), true);
+        source.sendFeedback(/*? if >=1.20 {*/() ->/*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Reloading AutoWhitelist configurations, please wait."), true);
 
         AutoWhitelist.CONFIG.load();
         AutoWhitelist.loadWhitelistCache();
-        source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/("Restarting bot, please wait."), true);
+        source.sendFeedback(/*? if >=1.20 {*/() ->/*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Restarting bot, please wait."), true);
         Bot.getInstance().reloadBot(source);
 
-        return 0;
-    }
-
-    public static int executeSpecificReload(ServerCommandSource source, ReloadableObjects type) {
-        switch (type) {
-            case BOT -> {
-                source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/("Restarting bot, please wait."), true);
-                Bot.getInstance().reloadBot(source);
-            }
-            case CONFIG -> {
-                source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/("Reloading configurations."), true);
-                AutoWhitelist.CONFIG.load();
-            }
-            case CACHE -> {
-                source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/("Reloading cache."), true);
-                AutoWhitelist.loadWhitelistCache();
-            }
-        }
-
-        return 0;
+        return 1;
     }
 
     private static boolean isCoreMod(String modid) {
@@ -191,13 +177,5 @@ public class AutoWhitelistCommand {
             if (stringA.equals(string)) return true;
         }
         return false;
-    }
-
-    @Deprecated(forRemoval = true, since = "1.0.0-alpha.10")
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.0.0-beta.1")
-    public enum ReloadableObjects {
-        BOT,
-        CONFIG,
-        CACHE
     }
 }

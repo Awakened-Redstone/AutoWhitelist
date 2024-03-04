@@ -19,6 +19,7 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
+import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,6 +58,23 @@ public class CoreEvents extends ListenerAdapter {
     }
 
     @Override
+    public void onShutdown(@NotNull ShutdownEvent event) {
+        if (Bot.scheduledUpdate != null) {
+            Bot.scheduledUpdate.cancel(false);
+            try {
+                Bot.scheduledUpdate.get();
+            } catch (Exception ignored) {/**/}
+            Bot.scheduledUpdate = null;
+        }
+        if (!Bot.eventWaiter.isShutdown()) {
+            Bot.eventWaiter.shutdown();
+            Bot.eventWaiter = null;
+        }
+        Bot.jda = null;
+        Bot.guild = null;
+    }
+
+    @Override
     public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent e) {
         User user = e.getUser();
         ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
@@ -68,7 +86,7 @@ public class CoreEvents extends ListenerAdapter {
             .toList();
 
         if (players.size() > 1) {
-            AutoWhitelist.LOGGER.error("Found more than one registered user with same discord id: {}", user.getId(), new FailedToUpdateWhitelistException("Could not update the whitelist, found multiple"));
+            AutoWhitelist.LOGGER.error("Found more than one registered user with same discord id: {}", user.getId(), new IllegalStateException("Could not update the whitelist, found more than one entry with the same discord id."));
             return;
         } else if (players.isEmpty()) return;
         ExtendedGameProfile player = players.get(0);

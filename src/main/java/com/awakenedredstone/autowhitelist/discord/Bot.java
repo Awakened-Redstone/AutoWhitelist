@@ -20,11 +20,11 @@ import net.dv8tion.jda.api.exceptions.InvalidTokenException;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.command.ServerCommandSource;
-/*? if >=1.19 {*//*
+/*? if >=1.19 {*/
 import net.minecraft.text.Text;
-*//*?} else {*/
+/*?} else {*//*
 import net.minecraft.text.LiteralText;
-/*?} */
+*//*?} */
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +37,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.function.Consumer;
 
+//TODO: Improve/rework the bot class
 public class Bot extends Thread {
     public static final Logger LOGGER = LoggerFactory.getLogger("AutoWhitelist Bot");
     public static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
@@ -80,11 +81,18 @@ public class Bot extends Thread {
         }
         jda = null;
         guild = null;
-        instance = null;
     }
 
     public static Bot getInstance() {
         return instance;
+    }
+
+    public static void startInstance() {
+        if (instance == null) {
+            new Bot().start();
+        } else {
+            instance.execute();
+        }
     }
 
     public void reloadBot(ServerCommandSource source) {
@@ -96,10 +104,9 @@ public class Bot extends Thread {
         }
         if (jda != null) jda.shutdown();
 
-        source.sendFeedback(/*? if >=1.20 {*//*() ->*//*?} */ /*? if >=1.19 {*//*Text.literal*//*?} else {*/new LiteralText/*?}*/("Discord bot starting."), true);
+        source.sendFeedback(/*? if >=1.20 {*/() ->/*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Discord bot starting."), true);
 
-        //noinspection CallToThreadRun
-        run();
+        execute();
     }
 
     private boolean validateConfigs() {
@@ -128,10 +135,20 @@ public class Bot extends Thread {
         return true;
     }
 
+    @Override
     public void run() {
+        execute();
+    }
+
+    public void execute() {
         if (!validateConfigs()) {
             LOGGER.error("Refusing to initiate the Discord bot, invalid configuration");
             return;
+        }
+
+        if (jda != null) {
+            LOGGER.warn("Bot already running, stopping the previous instance");
+            stopBot(false);
         }
 
         jda = null;
@@ -175,9 +192,9 @@ public class Bot extends Thread {
 
     @Override
     public void interrupt() {
-        super.interrupt();
         stopBot(true);
         instance = null;
+        super.interrupt();
     }
 
     private Consumer<CommandEvent> helpConsumer() {

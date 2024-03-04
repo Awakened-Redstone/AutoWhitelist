@@ -1,6 +1,11 @@
 package com.awakenedredstone.autowhitelist.config.jankson;
 
-import blue.endless.jankson.*;
+import blue.endless.jankson.Comment;
+import blue.endless.jankson.JsonArray;
+import blue.endless.jankson.JsonElement;
+import blue.endless.jankson.JsonNull;
+import blue.endless.jankson.JsonObject;
+import blue.endless.jankson.JsonPrimitive;
 import blue.endless.jankson.annotation.SerializedName;
 import blue.endless.jankson.annotation.Serializer;
 import blue.endless.jankson.api.DeserializationException;
@@ -12,7 +17,14 @@ import com.awakenedredstone.autowhitelist.mixin.compat.POJODeserializerAccessor;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,18 +34,18 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Marshaller implements blue.endless.jankson.api.Marshaller {
-    private static Marshaller INSTANCE = new Marshaller();
+    private static final Marshaller INSTANCE = new Marshaller();
 
     public static blue.endless.jankson.api.Marshaller getFallback() {
         return INSTANCE;
     }
 
-    private Map<Class<?>, Function<Object, ?>> primitiveMarshallers = new HashMap<>();
-    protected Map<Class<?>, Function<JsonObject, ?>> typeAdapters = new HashMap<>();
+    private final Map<Class<?>, Function<Object, ?>> primitiveMarshallers = new HashMap<>();
+    protected final Map<Class<?>, Function<JsonObject, ?>> typeAdapters = new HashMap<>();
 
-    private Map<Class<?>, BiFunction<Object, blue.endless.jankson.api.Marshaller, JsonElement>> serializers = new HashMap<>();
-    private Map<Class<?>, DeserializerFunctionPool<?>> deserializers = new HashMap<>();
-    private Map<Class<?>, Supplier<?>> typeFactories = new HashMap<>();
+    private final Map<Class<?>, BiFunction<Object, blue.endless.jankson.api.Marshaller, JsonElement>> serializers = new HashMap<>();
+    private final Map<Class<?>, DeserializerFunctionPool<?>> deserializers = new HashMap<>();
+    private final Map<Class<?>, Supplier<?>> typeFactories = new HashMap<>();
 
     public <T> void register(Class<T> clazz, Function<Object, T> marshaller) {
         primitiveMarshallers.put(clazz, marshaller);
@@ -61,7 +73,7 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
         @SuppressWarnings("unchecked")
         DeserializerFunctionPool<B> pool = (DeserializerFunctionPool<B>) deserializers.get(targetClass);
         if (pool == null) {
-            pool = new DeserializerFunctionPool<B>(targetClass);
+            pool = new DeserializerFunctionPool<>(targetClass);
             deserializers.put(targetClass, pool);
         }
         pool.registerUnsafe(sourceClass, function);
@@ -205,10 +217,9 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
 
         if (clazz.equals(String.class)) {
             //Almost everything has a String representation
-            if (elem instanceof JsonObject) return (T) ((JsonObject) elem).toJson(false, false);
-            if (elem instanceof JsonArray) return (T) ((JsonArray) elem).toJson(false, false);
+            if (elem instanceof JsonObject) return (T) elem.toJson(false, false);
+            if (elem instanceof JsonArray) return (T) elem.toJson(false, false);
             if (elem instanceof JsonPrimitive) {
-                ((JsonPrimitive) elem).getValue();
                 return (T) ((JsonPrimitive) elem).asString();
             }
             if (elem instanceof JsonNull) return (T) "null";
@@ -227,7 +238,7 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
                     throw new DeserializationException("Don't know how to unpack value '" + elem.toString() + "' into target type '" + clazz.getCanonicalName() + "'");
                 return null;
             }
-        } else if (elem instanceof JsonObject) {
+        } else if (elem instanceof JsonObject obj) {
 
 
             if (clazz.isPrimitive())
@@ -237,7 +248,6 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
                 return null;
             }
 
-            JsonObject obj = (JsonObject) elem;
             obj.setMarshaller(this);
 
             if (typeAdapters.containsKey(clazz)) {
@@ -316,7 +326,7 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
                     Parameter[] params = m.getParameters();
                     if (params.length == 0) {
                         try {
-                            boolean access = m.isAccessible();
+                            boolean access = m.canAccess(obj);
                             if (!access) m.setAccessible(true);
                             JsonElement result = (JsonElement) m.invoke(obj);
                             if (!access) m.setAccessible(false);
@@ -329,7 +339,7 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
                     } else if (params.length == 1) {
                         if (blue.endless.jankson.api.Marshaller.class.isAssignableFrom(params[0].getType())) {
                             try {
-                                boolean access = m.isAccessible();
+                                boolean access = m.canAccess(obj);
                                 if (!access) m.setAccessible(true);
                                 JsonElement result = (JsonElement) m.invoke(obj, this);
                                 if (!access) m.setAccessible(false);
@@ -445,8 +455,10 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
                 Object fieldValue = field.get(obj);
 
                 for (Annotation annotation : field.getAnnotations()) {
+                    //noinspection rawtypes
                     AnnotationProcessor processor = annotationProcessors.get(annotation.annotationType());
                     if (processor != null) {
+                        //noinspection unchecked
                         boolean valid = processor.process(annotation, fieldValue, obj.getClass(), field.getName());
                         if (!valid) {
                             //Reset the field to its default value
@@ -458,7 +470,7 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
         }
     }
 
-    private Map<Class<? extends Annotation>, AnnotationProcessor<? extends Annotation, ?>> annotationProcessors = new HashMap<>();
+    private final Map<Class<? extends Annotation>, AnnotationProcessor<? extends Annotation, ?>> annotationProcessors = new HashMap<>();
 
     public <A extends Annotation, O> void registerAnnotationProcessor(Class<A> annotation, AnnotationProcessor<A, O> processor) {
         annotationProcessors.put(annotation, processor);

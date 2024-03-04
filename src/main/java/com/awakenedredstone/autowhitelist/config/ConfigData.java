@@ -9,20 +9,20 @@ import com.awakenedredstone.autowhitelist.config.annotation.RegexConstraint;
 import com.awakenedredstone.autowhitelist.util.JanksonBuilder;
 import com.awakenedredstone.autowhitelist.util.TimeParser;
 import net.dv8tion.jda.api.entities.Activity;
-/*? if >=1.19 {*//*
+/*? if >=1.19 {*/
 import net.minecraft.text.Text;
-*//*?} else {*/
+/*?} else {*//*
 import net.minecraft.text.TranslatableText;
-/*?} */
+*//*?} */
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-@SuppressWarnings("unused")
 public class ConfigData extends Config {
     public ConfigData() {
         super("autowhitelist", JanksonBuilder.buildJankson(builder -> {
+            //noinspection DataFlowIssue
             builder.registerDeserializer(JsonObject.class, EntryData.class, (jsonObject, m) -> EntryData.deserialize(((JsonPrimitive) jsonObject.get("type")).asString(), jsonObject));
             builder.registerSerializer(EntryData.class, (entryData, marshaller) -> {
                 JsonObject json = entryData.serialize();
@@ -60,10 +60,12 @@ public class ConfigData extends Config {
     @Comment("The whitelist entry settings, please refer to the documentation to set them up")
     public List<EntryData> entries = new ArrayList<>();
 
+    @SuppressWarnings("unused")
     public static boolean idConstraint(List<String> roles) {
         return roles.stream().allMatch(v -> Pattern.compile("\\d+").matcher(v).matches());
     }
 
+    @SuppressWarnings("unused")
     public static boolean timeConstraint(String timeString) {
         if (timeString.equals("-1")) return true;
         int time = TimeParser.parseTime(timeString);
@@ -101,7 +103,7 @@ public class ConfigData extends Config {
         }
 
         public Activity getActivity() {
-            return activityType == null ? null : Activity.of(activityType, /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("discord.bot.activity.message").getString());
+            return activityType == null ? null : Activity.of(getActivityType(), /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("discord.bot.activity.message").getString());
         }
     }
 }

@@ -6,7 +6,6 @@ import blue.endless.jankson.JsonPrimitive;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
 import com.awakenedredstone.autowhitelist.util.DynamicPlaceholders;
-import com.awakenedredstone.autowhitelist.util.InvalidTeamNameException;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.scoreboard.Scoreboard;
@@ -63,6 +62,7 @@ public abstract class EntryData {
 
     public void populate(JsonObject data) {
         JsonArray roles = (JsonArray) data.get("roleIds");
+        if (roles == null) throw new AssertionError("The roleIds array is missing!");
         roleIds.addAll(roles.stream().map(v -> ((JsonPrimitive) v).asString()).toList());
     }
 
@@ -90,7 +90,7 @@ public abstract class EntryData {
             Scoreboard scoreboard = AutoWhitelist.getServer().getScoreboard();
             net.minecraft.scoreboard.Team serverTeam = scoreboard.getTeam(team);
             if (serverTeam == null) {
-                AutoWhitelist.LOGGER.error("Could not check for invalid players on team \"{}\", got \"null\" when trying to get \"net.minecraft.scoreboard.Team\" from \"{}\"", team, team, new InvalidTeamNameException("Tried to get \"net.minecraft.scoreboard.Team\" from \"" + team + "\" but got \"null\"."));
+                AutoWhitelist.LOGGER.error("Could not check for invalid players on team \"{}\", could not find the team", team);
                 return;
             }
             PlayerManager playerManager = AutoWhitelist.getServer().getPlayerManager();
@@ -102,30 +102,30 @@ public abstract class EntryData {
                 if (profile == null) return true;
                 return !whitelist.isAllowed(profile);
             }).toList();
-            /*? if >=1.20 {*//*
+            /*? if >=1.20.3 {*/
             invalidPlayers.forEach(player -> scoreboard.removeScoreHolderFromTeam(player, serverTeam));
-            *//*?} else {*/
+            /*?} else {*//*
             invalidPlayers.forEach(player -> scoreboard.removePlayerFromTeam(player, serverTeam));
-            /*?} */
+            *//*?} */
         }
 
         @Override
         public <T extends GameProfile> void registerUser(T profile) {
             net.minecraft.scoreboard.Team serverTeam = AutoWhitelist.getServer().getScoreboard().getTeam(team);
-            /*? if >=1.20 {*//*
+            /*? if >=1.20.3 {*/
             AutoWhitelist.getServer().getScoreboard().addScoreHolderToTeam(profile.getName(), serverTeam);
-            *//*?} else {*/
+            /*?} else {*//*
             AutoWhitelist.getServer().getScoreboard().addPlayerToTeam(profile.getName(), serverTeam);
-            /*?} */
+            *//*?} */
         }
 
         @Override
         public <T extends GameProfile> void removeUser(T profile) {
-            /*? if >=1.20 {*//*
+            /*? if >=1.20.3 {*/
             AutoWhitelist.getServer().getScoreboard().clearTeam(profile.getName());
-            *//*?} else {*/
+            /*?} else {*//*
             AutoWhitelist.getServer().getScoreboard().clearPlayerTeam(profile.getName());
-            /*?} */
+            *//*?} */
         }
 
         @Override
@@ -175,12 +175,12 @@ public abstract class EntryData {
 
         @Override
         public <T extends GameProfile> void registerUser(T profile) {
-            AutoWhitelist.getServer().getCommandManager()./*? if >=1.19 {*//*executeWithPrefix*//*?} else {*/execute/*?}*/(AutoWhitelist.getCommandSource(), DynamicPlaceholders.parseText(addCommand, profile.getName()).getString());
+            AutoWhitelist.getServer().getCommandManager()./*? if >=1.19 {*/executeWithPrefix/*?} else {*//*execute*//*?}*/(AutoWhitelist.getCommandSource(), DynamicPlaceholders.parseText(addCommand, profile.getName()).getString());
         }
 
         @Override
         public <T extends GameProfile> void removeUser(T profile) {
-            AutoWhitelist.getServer().getCommandManager()./*? if >=1.19 {*//*executeWithPrefix*//*?} else {*/execute/*?}*/(AutoWhitelist.getCommandSource(), DynamicPlaceholders.parseText(removeCommand, profile.getName()).getString());
+            AutoWhitelist.getServer().getCommandManager()./*? if >=1.19 {*/executeWithPrefix/*?} else {*//*execute*//*?}*/(AutoWhitelist.getCommandSource(), DynamicPlaceholders.parseText(removeCommand, profile.getName()).getString());
         }
 
         @Override

@@ -43,8 +43,16 @@ public class DiscordDataProcessor implements Runnable {
         }
 
         for (Member member : members) {
-            String role = getTopRole(BotHelper.getRolesForMember(member)).get();
             List<ExtendedGameProfile> profiles = whitelist.getProfilesFromDiscordId(member.getId());
+
+            Optional<String> topRoleOptional = getTopRole(BotHelper.getRolesForMember(member));
+            if (topRoleOptional.isEmpty()) {
+                AutoWhitelist.LOGGER.error("Impossible case, the user {} has no valid role, but it passed to update. Please report this bug.", member.getId(), new IllegalStateException());
+                profiles.forEach(whitelist::remove);
+                continue;
+            }
+
+            String topRole = topRoleOptional.get();
             if (profiles.isEmpty()) continue;
             if (profiles.size() > 1) {
                 AutoWhitelist.LOGGER.warn("Duplicate entries of Discord user with id {}. All of them will be removed.", member.getId());
@@ -53,9 +61,9 @@ public class DiscordDataProcessor implements Runnable {
             }
 
             ExtendedGameProfile profile = profiles.get(0);
-            if (!profile.getRole().equals(role)) {
-                EntryData entry = AutoWhitelist.ENTRY_MAP_CACHE.get(role);
-                whitelist.add(new ExtendedWhitelistEntry(profile.withRole(role)));
+            if (!profile.getRole().equals(topRole)) {
+                EntryData entry = AutoWhitelist.ENTRY_MAP_CACHE.get(topRole);
+                whitelist.add(new ExtendedWhitelistEntry(profile.withRole(topRole)));
 
                 entry.assertSafe();
                 entry.updateUser(profile);
@@ -64,9 +72,9 @@ public class DiscordDataProcessor implements Runnable {
         AutoWhitelist.updateWhitelist();
     }
 
-    private boolean hasRole(List<Role> roles) {
-        for (Role r : roles) {
-            if (AutoWhitelist.ENTRY_MAP_CACHE.containsKey(r.getId())) {
+    public static boolean hasRole(List<Role> roles) {
+        for (Role role : roles) {
+            if (AutoWhitelist.ENTRY_MAP_CACHE.containsKey(role.getId())) {
                 return true;
             }
         }
@@ -74,10 +82,10 @@ public class DiscordDataProcessor implements Runnable {
         return false;
     }
 
-    private Optional<String> getTopRole(List<Role> roles) {
-        for (Role r : roles) {
-            if (AutoWhitelist.ENTRY_MAP_CACHE.containsKey(r.getId())) {
-                return Optional.of(r.getId());
+    public static Optional<String> getTopRole(List<Role> roles) {
+        for (Role role : roles) {
+            if (AutoWhitelist.ENTRY_MAP_CACHE.containsKey(role.getId())) {
+                return Optional.of(role.getId());
             }
         }
 

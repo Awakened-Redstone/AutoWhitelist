@@ -22,7 +22,7 @@
         "fabricloader": "*",
         "fabric-lifecycle-events-v1": "*",
         "fabric-language-kotlin": "*",
-        "minecraft": "~${minecraft_version}"
+        "minecraft": "~${minecraft_major}"
     },
     "recommends": {
         "luckperms": "*"

@@ -3,6 +3,7 @@ package com.awakenedredstone.autowhitelist.discord.command;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.config.EntryData;
 import com.awakenedredstone.autowhitelist.discord.BotHelper;
+import com.awakenedredstone.autowhitelist.discord.DiscordDataProcessor;
 import com.awakenedredstone.autowhitelist.discord.api.ReplyCallback;
 import com.awakenedredstone.autowhitelist.discord.api.command.CommandBase;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
@@ -24,14 +25,19 @@ import net.dv8tion.jda.api.requests.restaction.MessageEditAction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.minecraft.server.MinecraftServer;
-/*? if >=1.19 {*//*
+/*? if >=1.19 {*/
 import net.minecraft.text.Text;
-*//*?} else {*/
+/*?} else {*//*
 import net.minecraft.text.TranslatableText;
-/*?} */
+*//*?} */
 import org.jetbrains.annotations.ApiStatus;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Queue;
 
 import static net.dv8tion.jda.api.Permission.*;
 
@@ -40,7 +46,7 @@ public class RegisterCommand extends CommandBase {
 
     public RegisterCommand() {
         this.name = "register";
-        this.description = /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.description.register").getString();
+        this.description = /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.description.register").getString();
     }
 
     public static void execute(Member member, String username, ReplyCallback replyCallback) {
@@ -49,8 +55,8 @@ public class RegisterCommand extends CommandBase {
         MessageCreateData initialReply = BotHelper.buildEmbedMessage(
           false,
             BotHelper.Feedback.buildEmbed(
-              /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.feedback.received.title"),
-              /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.feedback.received.message"),
+              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.feedback.received.title"),
+              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.feedback.received.message"),
               BotHelper.MessageType.NORMAL
             )
         );
@@ -65,21 +71,14 @@ public class RegisterCommand extends CommandBase {
             MinecraftServer server = AutoWhitelist.getServer();
             ExtendedWhitelist whitelist = (ExtendedWhitelist) server.getPlayerManager().getWhitelist();
 
-            Optional<ExtendedWhitelistEntry> whitelistedAccount = whitelist.getEntries().stream().filter(entry -> {
-                try {
-                    ExtendedWhitelistEntry whitelistEntry = (ExtendedWhitelistEntry) entry;
-                    return whitelistEntry.getProfile().getDiscordId().equals(id);
-                } catch (Throwable e) {
-                    return false;
-                }
-            }).map(e -> (ExtendedWhitelistEntry) e).findFirst();
+            Optional<ExtendedWhitelistEntry> whitelistedAccount = getWhitelistedAccount(id, whitelist);
             if (whitelistedAccount.isPresent()) {
                 if (whitelistedAccount.get().getProfile().getName().equalsIgnoreCase(username)) {
                     replyCallback.editMessage(
                       BotHelper.buildEmbedMessage(true,
                         BotHelper.Feedback.buildEmbed(
-                          /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.same_username.title"),
-                          /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.same_username.message"),
+                          /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.same_username.title"),
+                          /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.same_username.message"),
                           BotHelper.MessageType.WARNING
                         )
                       )
@@ -92,8 +91,8 @@ public class RegisterCommand extends CommandBase {
                         replyCallback.editMessage(
                           BotHelper.buildEmbedMessage(true,
                             BotHelper.Feedback.buildEmbed(
-                              /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.already_registered.title"),
-                              /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.already_registered.message"),
+                              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.already_registered.title"),
+                              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.already_registered.message"),
                               BotHelper.MessageType.WARNING
                             )
                           )
@@ -102,8 +101,8 @@ public class RegisterCommand extends CommandBase {
                         replyCallback.editMessage(
                           BotHelper.buildEmbedMessage(true,
                             BotHelper.Feedback.buildEmbed(
-                              /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.locked.title"),
-                              /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.locked.message", BotHelper.formatDiscordTimestamp(whitelistedAccount.get().getProfile().getLockedUntil())),
+                              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.locked.title"),
+                              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.locked.message", BotHelper.formatDiscordTimestamp(whitelistedAccount.get().getProfile().getLockedUntil())),
                               BotHelper.MessageType.WARNING
                             )
                           )
@@ -113,7 +112,21 @@ public class RegisterCommand extends CommandBase {
                 }
             }
 
-            String highestRole = roles.stream().map(Role::getId).filter(AutoWhitelist.ENTRY_MAP_CACHE::containsKey).findFirst().get();
+            Optional<String> highestRoleOptional = DiscordDataProcessor.getTopRole(roles);
+            if (highestRoleOptional.isEmpty()) {
+                AutoWhitelist.LOGGER.error("Impossible case, the user {} has no valid role, but it passed as qualified. Please report this bug.", id, new IllegalStateException());
+                replyCallback.editMessage(
+                  BotHelper.buildEmbedMessage(true,
+                    BotHelper.Feedback.buildEmbed(
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fatal.title"),
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fatal", "User does not have a valid role, yet it passed as qualified. Please report this bug."),
+                      BotHelper.MessageType.ERROR
+                    )
+                  )
+                );
+                return;
+            }
+            String highestRole = highestRoleOptional.get();
             EntryData entry = AutoWhitelist.ENTRY_MAP_CACHE.get(highestRole);
             try {
                 entry.assertSafe();
@@ -121,8 +134,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                     BotHelper.buildEmbedMessage(true,
                         BotHelper.Feedback.buildEmbed(
-                          /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.fail.title"),
-                          /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.fatal.exception", e.getMessage()),
+                          /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.fail.title"),
+                          /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.fatal.exception", e.getMessage()),
                         BotHelper.MessageType.ERROR
                         )
                     )
@@ -135,8 +148,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   BotHelper.buildEmbedMessage(true,
                     BotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.few_args.title"),
-                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.few_args.message"),
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.few_args.title"),
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.few_args.message"),
                       BotHelper.MessageType.WARNING
                     )
                   )
@@ -148,8 +161,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   BotHelper.buildEmbedMessage(true,
                     BotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.too_many_args.title"),
-                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.too_many_args.message"),
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.too_many_args.title"),
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.too_many_args.message"),
                       BotHelper.MessageType.WARNING
                     )
                   )
@@ -163,8 +176,8 @@ public class RegisterCommand extends CommandBase {
                     replyCallback.editMessage(
                       BotHelper.buildEmbedMessage(true,
                         BotHelper.Feedback.buildEmbed(
-                          /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.invalid_username.title"),
-                          /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.invalid_username.message.too_long"),
+                          /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.invalid_username.title"),
+                          /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.invalid_username.message.too_long"),
                           BotHelper.MessageType.WARNING
                         )
                       )
@@ -174,8 +187,8 @@ public class RegisterCommand extends CommandBase {
                     replyCallback.editMessage(
                         BotHelper.buildEmbedMessage(true,
                             BotHelper.Feedback.buildEmbed(
-                            /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.invalid_username.title"),
-                            /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.invalid_username.message.too_short"),
+                            /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.invalid_username.title"),
+                            /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.invalid_username.message.too_short"),
                             BotHelper.MessageType.WARNING
                             )
                         )
@@ -183,13 +196,28 @@ public class RegisterCommand extends CommandBase {
                     return;
                 }
             }
+
+            if (server.getUserCache() == null) {
+                AutoWhitelist.LOGGER.error("Failed to whitelist user {}, server user cache is null", username);
+                replyCallback.editMessage(
+                  BotHelper.buildEmbedMessage(true,
+                    BotHelper.Feedback.buildEmbed(
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.fail.title"),
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fail.account_data", arg),
+                      BotHelper.MessageType.ERROR
+                    )
+                  )
+                );
+                return;
+            }
+
             GameProfile profile = server.getUserCache().findByName(arg).orElse(null);
             if (profile == null) {
                 replyCallback.editMessage(
                   BotHelper.buildEmbedMessage(true,
                     BotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.fail.title"),
-                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.fail.account_data", arg),
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.fail.title"),
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fail.account_data", arg),
                       BotHelper.MessageType.ERROR
                     )
                   )
@@ -201,8 +229,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   BotHelper.buildEmbedMessage(true,
                     BotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.player_banned.title"),
-                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.player_banned.message"),
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.player_banned.title"),
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.player_banned.message"),
                       BotHelper.MessageType.ERROR
                     )
                   )
@@ -214,8 +242,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   BotHelper.buildEmbedMessage(true,
                     BotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.username_already_registered.title"),
-                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.username_already_registered.message"),
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.username_already_registered.title"),
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.username_already_registered.message"),
                       BotHelper.MessageType.ERROR
                     )
                   )
@@ -224,8 +252,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   BotHelper.buildEmbedMessage(true,
                     BotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.last_steps.title"),
-                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.last_steps.message"),
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.last_steps.title"),
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.last_steps.message"),
                       BotHelper.MessageType.INFO
                     )
                   )
@@ -234,8 +262,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   BotHelper.buildEmbedMessage(true,
                     BotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.last_steps.title"),
-                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.last_steps.message"),
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.last_steps.title"),
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.last_steps.message"),
                       BotHelper.MessageType.INFO
                     )
                   )
@@ -256,8 +284,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   BotHelper.buildEmbedMessage(true,
                     BotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.success.title"),
-                      /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.success.message"),
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.success.title"),
+                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.success.message"),
                       BotHelper.MessageType.SUCCESS
                     )
                   )
@@ -267,13 +295,24 @@ public class RegisterCommand extends CommandBase {
             replyCallback.editMessage(
               BotHelper.buildEmbedMessage(true,
                 BotHelper.Feedback.buildEmbed(
-                  /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.fail.not_allowed.title"),
-                  /*? if >=1.19 {*//*Text.translatable*//*?} else {*/new TranslatableText/*?}*/("command.register.fail.not_allowed.message"),
+                  /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fail.not_allowed.title"),
+                  /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fail.not_allowed.message"),
                   BotHelper.MessageType.NORMAL
                 )
               )
             );
         }
+    }
+
+    static Optional<ExtendedWhitelistEntry> getWhitelistedAccount(String id, ExtendedWhitelist whitelist) {
+        return whitelist.getEntries().stream().filter(entry -> {
+            try {
+                ExtendedWhitelistEntry whitelistEntry = (ExtendedWhitelistEntry) entry;
+                return whitelistEntry.getProfile().getDiscordId().equals(id);
+            } catch (Throwable e) {
+                return false;
+            }
+        }).map(e -> (ExtendedWhitelistEntry) e).findFirst();
     }
 
     @Deprecated(since = "1.0.0-beta.1")
@@ -344,6 +383,7 @@ public class RegisterCommand extends CommandBase {
 
         @Override
         protected void execute(SlashCommandEvent event) {
+            //noinspection DataFlowIssue
             RegisterCommand.execute(event.getMember(), event.getOption("username").getAsString(), new ReplyCallback.InteractionReplyCallback() {
 
                 @Override

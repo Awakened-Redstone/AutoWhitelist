@@ -1,4 +1,5 @@
 import com.modrinth.minotaur.dependencies.ModDependency
+import groovy.json.JsonSlurper
 
 plugins {
     id "fabric-loom" version "1.5-SNAPSHOT"
@@ -15,9 +16,12 @@ repositories {
     maven { url "https://m2.chew.pro/snapshots" }
 }
 
-def CHANGELOG = new File("CHANGELOG.md").exists() ? new File("CHANGELOG.md").text : "No changelog provided"
-def minecraft_version = stonecutter.current.version
-def mod_version = project.mod_version
+String CHANGELOG = new File("CHANGELOG.md").exists() ? new File("CHANGELOG.md").text : "No changelog provided"
+String minecraft_version = stonecutter.current.version
+String mod_version = project.mod_version
+
+//read the modrinth.json file
+Map<String, List<String>> modVersions = new JsonSlurper().parse(new File("modrinth.json")) as Map<String, List<String>>
 
 archivesBaseName = project.archives_base_name
 version = "$mod_version+$minecraft_version"
@@ -32,6 +36,11 @@ configurations.configureEach {
     }
 }
 
+@SuppressWarnings('GrMethodMayBeStatic')
+boolean mcVer(String ...versions) {
+    return stonecutter.current.version in versions
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:$minecraft_version"
     mappings "net.fabricmc:yarn:$minecraft_version+build.$project.yarn_mappings:v2"
@@ -39,28 +48,39 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
     // Mod dependencies
-    include modImplementation("eu.pb4:placeholder-api:${project.placeholder_api_version}")
-    if (minecraft_version == "1.18.2") {
-        include modImplementation("fr.catcore:server-translations-api:${project.translation_api_version}")
+    include modImplementation("eu.pb4:placeholder-api:${project.placeholder_api_version}") {
+        exclude module: "fabric-api"
+    }
+    if (mcVer("1.18.2", "1.18.1", "1.18")) {
+        include modImplementation("fr.catcore:server-translations-api:${project.translation_api_version}") {
+            exclude module: "fabric-api"
+        }
     } else {
-        include modImplementation("xyz.nucleoid:server-translations-api:${project.translation_api_version}")
+        include modImplementation("xyz.nucleoid:server-translations-api:${project.translation_api_version}") {
+            exclude module: "fabric-api"
+        }
     }
 
     // Libraries
     include api("blue.endless:jankson:${project.jankson_version}")
-    implementation "pw.chew:jda-chewtils:${project.chewtils_version}"
+    api("pw.chew:jda-chewtils:${project.chewtils_version}")
     include api("net.dv8tion:JDA:${project.jda_version}") {
         exclude module: 'opus-java'
     }
 
     // JDA dependencies
-    include "com.fasterxml.jackson.core:jackson-annotations:2.14.1"
-    include "com.fasterxml.jackson.core:jackson-databind:2.14.1"
-    include "com.fasterxml.jackson.core:jackson-core:2.14.1"
+    include "com.fasterxml.jackson.core:jackson-annotations:2.16.0"
+    include "com.fasterxml.jackson.core:jackson-databind:2.16.0"
+    include "com.fasterxml.jackson.core:jackson-core:2.16.0"
     include "com.neovisionaries:nv-websocket-client:2.14"
     include "org.apache.commons:commons-collections4:4.4"
-    include "com.squareup.okhttp3:okhttp:4.10.0"
+    include "com.squareup.okhttp3:okhttp:4.12.0"
+    include "com.squareup.okio:okio-jvm:2.13.0"
     include "net.sf.trove4j:trove4j:3.0.3"
+
+    // Chewtils
+    include "pw.chew:jda-chewtils-command:${project.chewtils_version}"
+    include "pw.chew:jda-chewtils-commons:${project.chewtils_version}"
 
     // Runtime only
     modRuntimeOnly "net.fabricmc:fabric-language-kotlin:${project.kotlin_version}"
@@ -93,9 +113,12 @@ compileJava {
 }
 
 processResources {
+    // pick the first 2 parts of the split
+    def minecraft_major = minecraft_version.split("\\.", 3)[0..1].join(".")
+
     def map = [
             "version"          : version,
-            "minecraft_version": minecraft_version
+            "minecraft_major"  : minecraft_major
     ]
 
 	inputs.properties map
@@ -135,15 +158,15 @@ modrinth {
     List<String> projectVersionNumber = projectVersion.split("-", 2)
     String projectVersionName = "Release ${projectVersionNumber[0]}"
     if (projectVersion.contains("beta")) {
-        List<String> projectBeta = projectVersionNumber[1].split("[.]", 2)
+        List<String> projectBeta = projectVersionNumber[1].split("\\.", 2)
         projectVersionName = "${projectVersionNumber[0]} - Beta ${projectBeta[1]}"
         versionType = "beta"
     } else if (projectVersion.contains("alpha")) {
-        List<String> projectAlpha = projectVersionNumber[1].split("[.]", 2)
+        List<String> projectAlpha = projectVersionNumber[1].split("\\.", 2)
         projectVersionName = "${projectVersionNumber[0]} - Alpha ${projectAlpha[1]}"
         versionType = "alpha"
     } else if (projectVersion.contains("rc")) {
-        List<String> projectRC = projectVersionNumber[1].split("[.]", 2)
+        List<String> projectRC = projectVersionNumber[1].split("\\.", 2)
         projectVersionName = "${projectVersionNumber[0]} - Release Candidate ${projectRC[1]}"
         versionType = "beta"
     }
@@ -153,8 +176,11 @@ modrinth {
     versionName = projectVersionName
     changelog = CHANGELOG ?: ""
     uploadFile = remapJar
+    gameVersions = modVersions[minecraft_version]
+    syncBodyFrom = rootProject.file("README.md").text
     dependencies = [
             new ModDependency("fabric-language-kotlin", "required"),
-            new ModDependency("luckperms", "optional")
+            new ModDependency("luckperms", "optional"),
+            new ModDependency("placeholder-api", "embedded")
     ]
 }

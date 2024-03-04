@@ -1,6 +1,10 @@
 package com.awakenedredstone.autowhitelist.util;
 
-import blue.endless.jankson.*;
+import blue.endless.jankson.Jankson;
+import blue.endless.jankson.JsonArray;
+import blue.endless.jankson.JsonElement;
+import blue.endless.jankson.JsonGrammar;
+import blue.endless.jankson.JsonPrimitive;
 import blue.endless.jankson.api.DeserializerFunction;
 import com.awakenedredstone.autowhitelist.config.annotation.PredicateConstraint;
 import com.awakenedredstone.autowhitelist.config.annotation.RangeConstraint;
@@ -20,7 +24,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class JanksonBuilder {
@@ -130,39 +133,8 @@ public class JanksonBuilder {
     }
 
     public static class Builder extends Jankson.Builder {
-        Marshaller marshaller = new Marshaller();
+        protected Marshaller marshaller = new Marshaller();
         boolean allowBareRootObject = false;
-
-        /**
-         * Registers a deserializer that can transform a JsonObject into an instance of the specified class. Please note
-         * that these type adapters are unsuitable for generic types, as these types are erased during jvm execution.
-         *
-         * @param clazz   The class to register deserialization for
-         * @param adapter A function which takes a JsonObject and converts it into an equivalent object of the class `clazz`
-         * @return This Builder for further modification.
-         * @deprecated please use {@link #registerDeserializer(Class, Class, DeserializerFunction)} instead.
-         */
-        @Deprecated
-        public <T> Builder registerTypeAdapter(Class<T> clazz, Function<JsonObject, T> adapter) {
-            marshaller.registerTypeAdapter(clazz, adapter);
-            return this;
-        }
-
-        /**
-         * Registers a marshaller for primitive types. Most built-in json and java types are already supported, but this
-         * allows one to change the deserialization behavior of Json primitives. Please note that these adapters are not
-         * suitable for generic types, as these types are erased during jvm execution.
-         *
-         * @param clazz   The class to register a type adapter for
-         * @param adapter A function which takes a plain java object and converts it into the class `clazz`
-         * @return This Builder for further modification.
-         * @deprecated please use {@link #registerDeserializer(Class, Class, DeserializerFunction)} instead.
-         */
-        @Deprecated
-        public <T> Builder registerPrimitiveTypeAdapter(Class<T> clazz, Function<Object, T> adapter) {
-            marshaller.register(clazz, adapter);
-            return this;
-        }
 
         /**
          * Registers a function to serialize an object into json. This can be useful if a class's serialized form is not
@@ -172,13 +144,11 @@ public class JanksonBuilder {
          * @param serializer A function which takes the object and a Marshaller, and produces a serialized JsonElement
          * @return This Builder for further modificaton.
          */
-        @SuppressWarnings("deprecation")
         public <T> Builder registerSerializer(Class<T> clazz, BiFunction<T, blue.endless.jankson.api.Marshaller, JsonElement> serializer) {
             marshaller.registerSerializer(clazz, serializer);
             return this;
         }
 
-        @SuppressWarnings("deprecation")
         public <A, B> Builder registerDeserializer(Class<A> sourceClass, Class<B> targetClass, DeserializerFunction<A, B> function) {
             marshaller.registerDeserializer(sourceClass, targetClass, function);
             return this;
@@ -198,7 +168,6 @@ public class JanksonBuilder {
          * @param factory A Supplier which can create blank objects of class `clazz` for deserialization
          * @return This Builder for further modification.
          */
-        @SuppressWarnings("deprecation")
         public <T> Builder registerTypeFactory(Class<T> clazz, Supplier<T> factory) {
             marshaller.registerTypeFactory(clazz, factory);
             return this;

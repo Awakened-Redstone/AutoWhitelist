@@ -3,7 +3,6 @@ package com.awakenedredstone.autowhitelist.discord.api;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.requests.RestAction;
-import net.dv8tion.jda.api.requests.restaction.WebhookMessageEditAction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
@@ -41,6 +40,7 @@ public interface ReplyCallback {
             });
         }
 
+        @SuppressWarnings("unchecked")
         public <T, R extends RestAction<?>> void editMessage(Function<T, R> messageFunction) {
             if (isFirstRun) {
                 editConsumer = (T v) -> {
