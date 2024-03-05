@@ -7,6 +7,6 @@ stonecutter.registerChiseled tasks.register("chiseledBuild", stonecutter.chisele
 }
 
 stonecutter.registerChiseled tasks.register("chiseledModrinth", stonecutter.chiseled) {
-    setGroup "build"
+    setGroup "publishing"
     ofTask "modrinth"
 }

@@ -4,6 +4,7 @@ import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.commands.api.Permission;
 import com.awakenedredstone.autowhitelist.discord.Bot;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
+import com.awakenedredstone.autowhitelist.util.TimeParser;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.util.LinedStringBuilder;
 import com.awakenedredstone.autowhitelist.util.ModData;
@@ -20,6 +21,7 @@ import net.minecraft.server.command.ServerCommandSource;
 /*? if >=1.19 {*/
 import net.minecraft.text.Text;
 /*?} else {*//*
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.text.LiteralText;
 *//*?} */
 
@@ -55,6 +57,7 @@ public class AutoWhitelistCommand {
                     dump.appendLine("Total entries: ", AutoWhitelist.CONFIG.entries.size());
                     dump.appendLine("Config exists: ", AutoWhitelist.CONFIG.configExists());
                     dump.appendLine("Config loaded: ", AutoWhitelist.CONFIG.tryLoad());
+                    dump.appendLine("Lock time: ", TimeParser.parseTime(AutoWhitelist.CONFIG.lockTime));
                     dump.appendLine("JDA version: ", JDAInfo.VERSION);
                     dump.appendLine("Bot status: ", Bot.jda == null ? "offline" : "online");
 

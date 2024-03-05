@@ -158,7 +158,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
         }
 
         Path oldOptions = FabricLoader.getInstance().getConfigDir().resolve("autowhitelist");
-        if (oldOptions.toFile().exists() && oldOptions.resolve("autowhitelist.json").toFile().exists()) {
+        if (oldOptions.toFile().exists() && oldOptions.resolve("autowhitelist.json").toFile().exists() && !oldOptions.resolve(".migrated").toFile().exists()) {
             try {
                 JsonObject json = CONFIG.getInterpreter().load(oldOptions.resolve("autowhitelist.json").toFile());
                 if (json.containsKey("whitelistScheduledVerificationSeconds")) {
@@ -192,10 +192,16 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
                     });
                 }
                 CONFIG.save();
-                LOGGER.info("Successfully loaded old config file");
+                LOGGER.info("Successfully migrated from AutoWhitelist for Snapshots");
 
-                // Delete old config file
-                //oldOptions.toFile().delete();
+                try {
+                    boolean newFile = oldOptions.resolve(".migrated").toFile().createNewFile();
+                    if (!newFile) {
+                        LOGGER.error("Failed to create flag file, the will keep trying to migrate the old config file, please delete the old config file and restart the server");
+                    }
+                } catch (IOException e) {
+                    LOGGER.error("Failed to create flag file, the will keep trying to migrate the old config file, please delete the old config file and restart the server", e);
+                }
             } catch (Throwable e) {
                 LOGGER.error("Failed to load old config file", e);
             }

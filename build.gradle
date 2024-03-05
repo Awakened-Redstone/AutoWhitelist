@@ -16,15 +16,18 @@ repositories {
     maven { url "https://m2.chew.pro/snapshots" }
 }
 
-String CHANGELOG = new File("CHANGELOG.md").exists() ? new File("CHANGELOG.md").text : "No changelog provided"
+String CHANGELOG = new File("CHANGELOG.md").exists() ? file("CHANGELOG.md").text : "No changelog provided"
 String minecraft_version = stonecutter.current.version
-String mod_version = project.mod_version
 
-//read the modrinth.json file
-Map<String, List<String>> modVersions = new JsonSlurper().parse(new File("modrinth.json")) as Map<String, List<String>>
+String modVersionNumber = project.mod_version.split("\\-", 2)[0]
+String modVersionType = project.mod_version.split("\\-", 2)[1] ?: ""
+String modVersion = "${modVersionNumber}+${minecraft_version}${modVersionType.isEmpty() ? "" : "-$modVersionType"}"
+
+
+Map<String, List<String>> modVersions = new JsonSlurper().parse(file("modrinth.json")) as Map<String, List<String>>
 
 archivesBaseName = project.archives_base_name
-version = "$mod_version+$minecraft_version"
+version = "$modVersion"
 group = project.maven_group
 base {
     archivesName = archivesBaseName
@@ -39,6 +42,10 @@ configurations.configureEach {
 @SuppressWarnings('GrMethodMayBeStatic')
 boolean mcVer(String ...versions) {
     return stonecutter.current.version in versions
+}
+
+File file(String path) {
+    return rootProject.file(path)
 }
 
 dependencies {

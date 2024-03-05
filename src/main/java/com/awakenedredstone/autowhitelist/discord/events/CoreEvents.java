@@ -7,7 +7,6 @@ import com.awakenedredstone.autowhitelist.discord.BotHelper;
 import com.awakenedredstone.autowhitelist.discord.DiscordDataProcessor;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
-import com.awakenedredstone.autowhitelist.util.FailedToUpdateWhitelistException;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;

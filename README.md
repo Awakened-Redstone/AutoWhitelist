@@ -1,5 +1,6 @@
 [<img src="https://storage.ko-fi.com/cdn/brandasset/kofi_button_blue.png" width="30%"/>](https://ko-fi.com/awakenedredstone)
 
+## Dedicated documentation website coming soon, I expect to have it ready by the end of the March 2024
 <br/>
 
 **The mod may not work properly with other discord integration mods if they use a different version of JDA**
@@ -17,7 +18,7 @@ This mod works on top of the vanilla whitelist, so make sure to enable the vanil
 
 #### You can set the bot message text with a <u>datapack</u>, more about it can be found <u>[here](https://github.com/Awakened-Redstone/AutoWhitelist/wiki/Custom-messages)</u>
 
-Configuring the mod can be a bit complicated, you can find a tutorial below.
+You can find a tutorial below on how to configure the mod
 <br/>
 The configuration file can be found at `config/autowhitelist.json5`, it is auto-generated after the mod is run for the first time
 <br/>
