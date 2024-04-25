@@ -188,6 +188,10 @@ modrinth {
         versionType = "beta"
     }
 
+    if (modVersions[minecraft_version] == null) {
+        throw "Please update modrinth.json"
+    }
+
     token = System.getenv().MODRINTH_TOKEN
     projectId = "BMaqFQAd"
     versionName = projectVersionName

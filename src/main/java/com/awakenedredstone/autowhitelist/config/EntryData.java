@@ -122,11 +122,12 @@ public abstract class EntryData {
 
         @Override
         public <T extends GameProfile> void registerUser(T profile) {
-            net.minecraft.scoreboard.Team serverTeam = AutoWhitelist.getServer().getScoreboard().getTeam(team);
+            ServerScoreboard scoreboard = AutoWhitelist.getServer().getScoreboard();
+            net.minecraft.scoreboard.Team serverTeam = scoreboard.getTeam(team);
             /*? if >=1.20.3 {*/
-            AutoWhitelist.getServer().getScoreboard().addScoreHolderToTeam(profile.getName(), serverTeam);
+            scoreboard.addScoreHolderToTeam(profile.getName(), serverTeam);
             /*?} else {*//*
-            AutoWhitelist.getServer().getScoreboard().addPlayerToTeam(profile.getName(), serverTeam);
+            scoreboard.addPlayerToTeam(profile.getName(), serverTeam);
             *//*?} */
         }
 
@@ -149,7 +150,11 @@ public abstract class EntryData {
             ServerScoreboard scoreboard = AutoWhitelist.getServer().getScoreboard();
             net.minecraft.scoreboard.Team serverTeam = scoreboard.getTeam(team);
 
+            /*? if >=1.20.3 {*/
             return scoreboard.getScoreHolderTeam(profile.getName()) != serverTeam;
+            /*?} else {*//*
+            return scoreboard.getPlayerTeam(profile.getName()) != serverTeam;
+            *//*?} */
         }
 
         @Override
