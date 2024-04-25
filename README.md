@@ -17,7 +17,7 @@ This mod works on top of the vanilla whitelist, so make sure to enable the vanil
 
 #### The mod does not support running the register command on DMs!
 
-#### You can set the bot message text with a <u>datapack</u>, more about it can be found <u>[here](https://github.com/Awakened-Redstone/AutoWhitelist/wiki/Custom-messages)</u>
+#### You can set the bot message text with a <u>datapack</u>, more about it can be found <u>[here](https://docs.awakenedredstone.com/minecraft/autowhitelist/advanced/custom-messages)</u>
 
 ## You can find a tutorial on how to configure and install the mod [here](https://docs.awakenedredstone.com/minecraft/autowhitelist/install)
 ### The configuration file can be found at `config/autowhitelist.json5`, it is auto-generated after the mod is run for the first time
