@@ -1,4 +1,6 @@
-[<img src="https://storage.ko-fi.com/cdn/brandasset/kofi_button_blue.png" width="30%"/>](https://ko-fi.com/awakenedredstone)
+[<img src="https://storage.ko-fi.com/cdn/brandasset/kofi_button_blue.png" width="300px"/>](https://ko-fi.com/awakenedredstone)
+
+![fabric-api](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/requires/fabric-api_vector.svg) 
 
 ## Dedicated documentation website coming soon, I expect to have it ready by the end of the March 2024
 <br/>

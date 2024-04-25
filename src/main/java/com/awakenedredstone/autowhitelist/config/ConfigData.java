@@ -27,6 +27,7 @@ public class ConfigData extends Config {
             builder.registerSerializer(EntryData.class, (entryData, marshaller) -> {
                 JsonObject json = entryData.serialize();
                 json.put("type", marshaller.serialize(entryData.getType()));
+                json.put("onLogin", marshaller.serialize(entryData.isOnLogin()));
                 json.put("roleIds", marshaller.serialize(entryData.getRoleIds()));
                 return json;
             });

@@ -4,7 +4,6 @@ import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.config.EntryData;
-import com.awakenedredstone.autowhitelist.config.EntryType;
 import com.mojang.authlib.GameProfile;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
@@ -97,8 +96,8 @@ public abstract class LuckpermsEntry extends EntryData {
         }
 
         @Override
-        public EntryType getType() {
-            return EntryType.LUCKPERMS_PERMISSION;
+        public String getType() {
+            return "LUCKPERMS_PERMISSION";
         }
 
         @Override
@@ -137,8 +136,8 @@ public abstract class LuckpermsEntry extends EntryData {
         }
 
         @Override
-        public EntryType getType() {
-            return EntryType.LUCKPERMS_GROUP;
+        public String getType() {
+            return "LUCKPERMS_GROUP";
         }
 
         @Override
@@ -146,11 +145,6 @@ public abstract class LuckpermsEntry extends EntryData {
             if (StringUtils.isBlank(group)) {
                 throw new IllegalArgumentException("Group can not be blank!");
             }
-        }
-
-        @Override
-        public <T extends GameProfile> boolean shouldUpdate(T profile) {
-            return false;
         }
 
         @Override

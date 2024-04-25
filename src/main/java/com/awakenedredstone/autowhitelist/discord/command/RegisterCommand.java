@@ -31,6 +31,7 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 *//*?} */
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -304,7 +305,8 @@ public class RegisterCommand extends CommandBase {
         }
     }
 
-    static Optional<ExtendedWhitelistEntry> getWhitelistedAccount(String id, ExtendedWhitelist whitelist) {
+    @NotNull
+    public static Optional<ExtendedWhitelistEntry> getWhitelistedAccount(String id, @NotNull ExtendedWhitelist whitelist) {
         return whitelist.getEntries().stream().filter(entry -> {
             try {
                 ExtendedWhitelistEntry whitelistEntry = (ExtendedWhitelistEntry) entry;

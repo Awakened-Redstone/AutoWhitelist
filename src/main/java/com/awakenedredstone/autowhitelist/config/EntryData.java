@@ -1,6 +1,7 @@
 package com.awakenedredstone.autowhitelist.config;
 
 import blue.endless.jankson.JsonArray;
+import blue.endless.jankson.JsonElement;
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
@@ -21,11 +22,12 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class EntryData {
-    private static final Map<EntryType, EntryData> entryTypes = new HashMap<>();
+    private static final Map<String, EntryData> entryTypes = new HashMap<>();
     private final List<String> roleIds = new ArrayList<>();
+    protected boolean onLogin = false;
 
     public static EntryData deserialize(String type, JsonObject data) {
-        EntryData entry = entryTypes.get(EntryType.valueOf(type)).deserialize(data);
+        EntryData entry = entryTypes.get(String.valueOf(type)).deserialize(data);
         entry.populate(data);
         return entry;
     }
@@ -34,7 +36,7 @@ public abstract class EntryData {
         entryTypes.putIfAbsent(data.getType(), data);
     }
 
-    public abstract EntryType getType();
+    public abstract String getType();
 
     public abstract void assertSafe();
 
@@ -56,6 +58,10 @@ public abstract class EntryData {
         return List.copyOf(roleIds);
     }
 
+    public boolean isOnLogin() {
+        return onLogin;
+    }
+
     protected JsonPrimitive getPrimitive(String key, JsonObject data) {
         return (JsonPrimitive) data.get(key);
     }
@@ -64,6 +70,11 @@ public abstract class EntryData {
         JsonArray roles = (JsonArray) data.get("roleIds");
         if (roles == null) throw new AssertionError("The roleIds array is missing!");
         roleIds.addAll(roles.stream().map(v -> ((JsonPrimitive) v).asString()).toList());
+
+        JsonElement onLogin = data.get("onLogin");
+        if (onLogin != null) {
+            this.onLogin = ((JsonPrimitive) onLogin).asBoolean(false);
+        }
     }
 
     public static class Team extends EntryData {
@@ -74,8 +85,8 @@ public abstract class EntryData {
         }
 
         @Override
-        public EntryType getType() {
-            return EntryType.TEAM;
+        public String getType() {
+            return "TEAM";
         }
 
         @Override
@@ -138,12 +149,7 @@ public abstract class EntryData {
             ServerScoreboard scoreboard = AutoWhitelist.getServer().getScoreboard();
             net.minecraft.scoreboard.Team serverTeam = scoreboard.getTeam(team);
 
-            if (serverTeam == null) {
-                AutoWhitelist.LOGGER.error("Could not check team information of \"{}\", tried to get the team \"{}\" but it doesn't seem to exist", profile.getName(), team);
-                return false;
-            }
-
-            return scoreboard.getTeam(profile.getName()) != serverTeam;
+            return scoreboard.getScoreHolderTeam(profile.getName()) != serverTeam;
         }
 
         @Override
@@ -169,8 +175,8 @@ public abstract class EntryData {
         }
 
         @Override
-        public EntryType getType() {
-            return EntryType.COMMAND;
+        public String getType() {
+            return "COMMAND";
         }
 
         @Override
@@ -232,8 +238,8 @@ public abstract class EntryData {
 
     public static class Whitelist extends EntryData {
         @Override
-        public EntryType getType() {
-            return EntryType.WHITELIST;
+        public String getType() {
+            return "WHITELIST";
         }
 
         @Override

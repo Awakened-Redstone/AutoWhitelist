@@ -132,6 +132,10 @@ public class CoreEvents extends ListenerAdapter {
             entry.assertSafe();
             entry.updateUser(profile);
         }
+
+        if (AutoWhitelist.getServer().getPlayerManager().isWhitelistEnabled()) {
+            AutoWhitelist.getServer().kickNonWhitelistedPlayers(AutoWhitelist.getServer().getCommandSource());
+        }
     }
 
     private Optional<String> getTopRole(List<Role> roles) {

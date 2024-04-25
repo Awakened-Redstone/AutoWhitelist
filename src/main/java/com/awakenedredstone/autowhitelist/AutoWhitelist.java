@@ -32,12 +32,14 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.command./*? if >=1.19 {*/v2/*?} else {*//*v1*//*?}*/.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.Whitelist;
 import net.minecraft.server.WhitelistEntry;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 /*? if >=1.19 {*/
 import net.minecraft.text.Text;
@@ -60,11 +62,7 @@ import org.spongepowered.asm.mixin.Unique;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Environment(EnvType.SERVER)
 public class AutoWhitelist implements DedicatedServerModInitializer {
@@ -263,6 +261,18 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             ExtendedGameProfile extendedProfile = new ExtendedGameProfile(profile.getId(), profile.getName(), role, discordId, CONFIG.lockTime());
             whitelist.add(new ExtendedWhitelistEntry(extendedProfile));
             entry.registerUser(profile);
+        });
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server1) -> {
+            ExtendedWhitelist whitelist = (ExtendedWhitelist) server.getPlayerManager().getWhitelist();
+            ServerPlayerEntity player = handler.getPlayer();
+            GameProfile profile = player.getGameProfile();
+            WhitelistEntry whitelistEntry = whitelist.get(profile);
+            if (whitelistEntry instanceof ExtendedWhitelistEntry extendedEntry) {
+                EntryData entry = AutoWhitelist.ENTRY_MAP_CACHE.get(extendedEntry.getProfile().getRole());
+                if (entry.isOnLogin() && entry.shouldUpdate(profile)) {
+                    entry.registerUser(profile);
+                }
+            }
         });
     }
 
