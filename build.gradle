@@ -19,9 +19,6 @@ repositories {
 String CHANGELOG = new File("CHANGELOG.md").exists() ? file("CHANGELOG.md").text : "No changelog provided"
 var String minecraft_version = stonecutter.current.version
 
-String modVersionNumber = project.mod_version.split("-", 2)[0]
-String modVersionType = project.mod_version.split("-", 2)[1] ?: ""
-String modVersion = "${modVersionNumber}+${minecraft_version}${modVersionType.isEmpty() ? "" : "-$modVersionType"}"
 var javaVer = 17;
 if (isOrNewer("1.20.5")) {
     javaVer = 21
@@ -30,7 +27,7 @@ if (isOrNewer("1.20.5")) {
 Map<String, List<String>> modVersions = new JsonSlurper().parse(file("modrinth.json")) as Map<String, List<String>>
 
 archivesBaseName = project.archives_base_name
-version = "$modVersion"
+version = "$project.mod_version+$minecraft_version"
 group = project.maven_group
 base {
     archivesName = archivesBaseName
