@@ -68,7 +68,7 @@ public class AutoWhitelistConfig extends ConfigHandler {
     public String lockTime = "1d";
     @Comment("Your bot token. Never share it, anyone with it has full control of the bot")
     public String token = "DO NOT SHARE THE BOT TOKEN";
-    @RegexConstraint("\\d+")
+    @RangeConstraint(min = 0, max = Long.MAX_VALUE)
     public long discordServerId = 0;
     @Comment("When enabled, all interactions and slash commands will be ephemeral, meaning only the user can see the response.")
     public boolean ephemeralReplies = true;
