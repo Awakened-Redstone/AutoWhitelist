@@ -4,9 +4,9 @@ import com.awakenedredstone.autowhitelist.AutoWhitelist;
 /*? if >=1.19 {*/
 import eu.pb4.placeholders.api.PlaceholderContext;
 import eu.pb4.placeholders.api.Placeholders;
-/*?} else {*//*
-import eu.pb4.placeholders.PlaceholderAPI;
-*//*?} */
+/*?} else {*/
+/*import eu.pb4.placeholders.PlaceholderAPI;
+*//*?}*/
 
 import net.minecraft.text.Text;
 

@@ -7,17 +7,18 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageData;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
-/*? if <1.19 {*//*
-import net.minecraft.text.TranslatableText;
+/*? if <1.19 {*/
+/*import net.minecraft.text.TranslatableText;
 *//*?}*/
 import net.minecraft.text.Text;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
 //TODO: Rewrite for cleaner code and better uses (1/2 - Clean up)
-public class BotHelper extends Bot {
+public class DiscordBotHelper extends DiscordBot {
     public static List<Role> getRolesForMember(Member member) {
         List<Role> roles = new ArrayList<>(member.getRoles());
         roles.add(member.getGuild().getPublicRole());
@@ -35,6 +36,27 @@ public class BotHelper extends Bot {
 
     public static String formatDiscordTimestamp(long timestamp) {
         return "<t:" + (timestamp / 1000) + ":R>";
+    }
+
+    @Nullable
+    public static Role getRoleFromString(String roleString) {
+        if (DiscordBot.getInstance() == null || DiscordBot.guild == null) {
+            return null;
+        }
+
+        Role role;
+        if (roleString.charAt(0) == '@') {
+            String roleSearch = roleString.equalsIgnoreCase("@everyone") ? roleString : roleString.substring(1);
+            List<Role> roles = DiscordBot.guild.getRolesByName(roleSearch, true);
+            if (!roles.isEmpty()) {
+                role = roles.getFirst();
+            } else {
+                role = null;
+            }
+        } else {
+            role = DiscordBot.guild.getRoleById(roleString);
+        }
+        return role;
     }
 
     public static class Feedback {

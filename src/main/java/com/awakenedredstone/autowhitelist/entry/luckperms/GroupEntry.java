@@ -1,0 +1,45 @@
+package com.awakenedredstone.autowhitelist.entry.luckperms;
+
+import com.awakenedredstone.autowhitelist.AutoWhitelist;
+import com.awakenedredstone.autowhitelist.entry.BaseEntry;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.luckperms.api.node.Node;
+import net.luckperms.api.node.types.InheritanceNode;
+import net.minecraft.util.Identifier;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
+
+public class GroupEntry extends LuckpermsEntry {
+    public static final Identifier ID = AutoWhitelist.id("luckperms/group");
+    public static final MapCodec<GroupEntry> CODEC = RecordCodecBuilder.mapCodec(instance ->
+      instance.group(
+        Codec.STRING.listOf().fieldOf("roles").forGetter(BaseEntry::getRoles),
+        Identifier.CODEC.fieldOf("type").forGetter(BaseEntry::getType),
+        Codec.STRING.fieldOf("group").codec().fieldOf("execute").forGetter(group -> group.group)
+      ).apply(instance, GroupEntry::new)
+    );
+    private final String group;
+
+    public GroupEntry(List<String> roles, Identifier type, String group) {
+        super(type, roles);
+        this.group = group;
+    }
+
+    @Override
+    protected Node getNode() {
+        return InheritanceNode.builder(group).build();
+    }
+
+    @Override
+    public void assertSafe() {
+        if (StringUtils.isBlank(group)) {
+            throw new IllegalArgumentException("Group can not be blank!");
+        }
+    }
+
+    @Override
+    public void purgeInvalid() {/**/}
+}

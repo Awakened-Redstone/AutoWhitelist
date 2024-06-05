@@ -1,10 +1,14 @@
-package com.awakenedredstone.autowhitelist.config;
+package com.awakenedredstone.autowhitelist.config.source;
 
 import blue.endless.jankson.Jankson;
 import blue.endless.jankson.JsonGrammar;
+import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.api.SyntaxError;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
+import com.awakenedredstone.autowhitelist.Constants;
 import net.fabricmc.loader.api.FabricLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -15,13 +19,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public abstract class Config {
+public abstract class ConfigHandler {
+    protected static final Logger LOGGER = /*? if >=1.18.2 {*/LoggerFactory/*?} else {*//*LogManager*//*?}*/.getLogger("AutoWhitelist Config");
+
     private final Map<String, Consumer<Object>> listeners = new HashMap<>();
     private final Jankson interpreter;
     protected final Path fileLocation;
     protected boolean loading = false;
 
-    public Config(String configFile, Jankson interpreter) {
+    public ConfigHandler(String configFile, Jankson interpreter) {
         this.fileLocation = FabricLoader.getInstance().getConfigDir().resolve(configFile + ".json5");
         this.interpreter = interpreter;
     }
@@ -35,7 +41,18 @@ public abstract class Config {
 
         try {
             this.getFileLocation().getParent().toFile().mkdirs();
-            Files.writeString(this.getFileLocation(), this.interpreter.toJson(this).toJson(JsonGrammar.JANKSON), StandardCharsets.UTF_8);
+            Files.writeString(this.getFileLocation(), this.interpreter.toJson(this).toJson(Constants.GRAMMAR), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            AutoWhitelist.LOGGER.warn("Could not save config!", e);
+        }
+    }
+
+    protected void save(JsonObject config) {
+        if (this.loading) return;
+
+        try {
+            this.getFileLocation().getParent().toFile().mkdirs();
+            Files.writeString(this.getFileLocation(), config.toJson(Constants.GRAMMAR), StandardCharsets.UTF_8);
         } catch (IOException e) {
             AutoWhitelist.LOGGER.warn("Could not save config!", e);
         }
@@ -53,9 +70,14 @@ public abstract class Config {
 
         try {
             this.loading = true;
-            Config newValues = this.interpreter.fromJson(Files.readString(this.getFileLocation(), StandardCharsets.UTF_8), this.getClass());
+            ConfigHandler newValues = this.interpreter.fromJsonCarefully(Files.readString(this.getFileLocation(), StandardCharsets.UTF_8), this.getClass());
 
-            //Update values with new values
+            if (newValues == null) {
+                LOGGER.error("An unknown error occurred when trying to load the configs!");
+                return;
+            }
+
+            // Update values with new values
             for (var field : this.getClass().getDeclaredFields()) {
                 Object newValue = field.get(newValues);
                 if (listeners.containsKey(field.getName()) && !Objects.equals(newValue, field.get(this))) {
@@ -64,9 +86,11 @@ public abstract class Config {
 
                 field.set(this, newValue);
             }
-
-        } catch (IOException | SyntaxError | IllegalAccessException e) {
-            AutoWhitelist.LOGGER.warn("Could not load config!", e);
+        } catch (AnnotationParserException e) {
+            AutoWhitelist.LOGGER.error("Invalid config! Please follow the constraints", e);
+        } catch (Throwable e) {
+            AutoWhitelist.LOGGER.error("Could not load config!", e);
+            //TODO: Do not continue the mod loading
         } finally {
             this.loading = false;
         }

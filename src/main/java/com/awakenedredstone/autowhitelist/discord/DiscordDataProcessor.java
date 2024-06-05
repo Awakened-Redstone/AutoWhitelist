@@ -1,7 +1,7 @@
 package com.awakenedredstone.autowhitelist.discord;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.awakenedredstone.autowhitelist.config.EntryData;
+import com.awakenedredstone.autowhitelist.entry.BaseEntry;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
@@ -20,13 +20,13 @@ public class DiscordDataProcessor implements Runnable {
     }
 
     public void updateWhitelist() {
-        if (Bot.guild == null) return;
+        if (DiscordBot.guild == null) return;
 
         ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
 
-        List<Member> members = Bot.guild.findMembers(v -> {
+        List<Member> members = DiscordBot.guild.findMembers(v -> {
             if (v.getUser().isBot()) return false;
-            return hasRole(BotHelper.getRolesForMember(v));
+            return hasRole(DiscordBotHelper.getRolesForMember(v));
         }).get();
         List<String> memberIds = members.stream().map(ISnowflake::getId).toList();
 
@@ -45,7 +45,7 @@ public class DiscordDataProcessor implements Runnable {
         for (Member member : members) {
             List<ExtendedGameProfile> profiles = whitelist.getProfilesFromDiscordId(member.getId());
 
-            Optional<String> topRoleOptional = getTopRole(BotHelper.getRolesForMember(member));
+            Optional<String> topRoleOptional = getTopRole(DiscordBotHelper.getRolesForMember(member));
             if (topRoleOptional.isEmpty()) {
                 AutoWhitelist.LOGGER.error("Impossible case, the user {} has no valid role, but it passed to update. Please report this bug.", member.getId(), new IllegalStateException());
                 profiles.forEach(whitelist::remove);
@@ -62,11 +62,12 @@ public class DiscordDataProcessor implements Runnable {
 
             ExtendedGameProfile profile = profiles.get(0);
             if (!profile.getRole().equals(topRole)) {
-                EntryData entry = AutoWhitelist.ENTRY_MAP_CACHE.get(topRole);
+                BaseEntry entry = AutoWhitelist.ENTRY_MAP_CACHE.get(topRole);
+                BaseEntry oldEntry = AutoWhitelist.ENTRY_MAP_CACHE.get(profile.getRole());
                 whitelist.add(new ExtendedWhitelistEntry(profile.withRole(topRole)));
 
                 entry.assertSafe();
-                entry.updateUser(profile);
+                entry.updateUser(profile, oldEntry);
             }
         }
         AutoWhitelist.updateWhitelist();

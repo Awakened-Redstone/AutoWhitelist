@@ -1,8 +1,8 @@
 package com.awakenedredstone.autowhitelist.discord.command;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.awakenedredstone.autowhitelist.discord.Bot;
-import com.awakenedredstone.autowhitelist.discord.BotHelper;
+import com.awakenedredstone.autowhitelist.discord.DiscordBot;
+import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
 import com.awakenedredstone.autowhitelist.discord.api.ReplyCallback;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
@@ -25,8 +25,8 @@ import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.minecraft.server.MinecraftServer;
-/*? if <1.19 {*//*
-import net.minecraft.text.TranslatableText;
+/*? if <1.19 {*/
+/*import net.minecraft.text.TranslatableText;
 *//*?}*/
 import net.minecraft.text.Text;
 
@@ -77,7 +77,7 @@ public class InfoCommand extends SlashCommand {
             ExtendedWhitelistEntry entry = whitelistedAccount.get();
             ExtendedGameProfile profile = entry.getProfile();
 
-            EmbedBuilder embed = BotHelper.Feedback.defaultEmbed(
+            EmbedBuilder embed = DiscordBotHelper.Feedback.defaultEmbed(
               /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.info.title"),
               /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.info.description")
             );
@@ -99,7 +99,7 @@ public class InfoCommand extends SlashCommand {
                             time = "past";
                         }
                         String timeKey = "." + time;
-                        yield /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/(descriptionKey + timeKey, BotHelper.formatDiscordTimestamp(profile.getLockedUntil()));
+                        yield /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/(descriptionKey + timeKey, DiscordBotHelper.formatDiscordTimestamp(profile.getLockedUntil()));
                     }
                     default -> Text.of("");
                 };
@@ -111,7 +111,7 @@ public class InfoCommand extends SlashCommand {
             Button removeButton = Button.danger(btnId(eventId, "delete"), "Remove");
 
             replyCallback.editMessage((InteractionHook interactionHook) -> interactionHook
-              .editOriginal(BotHelper.<MessageEditData>buildEmbedMessage(true, embed.build()))
+              .editOriginal(DiscordBotHelper.<MessageEditData>buildEmbedMessage(true, embed.build()))
               .setComponents(ActionRow.of(removeButton.withDisabled(profile.isLocked())))
             );
 
@@ -150,20 +150,20 @@ public class InfoCommand extends SlashCommand {
                 waitForButton(eventId, replyCallback, buttonEventHandler);
             }
         } else {
-            EmbedBuilder embed = BotHelper.Feedback.defaultEmbed(
+            EmbedBuilder embed = DiscordBotHelper.Feedback.defaultEmbed(
               /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.info.missing.title"),
               /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.info.missing.description")
             );
 
             //Check if account qualifies for registration
-            List<Role> roles = BotHelper.getRolesForMember(member);
+            List<Role> roles = DiscordBotHelper.getRolesForMember(member);
             boolean accepted = !Collections.disjoint(roles.stream().map(Role::getId).toList(), new ArrayList<>(AutoWhitelist.ENTRY_MAP_CACHE.keySet()));
 
             Button button = Button.success(btnId(eventId, "register"), "Register").withDisabled(!accepted);
 
             replyCallback.editMessage((InteractionHook interactionHook) -> interactionHook
               .editOriginal(
-                BotHelper.<MessageEditData>buildEmbedMessage(true, embed.build())
+                DiscordBotHelper.<MessageEditData>buildEmbedMessage(true, embed.build())
               ).setComponents(ActionRow.of(button))
             );
             ButtonEventHandler buttonEventHandler = new ButtonEventHandler().addConsumer(btnId(eventId, "register"), buttonEvent -> {
@@ -184,7 +184,7 @@ public class InfoCommand extends SlashCommand {
 
                 buttonEvent.replyModal(builder.build()).queue();
 
-                Bot.eventWaiter.waitForEvent(ModalInteractionEvent.class,
+                DiscordBot.eventWaiter.waitForEvent(ModalInteractionEvent.class,
                   modalEvent -> modalEvent.getModalId().equals(btnId(eventId, "register")),
                   modalEvent -> {
                       ModalMapping usernameMapping = modalEvent.getValue("username");
@@ -210,7 +210,7 @@ public class InfoCommand extends SlashCommand {
     }
 
     private void waitForButton(String idBase, ReplyCallback.InteractionReplyCallback replyCallback, ButtonEventHandler buttonEventHandler) {
-        Bot.eventWaiter.waitForEvent(ButtonInteractionEvent.class,
+        DiscordBot.eventWaiter.waitForEvent(ButtonInteractionEvent.class,
           buttonEvent -> buttonEvent.getComponentId().startsWith(idBase),
           buttonEventHandler::handleEvent,
           1, TimeUnit.MINUTES,

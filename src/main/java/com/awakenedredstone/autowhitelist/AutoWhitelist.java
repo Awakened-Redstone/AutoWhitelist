@@ -4,12 +4,20 @@ import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import com.awakenedredstone.autowhitelist.commands.AutoWhitelistCommand;
-import com.awakenedredstone.autowhitelist.config.ConfigData;
-import com.awakenedredstone.autowhitelist.config.EntryData;
-import com.awakenedredstone.autowhitelist.config.compat.LuckpermsEntry;
-import com.awakenedredstone.autowhitelist.discord.Bot;
+import com.awakenedredstone.autowhitelist.config.AutoWhitelistConfig;
+import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
+import com.awakenedredstone.autowhitelist.discord.events.CoreEvents;
+import com.awakenedredstone.autowhitelist.entry.CommandEntry;
+import com.awakenedredstone.autowhitelist.entry.TeamEntry;
+import com.awakenedredstone.autowhitelist.entry.BaseEntry;
+import com.awakenedredstone.autowhitelist.entry.WhitelistEntry;
+import com.awakenedredstone.autowhitelist.entry.luckperms.GroupEntry;
+import com.awakenedredstone.autowhitelist.discord.DiscordBot;
+import com.awakenedredstone.autowhitelist.entry.luckperms.PermissionEntry;
+import com.awakenedredstone.autowhitelist.entry.serialization.JanksonOps;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
 import com.awakenedredstone.autowhitelist.mixin.ServerLoginNetworkHandlerAccessor;
+import com.awakenedredstone.autowhitelist.util.JsonUtil;
 import com.awakenedredstone.autowhitelist.util.ModData;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
@@ -20,10 +28,10 @@ import com.mojang.authlib.GameProfile;
 /*? if >=1.19 {*/
 import eu.pb4.placeholders.api.PlaceholderResult;
 import eu.pb4.placeholders.api.Placeholders;
-/*?} else {*//*
-import eu.pb4.placeholders.PlaceholderAPI;
+/*?} else {*/
+/*import eu.pb4.placeholders.PlaceholderAPI;
 import eu.pb4.placeholders.PlaceholderResult;
-*//*?} */
+*//*?}*/
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.fabricmc.api.DedicatedServerModInitializer;
@@ -37,15 +45,14 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.Whitelist;
-import net.minecraft.server.WhitelistEntry;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 /*? if >=1.19 {*/
 import net.minecraft.text.Text;
-/*?} else {*//*
-import net.minecraft.text.LiteralText;
-*//*?} */
+/*?} else {*/
+/*import net.minecraft.text.LiteralText;
+*//*?}*/
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
@@ -53,10 +60,10 @@ import net.minecraft.util.math.Vec3d;
 /*? if >=1.18.2 {*/
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-/*?} else {*//*
-import org.apache.logging.log4j.Logger;
+/*?} else {*/
+/*import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-*//*?} */
+*//*?}*/
 import org.spongepowered.asm.mixin.Unique;
 
 import java.io.File;
@@ -67,22 +74,23 @@ import java.util.*;
 @Environment(EnvType.SERVER)
 public class AutoWhitelist implements DedicatedServerModInitializer {
     public static final String MOD_ID = "autowhitelist";
-    public static final /*? if >=1.18.2 {*/Logger/*?} else {*//*Logger*//*?} */ LOGGER = /*? if >=1.18.2 {*/LoggerFactory/*?} else {*//*LogManager*//*?} */.getLogger("AutoWhitelist");
-    public static final ConfigData CONFIG;
+    public static final Logger LOGGER = /*? if >=1.18.2 {*/LoggerFactory/*?} else {*//*LogManager*//*?}*/.getLogger("AutoWhitelist");
+    public static final Logger DATA_FIXER_LOGGER = /*? if >=1.18.2 {*/LoggerFactory/*?} else {*//*LogManager*//*?}*/.getLogger("AutoWhitelist Data Fixer");
+    public static final AutoWhitelistConfig CONFIG;
     public static final File WHITELIST_CACHE_FILE = new File("whitelist-cache.json");
     public static final WhitelistCache WHITELIST_CACHE = new WhitelistCache(WHITELIST_CACHE_FILE);
-    public static final Map<String, EntryData> ENTRY_MAP_CACHE = new HashMap<>();
+    public static final Map<String, BaseEntry> ENTRY_MAP_CACHE = new HashMap<>();
     private static MinecraftServer server;
 
     static {
-        CONFIG = new ConfigData();
+        CONFIG = new AutoWhitelistConfig();
     }
 
     public static void updateWhitelist() {
         PlayerManager playerManager = server.getPlayerManager();
         ExtendedWhitelist whitelist = (ExtendedWhitelist) playerManager.getWhitelist();
 
-        Collection<? extends WhitelistEntry> entries = whitelist.getEntries();
+        Collection<? extends net.minecraft.server.WhitelistEntry> entries = whitelist.getEntries();
 
         List<GameProfile> profiles = entries.stream().map(v -> (GameProfile) ((ServerConfigEntryMixin<?>) v).getKey()).toList();
 
@@ -95,17 +103,17 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             if (cachedProfile == null) continue;
 
             if (!profile.getName().equals(cachedProfile.getName()) && profile instanceof ExtendedGameProfile extendedProfile) {
-                getCommandSource().sendFeedback(/*? if >=1.20 {*/() ->/*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Fixing bad entry from " + profile.getName()), true);
+                getCommandSource().sendFeedback(/*? if >=1.20 {*/() ->/*?}*/ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Fixing bad entry from " + profile.getName()), true);
                 whitelist.add(new ExtendedWhitelistEntry(new ExtendedGameProfile(cachedProfile.getId(), cachedProfile.getName(), extendedProfile.getRole(), extendedProfile.getDiscordId(), extendedProfile.getLockedUntil())));
             }
         }
 
-        CONFIG.entries.forEach(EntryData::purgeInvalid);
+        CONFIG.entries.forEach(BaseEntry::purgeInvalid);
 
         for (GameProfile profile : profiles) {
             if (profile instanceof ExtendedGameProfile extended) {
-                EntryData entry = ENTRY_MAP_CACHE.get(extended.getRole());
-                if (entry.shouldUpdate(extended)) entry.updateUser(extended);
+                BaseEntry entry = ENTRY_MAP_CACHE.get(extended.getRole());
+                if (entry.shouldUpdate(extended)) entry.updateUser(extended, entry);
             }
         }
 
@@ -130,22 +138,14 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
     public static void loadWhitelistCache() {
         try {
             WHITELIST_CACHE.load();
-        } catch (Exception exception) {
+        } catch (Throwable exception) {
             LOGGER.warn("Failed to load whitelist cache: ", exception);
         }
     }
 
     @Override
     public void onInitializeServer() {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> Bot.stopBot(true), "JDA shutdown"));
-
-        EntryData.register(new EntryData.Team(""));
-        EntryData.register(new EntryData.Command("", ""));
-        EntryData.register(new EntryData.Whitelist());
-        if (ModData.isModLoaded("luckperms")) {
-            EntryData.register(new LuckpermsEntry.Permission(""));
-            EntryData.register(new LuckpermsEntry.Group(""));
-        }
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> DiscordBot.stopBot(true), "JDA shutdown"));
 
         if (!WHITELIST_CACHE_FILE.exists()) {
             try {
@@ -164,7 +164,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
                 }
                 if (json.containsKey("owners")) {
                     //noinspection DataFlowIssue
-                    CONFIG.admins = ((JsonArray) json.get("owners")).stream().map(v -> ((JsonPrimitive) v).asString()).toList();
+                    CONFIG.admins = ((JsonArray) json.get("owners")).stream().map(v -> Long.parseLong(((JsonPrimitive) v).asString())).toList();
                 }
                 if (json.containsKey("prefix")) {
                     CONFIG.prefix = json.get(String.class, "prefix");
@@ -173,7 +173,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
                     CONFIG.token = json.get(String.class, "token");
                 }
                 if (json.containsKey("discordServerId")) {
-                    CONFIG.discordServerId = json.get(String.class, "discordServerId");
+                    CONFIG.discordServerId = Long.parseLong(json.get(String.class, "discordServerId"));
                 }
                 if (json.containsKey("whitelist")) {
                     JsonObject whitelist = json.getObject("whitelist");
@@ -181,10 +181,13 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
                     whitelist.forEach((key, value) -> {
                         if (value instanceof JsonArray) {
                             JsonObject jsonObject = new JsonObject();
-                            jsonObject.put("roleIds", value);
+                            jsonObject.put("roles", value);
+                            jsonObject.put("type", new JsonPrimitive(TeamEntry.ID.toString()));
+                            JsonObject execute = new JsonObject();
+                            execute.put("team", new JsonPrimitive(key));
+                            jsonObject.put("execute", execute);
 
-                            EntryData entry = new EntryData.Team(key);
-                            entry.populate(jsonObject);
+                            BaseEntry entry = BaseEntry.CODEC.parse(JanksonOps.INSTANCE, jsonObject).getOrThrow(/*? if <1.20.5 {*//*false, s -> {}*//*?}*/);
                             CONFIG.entries.add(entry);
                         }
                     });
@@ -205,9 +208,18 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             }
         }
 
-        CONFIG.<List<EntryData>>registerListener("entries", newEntries -> {
+        CONFIG.<List<BaseEntry>>registerListener("entries", newEntries -> {
             ENTRY_MAP_CACHE.clear();
-            newEntries.forEach(entry -> entry.getRoleIds().forEach(id -> AutoWhitelist.ENTRY_MAP_CACHE.put(id, entry)));
+            if (DiscordBot.getInstance() != null && DiscordBot.guild != null) {
+                for (BaseEntry newEntry : newEntries) {
+                    for (String roleString : newEntry.getRoles()) {
+                        Role role = DiscordBotHelper.getRoleFromString(roleString);
+                        if (role != null) {
+                            ENTRY_MAP_CACHE.put(role.getId(), newEntry);
+                        }
+                    }
+                }
+            }
         });
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
@@ -215,26 +227,27 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             CONFIG.load();
             loadWhitelistCache();
         });
-        CommandRegistrationCallback.EVENT.register((dispatcher, /*? if >=1.19 {*/registryAccess,/*?} */ environment) -> AutoWhitelistCommand.register(dispatcher));
-        ServerLifecycleEvents.SERVER_STOPPING.register((server -> Bot.stopBot(false)));
+        CommandRegistrationCallback.EVENT.register((dispatcher, /*? if >=1.19 {*/registryAccess,/*?}*/ environment) -> AutoWhitelistCommand.register(dispatcher));
+        ServerLifecycleEvents.SERVER_STOPPING.register((server -> DiscordBot.stopBot(false)));
         ServerLifecycleEvents.SERVER_STARTED.register((server -> {
-            Bot.startInstance();
+            DiscordBot.startInstance();
             if (!server.isOnlineMode()) {
-                LOGGER.warn("**** OFFLINE SERVER DETECTED!");
+                LOGGER.warn("***** OFFLINE SERVER DETECTED! *****");
                 LOGGER.warn("This mod does not offer support for offline servers!");
                 LOGGER.warn("Using a whitelist on an offline server offers little to no protection");
                 LOGGER.warn("AutoWhitelist may not work properly, fully or at all on an offline server");
             }
         }));
 
-        /*? if >=1.19{*/Placeholders/*?} else {*//*PlaceholderAPI*//*?}*/.register(new Identifier(MOD_ID, "prefix"),
-            (ctx/*? if >=1.19 {*/, arg/*?} */) -> PlaceholderResult.value(/*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(AutoWhitelist.CONFIG.prefix))
+        /*? if >=1.19 {*/Placeholders/*?} else {*//*PlaceholderAPI*//*?}*/.register(
+          AutoWhitelist.id("prefix"),
+          (ctx/*? if >=1.19 {*/, arg/*?}*/) -> PlaceholderResult.value(/*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(AutoWhitelist.CONFIG.prefix))
         );
 
         ServerLoginConnectionEvents.QUERY_START.register((handler, server, sender, synchronizer) -> {
             if (!AutoWhitelist.CONFIG.enableWhitelistCache) return;
-            if (Bot.jda == null) return;
-            if (Bot.guild == null) return;
+            if (DiscordBot.jda == null) return;
+            if (DiscordBot.guild == null) return;
             ServerLoginNetworkHandlerAccessor accessor = (ServerLoginNetworkHandlerAccessor) handler;
             GameProfile profile = accessor.getProfile();
             if (handler.getConnectionInfo() == null) return;
@@ -243,7 +256,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             WhitelistCacheEntry cachedEntry = AutoWhitelist.WHITELIST_CACHE.get(profile);
             if (cachedEntry == null) return;
             String discordId = cachedEntry.getProfile().getDiscordId();
-            Member member = Bot.guild.getMemberById(discordId);
+            Member member = DiscordBot.guild.getMemberById(discordId);
             if (member == null) {
                 AutoWhitelist.WHITELIST_CACHE.remove(profile);
                 return;
@@ -254,25 +267,13 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             if (roleOptional.isEmpty()) return;
             String role = roleOptional.get();
 
-            EntryData entry = AutoWhitelist.ENTRY_MAP_CACHE.get(role);
+            BaseEntry entry = AutoWhitelist.ENTRY_MAP_CACHE.get(role);
             if (hasException(entry::assertSafe, "Failed to use whitelist cache due to a broken entry, please check your config file!")) return;
 
             Whitelist whitelist = server.getPlayerManager().getWhitelist();
             ExtendedGameProfile extendedProfile = new ExtendedGameProfile(profile.getId(), profile.getName(), role, discordId, CONFIG.lockTime());
             whitelist.add(new ExtendedWhitelistEntry(extendedProfile));
             entry.registerUser(profile);
-        });
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server1) -> {
-            ExtendedWhitelist whitelist = (ExtendedWhitelist) server.getPlayerManager().getWhitelist();
-            ServerPlayerEntity player = handler.getPlayer();
-            GameProfile profile = player.getGameProfile();
-            WhitelistEntry whitelistEntry = whitelist.get(profile);
-            if (whitelistEntry instanceof ExtendedWhitelistEntry extendedEntry) {
-                EntryData entry = AutoWhitelist.ENTRY_MAP_CACHE.get(extendedEntry.getProfile().getRole());
-                if (entry.isOnLogin() && entry.shouldUpdate(profile)) {
-                    entry.registerUser(profile);
-                }
-            }
         });
     }
 
@@ -300,5 +301,63 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
 
     public static MinecraftServer getServer() {
         return server;
+    }
+
+    public static Identifier id(String path) {
+        return /*? if <1.19 {*//*new*//*?}*/ Identifier/*? if >=1.19 {*/.of/*?}*/(MOD_ID, path);
+    }
+
+    static {
+        BaseEntry.register(WhitelistEntry.ID, WhitelistEntry.CODEC);
+        BaseEntry.register(TeamEntry.ID, TeamEntry.CODEC);
+        BaseEntry.register(CommandEntry.ID, CommandEntry.CODEC);
+        if (ModData.isModLoaded("luckperms")) {
+            BaseEntry.register(PermissionEntry.ID, PermissionEntry.CODEC);
+            BaseEntry.register(GroupEntry.ID, GroupEntry.CODEC);
+        }
+
+        BaseEntry.addDataFixer(TeamEntry.ID, (configVersion, entryData) -> {
+            if (configVersion == 1) {
+                JsonObject execute = new JsonObject();
+                JsonUtil.moveAndRename(entryData, execute, "team", "associate_team");
+
+                entryData.put("execute", execute);
+            }
+
+            return entryData;
+        });
+        BaseEntry.addDataFixer(CommandEntry.ID, (configVersion, entryData) -> {
+            if (configVersion == 1) {
+                JsonObject execute = new JsonObject();
+                JsonUtil.moveAndRename(entryData, execute, "addCommand", "on_add");
+                JsonUtil.moveAndRename(entryData, execute, "removeCommand", "on_remove");
+
+                entryData.put("execute", execute);
+            }
+
+            return entryData;
+        });
+        if (ModData.isModLoaded("luckperms")) {
+            BaseEntry.addDataFixer(PermissionEntry.ID, (configVersion, entryData) -> {
+                if (configVersion == 1) {
+                    JsonObject execute = new JsonObject();
+                    JsonUtil.move(entryData, execute, "permission");
+
+                    entryData.put("execute", execute);
+                }
+
+                return entryData;
+            });
+            BaseEntry.addDataFixer(GroupEntry.ID, (configVersion, entryData) -> {
+                if (configVersion == 1) {
+                    JsonObject execute = new JsonObject();
+                    JsonUtil.move(entryData, execute, "group");
+
+                    entryData.put("execute", execute);
+                }
+
+                return entryData;
+            });
+        }
     }
 }

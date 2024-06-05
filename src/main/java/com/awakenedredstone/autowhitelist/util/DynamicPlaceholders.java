@@ -7,14 +7,14 @@ import eu.pb4.placeholders.api.PlaceholderHandler;
 import eu.pb4.placeholders.api.PlaceholderResult;
 import eu.pb4.placeholders.api.Placeholders;
 import eu.pb4.placeholders.api.parsers.PatternPlaceholderParser;
-/*?} else {*//*
-import eu.pb4.placeholders.PlaceholderAPI;
+/*?} else {*/
+/*import eu.pb4.placeholders.PlaceholderAPI;
 import eu.pb4.placeholders.PlaceholderHandler;
 import eu.pb4.placeholders.PlaceholderResult;
-*//*?} */
+*//*?}*/
 
-/*? if <1.19 {*//*
-import net.minecraft.text.LiteralText;
+/*? if <1.19 {*/
+/*import net.minecraft.text.LiteralText;
 *//*?}*/
 import net.minecraft.text.Text;
 
@@ -32,16 +32,16 @@ public class DynamicPlaceholders {
         return Placeholders.parseText(inputText, PlaceholderContext.of(AutoWhitelist.getServer()),
           PatternPlaceholderParser.PLACEHOLDER_PATTERN_CUSTOM,
             id -> getPlaceholder(id, placeholders));
-        /*?} else {*//*
-        return PlaceholderAPI.parsePredefinedText(inputText, PlaceholderAPI.PLACEHOLDER_PATTERN_CUSTOM, placeholders);
-        *//*?} */
+        /*?} else {*/
+        /*return PlaceholderAPI.parsePredefinedText(inputText, PlaceholderAPI.PLACEHOLDER_PATTERN_CUSTOM, placeholders);
+        *//*?}*/
     }
 
     private static PlaceholderHandler getPlaceholder(String id, Map<String, Text> placeholders) {
         /*? if >=1.19 {*/
         return placeholders.containsKey(id) ? (ctx, arg) -> PlaceholderResult.value(placeholders.get(id)) : Placeholders.DEFAULT_PLACEHOLDER_GETTER.getPlaceholder(id);
-        /*?} else {*//*
-        return placeholders.containsKey(id) ? (ctx) -> PlaceholderResult.value(placeholders.get(id)) : PlaceholderAPI::parsePlaceholder;
-        *//*?} */
+        /*?} else {*/
+        /*return placeholders.containsKey(id) ? (ctx) -> PlaceholderResult.value(placeholders.get(id)) : PlaceholderAPI::parsePlaceholder;
+        *//*?}*/
     }
 }

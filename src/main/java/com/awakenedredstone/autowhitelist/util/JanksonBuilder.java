@@ -6,10 +6,10 @@ import blue.endless.jankson.JsonElement;
 import blue.endless.jankson.JsonGrammar;
 import blue.endless.jankson.JsonPrimitive;
 import blue.endless.jankson.api.DeserializerFunction;
-import com.awakenedredstone.autowhitelist.config.annotation.PredicateConstraint;
-import com.awakenedredstone.autowhitelist.config.annotation.RangeConstraint;
-import com.awakenedredstone.autowhitelist.config.annotation.RegexConstraint;
-import com.awakenedredstone.autowhitelist.config.jankson.Marshaller;
+import com.awakenedredstone.autowhitelist.config.source.annotation.PredicateConstraint;
+import com.awakenedredstone.autowhitelist.config.source.annotation.RangeConstraint;
+import com.awakenedredstone.autowhitelist.config.source.annotation.RegexConstraint;
+import com.awakenedredstone.autowhitelist.config.source.jankson.Marshaller;
 import com.awakenedredstone.autowhitelist.mixin.compat.JanksonAcessor;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -108,7 +108,7 @@ public class JanksonBuilder {
 
               try {
                   return (boolean) method.invoke(null, object);
-              } catch (Exception e) {
+              } catch (Throwable e) {
                   throw new IllegalStateException("Failed to invoke " + method.getName() + " for " + fieldName, e);
               }
           })

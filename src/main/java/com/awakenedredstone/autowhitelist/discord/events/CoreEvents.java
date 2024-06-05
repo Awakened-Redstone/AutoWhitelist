@@ -1,9 +1,9 @@
 package com.awakenedredstone.autowhitelist.discord.events;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.awakenedredstone.autowhitelist.config.EntryData;
-import com.awakenedredstone.autowhitelist.discord.Bot;
-import com.awakenedredstone.autowhitelist.discord.BotHelper;
+import com.awakenedredstone.autowhitelist.entry.BaseEntry;
+import com.awakenedredstone.autowhitelist.discord.DiscordBot;
+import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
 import com.awakenedredstone.autowhitelist.discord.DiscordDataProcessor;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
@@ -21,6 +21,7 @@ import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,48 +30,71 @@ import java.util.concurrent.TimeUnit;
 public class CoreEvents extends ListenerAdapter {
     @Override
     public void onGenericEvent(@NotNull GenericEvent event) {
-        if (Bot.eventWaiter != null && !Bot.eventWaiter.isShutdown()) {
-            Bot.eventWaiter.onEvent(event);
+        if (DiscordBot.eventWaiter != null && !DiscordBot.eventWaiter.isShutdown()) {
+            DiscordBot.eventWaiter.onEvent(event);
         }
     }
 
     @Override
-    public void onReady(@NotNull ReadyEvent e) {
-        if (Bot.scheduledUpdate != null) {
-            Bot.scheduledUpdate.cancel(false);
-            try {
-                Bot.scheduledUpdate.get();
-            } catch (Exception ignored) {/**/}
+    public void onReady(@NotNull ReadyEvent event) {
+        if (AutoWhitelist.getServer() == null) {
+            AutoWhitelist.LOGGER.warn("The bot was ready while the server was null, refusing to proceed");
+            if (DiscordBot.getInstance() != null) {
+                DiscordBot.getInstance().interrupt();
+            }
+            return;
         }
 
-        Bot.guild = Bot.jda.getGuildById(AutoWhitelist.CONFIG.discordServerId);
-        if (Bot.guild == null) {
+        if (DiscordBot.scheduledUpdate != null) {
+            DiscordBot.scheduledUpdate.cancel(false);
+            try {
+                DiscordBot.scheduledUpdate.get();
+            } catch (Throwable ignored) {/**/}
+        }
+
+        DiscordBot.guild = DiscordBot.jda.getGuildById(AutoWhitelist.CONFIG.discordServerId);
+        if (DiscordBot.guild == null) {
             AutoWhitelist.LOGGER.error("Could not find the guild with id {}", AutoWhitelist.CONFIG.discordServerId);
             return;
         }
 
         AutoWhitelist.LOGGER.info("Parsing registered users.");
-        Bot.scheduledUpdate = Bot.EXECUTOR_SERVICE.scheduleWithFixedDelay(new DiscordDataProcessor(), 0, AutoWhitelist.CONFIG.updatePeriod, TimeUnit.SECONDS);
-        AutoWhitelist.LOGGER.info("Load complete.");
+        try {
+            DiscordBot.scheduledUpdate = DiscordBot.EXECUTOR_SERVICE.scheduleWithFixedDelay(new DiscordDataProcessor(), 0, AutoWhitelist.CONFIG.updatePeriod, TimeUnit.SECONDS);
+            AutoWhitelist.LOGGER.info("Load complete.");
+        } catch (Throwable e) {
+            AutoWhitelist.LOGGER.error("Failed to schedule the discord data processor on an interval", e);
+        }
 
-        Bot.eventWaiter = new EventWaiter();
+        DiscordBot.eventWaiter = new EventWaiter();
+
+        if (AutoWhitelist.ENTRY_MAP_CACHE.isEmpty()) {
+            for (BaseEntry newEntry : AutoWhitelist.CONFIG.entries) {
+                for (String roleString : newEntry.getRoles()) {
+                    Role role = DiscordBotHelper.getRoleFromString(roleString);
+                    if (role != null) {
+                        AutoWhitelist.ENTRY_MAP_CACHE.put(role.getId(), newEntry);
+                    }
+                }
+            }
+        }
     }
 
     @Override
     public void onShutdown(@NotNull ShutdownEvent event) {
-        if (Bot.scheduledUpdate != null) {
-            Bot.scheduledUpdate.cancel(false);
+        if (DiscordBot.scheduledUpdate != null) {
+            DiscordBot.scheduledUpdate.cancel(false);
             try {
-                Bot.scheduledUpdate.get();
-            } catch (Exception ignored) {/**/}
-            Bot.scheduledUpdate = null;
+                DiscordBot.scheduledUpdate.get();
+            } catch (Throwable ignored) {/**/}
+            DiscordBot.scheduledUpdate = null;
         }
-        if (!Bot.eventWaiter.isShutdown()) {
-            Bot.eventWaiter.shutdown();
-            Bot.eventWaiter = null;
+        if (DiscordBot.eventWaiter != null && !DiscordBot.eventWaiter.isShutdown()) {
+            DiscordBot.eventWaiter.shutdown();
+            DiscordBot.eventWaiter = null;
         }
-        Bot.jda = null;
-        Bot.guild = null;
+        DiscordBot.jda = null;
+        DiscordBot.guild = null;
     }
 
     @Override
@@ -106,7 +130,7 @@ public class CoreEvents extends ListenerAdapter {
     }
 
     private void updateUser(Member member) {
-        Optional<String> roleOptional = getTopRole(BotHelper.getRolesForMember(member));
+        Optional<String> roleOptional = getTopRole(DiscordBotHelper.getRolesForMember(member));
 
         ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
 
@@ -124,13 +148,14 @@ public class CoreEvents extends ListenerAdapter {
             return;
         }
         String role = roleOptional.get();
-        EntryData entry = AutoWhitelist.ENTRY_MAP_CACHE.get(role);
+        BaseEntry entry = AutoWhitelist.ENTRY_MAP_CACHE.get(role);
         ExtendedGameProfile profile = profiles.get(0);
+        BaseEntry oldEntry = AutoWhitelist.ENTRY_MAP_CACHE.get(profile.getRole());
         if (!profile.getRole().equals(role)) {
             whitelist.add(new ExtendedWhitelistEntry(profile.withRole(role)));
 
             entry.assertSafe();
-            entry.updateUser(profile);
+            entry.updateUser(profile, oldEntry);
         }
 
         if (AutoWhitelist.getServer().getPlayerManager().isWhitelistEnabled()) {

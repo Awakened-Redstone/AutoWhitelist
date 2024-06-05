@@ -1,4 +1,4 @@
-package com.awakenedredstone.autowhitelist.config.jankson;
+package com.awakenedredstone.autowhitelist.config.source.jankson;
 
 import blue.endless.jankson.Comment;
 import blue.endless.jankson.JsonArray;
@@ -13,8 +13,15 @@ import blue.endless.jankson.api.DeserializerFunction;
 import blue.endless.jankson.impl.POJODeserializer;
 import blue.endless.jankson.impl.serializer.DeserializerFunctionPool;
 import blue.endless.jankson.magic.TypeMagic;
+import com.awakenedredstone.autowhitelist.AutoWhitelist;
+import com.awakenedredstone.autowhitelist.config.source.AnnotationParserException;
+import com.awakenedredstone.autowhitelist.config.source.annotation.NameFormat;
+import com.awakenedredstone.autowhitelist.config.source.annotation.SkipNameFormat;
 import com.awakenedredstone.autowhitelist.mixin.compat.POJODeserializerAccessor;
+import com.google.common.base.CaseFormat;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
@@ -34,6 +41,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Marshaller implements blue.endless.jankson.api.Marshaller {
+    public static final Logger LOGGER = /*? if >=1.18.2 {*/LoggerFactory/*?} else {*//*LogManager*//*?}*/.getLogger(Marshaller.class);
     private static final Marshaller INSTANCE = new Marshaller();
 
     public static blue.endless.jankson.api.Marshaller getFallback() {
@@ -168,6 +176,7 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
         try {
             return marshall(clazz, elem, false);
         } catch (Throwable t) {
+            LOGGER.debug("Failed to parse JSON into class {}", clazz.getCanonicalName(), t);
             return null;
         }
     }
@@ -224,8 +233,10 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
             }
             if (elem instanceof JsonNull) return (T) "null";
 
-            if (failFast)
+            if (failFast) {
                 throw new DeserializationException("Encountered unexpected JsonElement type while deserializing to string: " + elem.getClass().getCanonicalName());
+            }
+            LOGGER.debug("Encountered unexpected JsonElement type while deserializing to string: {}", elem.getClass().getCanonicalName());
             return null;
         }
 
@@ -234,8 +245,10 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
             if (func != null) {
                 return (T) func.apply(((JsonPrimitive) elem).getValue());
             } else {
-                if (failFast)
+                if (failFast) {
                     throw new DeserializationException("Don't know how to unpack value '" + elem.toString() + "' into target type '" + clazz.getCanonicalName() + "'");
+                }
+                LOGGER.debug("Don't know how to unpack value '{}' into target type '{}'", elem.toString(), clazz.getCanonicalName());
                 return null;
             }
         } else if (elem instanceof JsonObject obj) {
@@ -245,6 +258,7 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
                 throw new DeserializationException("Can't marshall json object into primitive type " + clazz.getCanonicalName());
             if (JsonPrimitive.class.isAssignableFrom(clazz)) {
                 if (failFast) throw new DeserializationException("Can't marshall json object into a json primitive");
+                LOGGER.debug("Can't marshall json object into a json primitive");
                 return null;
             }
 
@@ -261,6 +275,7 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
                     return result;
                 } catch (Throwable t) {
                     if (failFast) throw t;
+                    LOGGER.debug("Failed to parse JSON into class {} [typeFactories]", clazz.getCanonicalName(), t);
                     return null;
                 }
             } else {
@@ -269,17 +284,26 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
                     T result = TypeMagic.createAndCast(clazz, failFast);
                     T resultDefault = TypeMagic.createAndCast(clazz, failFast);
                     POJODeserializer.unpackObject(result, obj, failFast);
-                    parseAnnotations(clazz, result, resultDefault);
+                    try {
+                        parseAnnotations(clazz, result, resultDefault);
+                    } catch (Throwable t) {
+                        if (failFast) throw new AnnotationParserException(t);
+                        LOGGER.error("Could not parse annotations of the provided JSON", t);
+                    }
 
                     return result;
                 } catch (Throwable t) {
                     if (failFast) throw t;
+                    LOGGER.debug("Failed to parse JSON into class {} [typeFactories$else]", clazz.getCanonicalName(), t);
                     return null;
                 }
             }
 
         } else if (elem instanceof JsonArray) {
-            if (clazz.isPrimitive()) return null;
+            if (clazz.isPrimitive()) {
+                LOGGER.debug("Failed to parse JSON into class {} [elem instanceof JsonArray]", clazz.getCanonicalName());
+                return null;
+            }
             if (clazz.isArray()) {
                 Class<?> componentType = clazz.getComponentType();
                 JsonArray array = (JsonArray) elem;
@@ -292,6 +316,7 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
             }
         }
 
+        LOGGER.debug("Failed to parse JSON into class {} [END]", clazz.getCanonicalName());
         return null;
     }
 
@@ -392,21 +417,29 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
             return result;
         }
 
+        NameFormat defaultNameFormat = obj.getClass().getAnnotation(NameFormat.class);
+
         JsonObject result = new JsonObject();
         //Pull in public fields first
-        for (Field f : obj.getClass().getFields()) {
+        for (Field field : obj.getClass().getFields()) {
             if (
-              Modifier.isStatic(f.getModifiers()) || // Not part of the object
-                Modifier.isTransient(f.getModifiers())) continue; //Never serialize
-            f.setAccessible(true);
+              Modifier.isStatic(field.getModifiers()) || // Not part of the object
+                Modifier.isTransient(field.getModifiers())) continue; //Never serialize
+            field.setAccessible(true);
 
             try {
-                Object child = f.get(obj);
-                String name = f.getName();
-                SerializedName nameAnnotation = f.getAnnotation(SerializedName.class);
+                Object child = field.get(obj);
+                String name = field.getName();
+                NameFormat nameFormat = field.getAnnotation(NameFormat.class);
+                SkipNameFormat skipNameFormat = field.getAnnotation(SkipNameFormat.class);
+                SerializedName nameAnnotation = field.getAnnotation(SerializedName.class);
+                if (skipNameFormat == null && (nameFormat != null || defaultNameFormat != null) && nameAnnotation == null) {
+                    NameFormat formatter = nameFormat != null ? nameFormat : defaultNameFormat;
+                    name = CaseFormat.LOWER_CAMEL.to(formatter.value().getCaseFormat(), name);
+                }
                 if (nameAnnotation != null) name = nameAnnotation.value();
 
-                Comment comment = f.getAnnotation(Comment.class);
+                Comment comment = field.getAnnotation(Comment.class);
                 if (comment == null) {
                     result.put(name, serialize(child));
                 } else {
@@ -427,7 +460,14 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
             try {
                 Object child = field.get(obj);
                 String name = field.getName();
+                NameFormat nameFormat = field.getAnnotation(NameFormat.class);
+                SkipNameFormat skipNameFormat = field.getAnnotation(SkipNameFormat.class);
                 SerializedName nameAnnotation = field.getAnnotation(SerializedName.class);
+                if (skipNameFormat == null && (nameFormat != null || defaultNameFormat != null) && nameAnnotation == null) {
+                    NameFormat formatter = nameFormat != null ? nameFormat : defaultNameFormat;
+                    name = CaseFormat.LOWER_CAMEL.to(formatter.value().getCaseFormat(), name);
+                }
+
                 if (nameAnnotation != null) name = nameAnnotation.value();
 
                 try {
@@ -443,7 +483,8 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
                 } else {
                     result.put(name, serialize(child), comment.value());
                 }
-            } catch (IllegalArgumentException | IllegalAccessException ignored) {}
+            } catch (IllegalArgumentException | IllegalAccessException ignored) {
+            }
         }
 
         return result;
@@ -466,7 +507,8 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
                         }
                     }
                 }
-            } catch (IllegalAccessException ignored) {}
+            } catch (IllegalAccessException ignored) {
+            }
         }
     }
 

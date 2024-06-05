@@ -1,7 +1,7 @@
 package com.awakenedredstone.autowhitelist.discord;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.awakenedredstone.autowhitelist.config.ConfigData;
+import com.awakenedredstone.autowhitelist.config.AutoWhitelistConfig;
 import com.awakenedredstone.autowhitelist.discord.api.GatewayIntents;
 import com.awakenedredstone.autowhitelist.discord.command.InfoCommand;
 import com.awakenedredstone.autowhitelist.discord.command.RegisterCommand;
@@ -22,10 +22,11 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.command.ServerCommandSource;
 /*? if >=1.19 {*/
 import net.minecraft.text.Text;
-/*?} else {*//*
-import net.minecraft.text.LiteralText;
-*//*?} */
+/*?} else {*/
+/*import net.minecraft.text.LiteralText;
+*//*?}*/
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,16 +39,19 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.function.Consumer;
 
 //TODO: Improve/rework the bot class
-public class Bot extends Thread {
+public class DiscordBot extends Thread {
     public static final Logger LOGGER = LoggerFactory.getLogger("AutoWhitelist Bot");
     public static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
     public static EventWaiter eventWaiter;
     public static ScheduledFuture<?> scheduledUpdate;
+    @Nullable
     public static JDA jda = null;
+    @Nullable
     public static Guild guild = null;
-    private static Bot instance;
+    @Nullable
+    private static DiscordBot instance;
 
-    public Bot() {
+    public DiscordBot() {
         super("AutoWhitelist Bot");
         this.setDaemon(true);
         this.setUncaughtExceptionHandler(new net.minecraft.util.logging.UncaughtExceptionHandler(AutoWhitelist.LOGGER));
@@ -65,7 +69,7 @@ public class Bot extends Thread {
             if (!force) {
                 try {
                     scheduledUpdate.get();
-                } catch (Exception ignored) {/**/}
+                } catch (Throwable ignored) {/**/}
             }
             scheduledUpdate = null;
         }
@@ -83,13 +87,13 @@ public class Bot extends Thread {
         guild = null;
     }
 
-    public static Bot getInstance() {
+    public static DiscordBot getInstance() {
         return instance;
     }
 
     public static void startInstance() {
         if (instance == null) {
-            new Bot().start();
+            new DiscordBot().start();
         } else {
             instance.execute();
         }
@@ -100,37 +104,27 @@ public class Bot extends Thread {
             scheduledUpdate.cancel(false);
             try {
                 scheduledUpdate.get();
-            } catch (Exception ignored) {/**/}
+            } catch (Throwable ignored) {/**/}
         }
         if (jda != null) jda.shutdown();
 
-        source.sendFeedback(/*? if >=1.20 {*/() ->/*?} */ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Discord bot starting."), true);
+        source.sendFeedback(/*? if >=1.20 {*/() ->/*?}*/ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Discord bot starting."), true);
 
         execute();
     }
 
     private boolean validateConfigs() {
         if (StringUtils.isBlank(AutoWhitelist.CONFIG.token)) {
-            LOGGER.error("Invalid bot token, please review your configurations.");
+            LOGGER.error("Empty bot token, please review your configurations");
             return false;
         }
-        if (StringUtils.isBlank(AutoWhitelist.CONFIG.discordServerId)) {
-            LOGGER.error("Invalid discord server id, please review your configurations.");
+        if (AutoWhitelist.CONFIG.token.equalsIgnoreCase("DO NOT SHARE THE BOT TOKEN")) {
+            LOGGER.error("Unset bot token, please review your configurations");
             return false;
         }
-        try {
-            Long.parseLong(AutoWhitelist.CONFIG.discordServerId);
-        } catch (NumberFormatException e) {
-            LOGGER.error("Discord server id is not a valid 32-bit integer, please review your configurations.");
+        if (AutoWhitelist.CONFIG.discordServerId <= 0) {
+            LOGGER.error("Invalid discord server id, please review your configurations");
             return false;
-        }
-        for (String admin : AutoWhitelist.CONFIG.admins) {
-            try {
-                Long.parseLong(admin);
-            } catch (NumberFormatException e) {
-                LOGGER.error("Invalid admin id: \"{}\" is not a valid 32-bit integer, please review your configurations.", admin);
-                return false;
-            }
         }
         return true;
     }
@@ -174,17 +168,16 @@ public class Bot extends Thread {
 
 
             JDABuilder builder = JDABuilder.createDefault(AutoWhitelist.CONFIG.token);
-            //builder.setEventManager(new AnnotatedEventManager());
             builder.addEventListeners(new CoreEvents(), commands);
             builder.enableIntents(GatewayIntents.BASIC);
             builder.setMemberCachePolicy(MemberCachePolicy.ALL);
             jda = builder.build();
 
-            if (AutoWhitelist.CONFIG.botActivityType != ConfigData.BotActivity.NONE) {
+            if (AutoWhitelist.CONFIG.botActivityType != AutoWhitelistConfig.BotActivity.NONE) {
                 jda.getPresence().setActivity(AutoWhitelist.CONFIG.botActivityType.getActivity());
             }
         } catch (InvalidTokenException e) {
-            AutoWhitelist.LOGGER.error("Invalid bot token, please review your configurations.");
+            AutoWhitelist.LOGGER.error("Invalid bot token, please review your configurations");
         } catch (Throwable e) {
             AutoWhitelist.LOGGER.error("An unexpected error occurred while starting the bot", e);
         }
@@ -192,8 +185,8 @@ public class Bot extends Thread {
 
     @Override
     public void interrupt() {
-        stopBot(true);
         instance = null;
+        stopBot(true);
         super.interrupt();
     }
 

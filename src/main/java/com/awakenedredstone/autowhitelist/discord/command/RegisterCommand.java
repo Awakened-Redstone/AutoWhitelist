@@ -1,8 +1,8 @@
 package com.awakenedredstone.autowhitelist.discord.command;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.awakenedredstone.autowhitelist.config.EntryData;
-import com.awakenedredstone.autowhitelist.discord.BotHelper;
+import com.awakenedredstone.autowhitelist.entry.BaseEntry;
+import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
 import com.awakenedredstone.autowhitelist.discord.DiscordDataProcessor;
 import com.awakenedredstone.autowhitelist.discord.api.ReplyCallback;
 import com.awakenedredstone.autowhitelist.discord.api.command.CommandBase;
@@ -27,9 +27,9 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.minecraft.server.MinecraftServer;
 /*? if >=1.19 {*/
 import net.minecraft.text.Text;
-/*?} else {*//*
-import net.minecraft.text.TranslatableText;
-*//*?} */
+/*?} else {*/
+/*import net.minecraft.text.TranslatableText;
+*//*?}*/
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,19 +53,19 @@ public class RegisterCommand extends CommandBase {
     public static void execute(Member member, String username, ReplyCallback replyCallback) {
         if (member == null) return;
 
-        MessageCreateData initialReply = BotHelper.buildEmbedMessage(
+        MessageCreateData initialReply = DiscordBotHelper.buildEmbedMessage(
           false,
-            BotHelper.Feedback.buildEmbed(
+            DiscordBotHelper.Feedback.buildEmbed(
               /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.feedback.received.title"),
               /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.feedback.received.message"),
-              BotHelper.MessageType.NORMAL
+              DiscordBotHelper.MessageType.NORMAL
             )
         );
 
         replyCallback.sendMessage(initialReply);
 
         String id = member.getId();
-        List<Role> roles = BotHelper.getRolesForMember(member);
+        List<Role> roles = DiscordBotHelper.getRolesForMember(member);
 
         boolean accepted = !Collections.disjoint(roles.stream().map(Role::getId).toList(), new ArrayList<>(AutoWhitelist.ENTRY_MAP_CACHE.keySet()));
         if (accepted) {
@@ -76,11 +76,11 @@ public class RegisterCommand extends CommandBase {
             if (whitelistedAccount.isPresent()) {
                 if (whitelistedAccount.get().getProfile().getName().equalsIgnoreCase(username)) {
                     replyCallback.editMessage(
-                      BotHelper.buildEmbedMessage(true,
-                        BotHelper.Feedback.buildEmbed(
+                      DiscordBotHelper.buildEmbedMessage(true,
+                        DiscordBotHelper.Feedback.buildEmbed(
                           /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.same_username.title"),
                           /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.same_username.message"),
-                          BotHelper.MessageType.WARNING
+                          DiscordBotHelper.MessageType.WARNING
                         )
                       )
                     );
@@ -90,21 +90,21 @@ public class RegisterCommand extends CommandBase {
                 if (whitelistedAccount.get().getProfile().isLocked()) {
                     if (AutoWhitelist.CONFIG.lockTime() == -1) {
                         replyCallback.editMessage(
-                          BotHelper.buildEmbedMessage(true,
-                            BotHelper.Feedback.buildEmbed(
+                          DiscordBotHelper.buildEmbedMessage(true,
+                            DiscordBotHelper.Feedback.buildEmbed(
                               /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.already_registered.title"),
                               /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.already_registered.message"),
-                              BotHelper.MessageType.WARNING
+                              DiscordBotHelper.MessageType.WARNING
                             )
                           )
                         );
                     } else {
                         replyCallback.editMessage(
-                          BotHelper.buildEmbedMessage(true,
-                            BotHelper.Feedback.buildEmbed(
+                          DiscordBotHelper.buildEmbedMessage(true,
+                            DiscordBotHelper.Feedback.buildEmbed(
                               /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.locked.title"),
-                              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.locked.message", BotHelper.formatDiscordTimestamp(whitelistedAccount.get().getProfile().getLockedUntil())),
-                              BotHelper.MessageType.WARNING
+                              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.locked.message", DiscordBotHelper.formatDiscordTimestamp(whitelistedAccount.get().getProfile().getLockedUntil())),
+                              DiscordBotHelper.MessageType.WARNING
                             )
                           )
                         );
@@ -117,27 +117,27 @@ public class RegisterCommand extends CommandBase {
             if (highestRoleOptional.isEmpty()) {
                 AutoWhitelist.LOGGER.error("Impossible case, the user {} has no valid role, but it passed as qualified. Please report this bug.", id, new IllegalStateException());
                 replyCallback.editMessage(
-                  BotHelper.buildEmbedMessage(true,
-                    BotHelper.Feedback.buildEmbed(
+                  DiscordBotHelper.buildEmbedMessage(true,
+                    DiscordBotHelper.Feedback.buildEmbed(
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fatal.title"),
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fatal", "User does not have a valid role, yet it passed as qualified. Please report this bug."),
-                      BotHelper.MessageType.ERROR
+                      DiscordBotHelper.MessageType.ERROR
                     )
                   )
                 );
                 return;
             }
             String highestRole = highestRoleOptional.get();
-            EntryData entry = AutoWhitelist.ENTRY_MAP_CACHE.get(highestRole);
+            BaseEntry entry = AutoWhitelist.ENTRY_MAP_CACHE.get(highestRole);
             try {
                 entry.assertSafe();
             } catch (Throwable e) {
                 replyCallback.editMessage(
-                    BotHelper.buildEmbedMessage(true,
-                        BotHelper.Feedback.buildEmbed(
+                    DiscordBotHelper.buildEmbedMessage(true,
+                        DiscordBotHelper.Feedback.buildEmbed(
                           /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.fail.title"),
                           /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.fatal.exception", e.getMessage()),
-                        BotHelper.MessageType.ERROR
+                        DiscordBotHelper.MessageType.ERROR
                         )
                     )
                 );
@@ -147,11 +147,11 @@ public class RegisterCommand extends CommandBase {
 
             if (username.isEmpty()) {
                 replyCallback.editMessage(
-                  BotHelper.buildEmbedMessage(true,
-                    BotHelper.Feedback.buildEmbed(
+                  DiscordBotHelper.buildEmbedMessage(true,
+                    DiscordBotHelper.Feedback.buildEmbed(
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.few_args.title"),
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.few_args.message"),
-                      BotHelper.MessageType.WARNING
+                      DiscordBotHelper.MessageType.WARNING
                     )
                   )
                 );
@@ -160,11 +160,11 @@ public class RegisterCommand extends CommandBase {
             String[] args = username.split(" ");
             if (args.length > 1) {
                 replyCallback.editMessage(
-                  BotHelper.buildEmbedMessage(true,
-                    BotHelper.Feedback.buildEmbed(
+                  DiscordBotHelper.buildEmbedMessage(true,
+                    DiscordBotHelper.Feedback.buildEmbed(
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.too_many_args.title"),
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.too_many_args.message"),
-                      BotHelper.MessageType.WARNING
+                      DiscordBotHelper.MessageType.WARNING
                     )
                   )
                 );
@@ -175,22 +175,22 @@ public class RegisterCommand extends CommandBase {
             {
                 if (arg.length() > 16) {
                     replyCallback.editMessage(
-                      BotHelper.buildEmbedMessage(true,
-                        BotHelper.Feedback.buildEmbed(
+                      DiscordBotHelper.buildEmbedMessage(true,
+                        DiscordBotHelper.Feedback.buildEmbed(
                           /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.invalid_username.title"),
                           /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.invalid_username.message.too_long"),
-                          BotHelper.MessageType.WARNING
+                          DiscordBotHelper.MessageType.WARNING
                         )
                       )
                     );
                     return;
                 } else if (arg.length() < 3) {
                     replyCallback.editMessage(
-                        BotHelper.buildEmbedMessage(true,
-                            BotHelper.Feedback.buildEmbed(
+                        DiscordBotHelper.buildEmbedMessage(true,
+                            DiscordBotHelper.Feedback.buildEmbed(
                             /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.invalid_username.title"),
                             /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.invalid_username.message.too_short"),
-                            BotHelper.MessageType.WARNING
+                            DiscordBotHelper.MessageType.WARNING
                             )
                         )
                     );
@@ -201,11 +201,11 @@ public class RegisterCommand extends CommandBase {
             if (server.getUserCache() == null) {
                 AutoWhitelist.LOGGER.error("Failed to whitelist user {}, server user cache is null", username);
                 replyCallback.editMessage(
-                  BotHelper.buildEmbedMessage(true,
-                    BotHelper.Feedback.buildEmbed(
+                  DiscordBotHelper.buildEmbedMessage(true,
+                    DiscordBotHelper.Feedback.buildEmbed(
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.fail.title"),
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fail.account_data", arg),
-                      BotHelper.MessageType.ERROR
+                      DiscordBotHelper.MessageType.ERROR
                     )
                   )
                 );
@@ -215,11 +215,11 @@ public class RegisterCommand extends CommandBase {
             GameProfile profile = server.getUserCache().findByName(arg).orElse(null);
             if (profile == null) {
                 replyCallback.editMessage(
-                  BotHelper.buildEmbedMessage(true,
-                    BotHelper.Feedback.buildEmbed(
+                  DiscordBotHelper.buildEmbedMessage(true,
+                    DiscordBotHelper.Feedback.buildEmbed(
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.fail.title"),
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fail.account_data", arg),
-                      BotHelper.MessageType.ERROR
+                      DiscordBotHelper.MessageType.ERROR
                     )
                   )
                 );
@@ -228,11 +228,11 @@ public class RegisterCommand extends CommandBase {
             ExtendedGameProfile extendedProfile = new ExtendedGameProfile(profile.getId(), profile.getName(), highestRole, id, AutoWhitelist.CONFIG.lockTime());
             if (AutoWhitelist.getServer().getPlayerManager().getUserBanList().contains(extendedProfile)) {
                 replyCallback.editMessage(
-                  BotHelper.buildEmbedMessage(true,
-                    BotHelper.Feedback.buildEmbed(
+                  DiscordBotHelper.buildEmbedMessage(true,
+                    DiscordBotHelper.Feedback.buildEmbed(
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.player_banned.title"),
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.player_banned.message"),
-                      BotHelper.MessageType.ERROR
+                      DiscordBotHelper.MessageType.ERROR
                     )
                   )
                 );
@@ -241,31 +241,31 @@ public class RegisterCommand extends CommandBase {
             boolean whitelisted = whitelist.isAllowed(extendedProfile);
             if (whitelisted) {
                 replyCallback.editMessage(
-                  BotHelper.buildEmbedMessage(true,
-                    BotHelper.Feedback.buildEmbed(
+                  DiscordBotHelper.buildEmbedMessage(true,
+                    DiscordBotHelper.Feedback.buildEmbed(
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.username_already_registered.title"),
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.username_already_registered.message"),
-                      BotHelper.MessageType.ERROR
+                      DiscordBotHelper.MessageType.ERROR
                     )
                   )
                 );
             } else {
                 replyCallback.editMessage(
-                  BotHelper.buildEmbedMessage(true,
-                    BotHelper.Feedback.buildEmbed(
+                  DiscordBotHelper.buildEmbedMessage(true,
+                    DiscordBotHelper.Feedback.buildEmbed(
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.last_steps.title"),
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.last_steps.message"),
-                      BotHelper.MessageType.INFO
+                      DiscordBotHelper.MessageType.INFO
                     )
                   )
                 );
 
                 replyCallback.editMessage(
-                  BotHelper.buildEmbedMessage(true,
-                    BotHelper.Feedback.buildEmbed(
+                  DiscordBotHelper.buildEmbedMessage(true,
+                    DiscordBotHelper.Feedback.buildEmbed(
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.last_steps.title"),
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.last_steps.message"),
-                      BotHelper.MessageType.INFO
+                      DiscordBotHelper.MessageType.INFO
                     )
                   )
                 );
@@ -283,22 +283,22 @@ public class RegisterCommand extends CommandBase {
                 entry.registerUser(profile);
 
                 replyCallback.editMessage(
-                  BotHelper.buildEmbedMessage(true,
-                    BotHelper.Feedback.buildEmbed(
+                  DiscordBotHelper.buildEmbedMessage(true,
+                    DiscordBotHelper.Feedback.buildEmbed(
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.success.title"),
                       /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.success.message"),
-                      BotHelper.MessageType.SUCCESS
+                      DiscordBotHelper.MessageType.SUCCESS
                     )
                   )
                 );
             }
         } else {
             replyCallback.editMessage(
-              BotHelper.buildEmbedMessage(true,
-                BotHelper.Feedback.buildEmbed(
+              DiscordBotHelper.buildEmbedMessage(true,
+                DiscordBotHelper.Feedback.buildEmbed(
                   /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fail.not_allowed.title"),
                   /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fail.not_allowed.message"),
-                  BotHelper.MessageType.NORMAL
+                  DiscordBotHelper.MessageType.NORMAL
                 )
               )
             );

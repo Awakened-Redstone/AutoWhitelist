@@ -23,18 +23,18 @@ This mod works on top of the vanilla whitelist, so make sure to enable the vanil
 ### The configuration file can be found at `config/autowhitelist.json5`, it is auto-generated after the mod is run for the first time
 <br/>
 
-To register your player run the command `register <username>`, by default the prefix is `np!`  
-The command requires the user to insert their Java username, if they change their nick, they don't have to register again.
-There is no way for a user to change their registered account or to register another one, a moderator will have to run `/whitelist remove <player>` in the Minecraft server.
-An example of running the command is `np!register AwakenedRedstone`  
+To register your player run the command `/register <username>` in Discord  
+The command requires the user to insert their Java username, if they change their nick, they don't have to register again.  
+There is no way for a user to change their registered account or to register another one, a moderator will have to run `/whitelist remove <player>` in the Minecraft server.  
+An example of running the command is `/register AwakenedRedstone`  
 The mod does not officially support offline servers.  
 When a player looses the role or leaves the discord server they are automatically removed from the whitelist
 <br/>  
-To reload settings run `/autowhitelist reload [bot|config]` to reload only one thing or `/autowhitelist reload` to reload everything
+To reload a specific part of the mod run `/autowhitelist reload [bot|cache|config]` or `/autowhitelist reload` to reload everything
 
 ### About porting
 Porting to other platforms is fully allowed, as long as:
-1. A link to the original mod's Modrinth page is put within the first c5 lines of the project description
+1. A link to the original mod's Modrinth page is put within the first 5 lines of the project description
 2. Credits are given to the author of the original mod
 3. The ported version is free and open source
 4. The config structure allows a seamless or easy migration from/to the original mod
