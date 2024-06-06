@@ -185,20 +185,21 @@ tasks.register<net.fabricmc.loom.task.RemapJarTask>("remapMavenJar") {
 tasks.build.get().dependsOn(tasks.getByName("remapMavenJar"))
 
 modrinth {
-    val projectVersion: String = project.version.toString()
+    val projectVersion: String = property("mod_version").toString()
     val projectVersionNumber: List<String> = projectVersion.split(Regex("-"), 2)
-    var projectVersionName: String = "Release ${projectVersionNumber[0]}"
+
+    var releaseName = "Release ${projectVersionNumber[0]}"
     if (projectVersion.contains("beta")) {
         val projectBeta: List<String> = projectVersionNumber[1].split(Regex("\\."), 2)
-        projectVersionName = "${projectVersionNumber[0]} - Beta ${projectBeta[1]}"
+        releaseName = "${projectVersionNumber[0]} - Beta ${projectBeta[1]}"
         versionType = "beta"
     } else if (projectVersion.contains("alpha")) {
         val projectAlpha: List<String> = projectVersionNumber[1].split(Regex("\\."), 2)
-        projectVersionName = "${projectVersionNumber[0]} - Alpha ${projectAlpha[1]}"
+        releaseName = "${projectVersionNumber[0]} - Alpha ${projectAlpha[1]}"
         versionType = "alpha"
     } else if (projectVersion.contains("rc")) {
         val projectRC: List<String> = projectVersionNumber[1].split(Regex("\\."), 2)
-        projectVersionName = "${projectVersionNumber[0]} - Release Candidate ${projectRC[1]}"
+        releaseName = "${projectVersionNumber[0]} - Release Candidate ${projectRC[1]}"
         versionType = "beta"
     }
 
@@ -208,7 +209,7 @@ modrinth {
 
     token = System.getenv("MODRINTH_TOKEN")
     projectId = "BMaqFQAd"
-    versionName = projectVersionName
+    versionName = "[$minecraftVersion] $releaseName"
     changelog = CHANGELOG
     uploadFile = tasks.getByName("remapJar")
     gameVersions = modVersions[minecraftVersion]
