@@ -9,7 +9,6 @@ stonecutter registerChiseled tasks.register("chiseledBuild", stonecutter.chisele
 }
 
 stonecutter registerChiseled tasks.register("chiseledModrinth", stonecutter.chiseled) {
-    versions = stonecutter.versions.reversed()
     group = "publishing"
     ofTask("modrinth")
 }
