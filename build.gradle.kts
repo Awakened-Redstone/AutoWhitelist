@@ -100,8 +100,8 @@ dependencies {
     include("com.neovisionaries:nv-websocket-client:2.14")
     include("org.apache.commons:commons-collections4:4.4")
     include("com.squareup.okhttp3:okhttp:4.12.0")
-    //include("com.squareup.okio:okio-jvm:2.13.0")
-    //include("net.sf.trove4j:core:3.1.0")
+    include("com.squareup.okio:okio-jvm:2.13.0")
+    include("net.sf.trove4j:core:3.1.0")
 
     // Chewtils
     include("pw.chew:jda-chewtils-command:${property("chewtils_version")}")
