@@ -1,5 +1,6 @@
 package com.awakenedredstone.autowhitelist.discord;
 
+import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -7,9 +8,6 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageData;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
-/*? if <1.19 {*/
-/*import net.minecraft.text.TranslatableText;
-*//*?}*/
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,7 +63,7 @@ public class DiscordBotHelper extends DiscordBot {
             embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
             embedBuilder.setTitle(title.getString());
             embedBuilder.setDescription(message.getString());
-            embedBuilder.setFooter(/*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.feedback.message.signature").getString());
+            embedBuilder.setFooter(Stonecutter.translatableText("command.feedback.message.signature").getString());
             return embedBuilder;
         }
 

@@ -6,6 +6,7 @@ import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
 import com.awakenedredstone.autowhitelist.discord.DiscordDataProcessor;
 import com.awakenedredstone.autowhitelist.discord.api.ReplyCallback;
 import com.awakenedredstone.autowhitelist.discord.api.command.CommandBase;
+import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
@@ -25,11 +26,6 @@ import net.dv8tion.jda.api.requests.restaction.MessageEditAction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.minecraft.server.MinecraftServer;
-/*? if >=1.19 {*/
-import net.minecraft.text.Text;
-/*?} else {*/
-/*import net.minecraft.text.TranslatableText;
-*//*?}*/
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,7 +43,7 @@ public class RegisterCommand extends CommandBase {
 
     public RegisterCommand() {
         this.name = "register";
-        this.description = /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.description.register").getString();
+        this.description = Stonecutter.translatableText("command.description.register").getString();
     }
 
     public static void execute(Member member, String username, ReplyCallback replyCallback) {
@@ -56,8 +52,8 @@ public class RegisterCommand extends CommandBase {
         MessageCreateData initialReply = DiscordBotHelper.buildEmbedMessage(
           false,
             DiscordBotHelper.Feedback.buildEmbed(
-              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.feedback.received.title"),
-              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.feedback.received.message"),
+              Stonecutter.translatableText("command.feedback.received.title"),
+              Stonecutter.translatableText("command.feedback.received.message"),
               DiscordBotHelper.MessageType.NORMAL
             )
         );
@@ -78,8 +74,8 @@ public class RegisterCommand extends CommandBase {
                     replyCallback.editMessage(
                       DiscordBotHelper.buildEmbedMessage(true,
                         DiscordBotHelper.Feedback.buildEmbed(
-                          /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.same_username.title"),
-                          /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.same_username.message"),
+                          Stonecutter.translatableText("command.register.same_username.title"),
+                          Stonecutter.translatableText("command.register.same_username.message"),
                           DiscordBotHelper.MessageType.WARNING
                         )
                       )
@@ -92,8 +88,8 @@ public class RegisterCommand extends CommandBase {
                         replyCallback.editMessage(
                           DiscordBotHelper.buildEmbedMessage(true,
                             DiscordBotHelper.Feedback.buildEmbed(
-                              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.already_registered.title"),
-                              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.already_registered.message"),
+                              Stonecutter.translatableText("command.register.already_registered.title"),
+                              Stonecutter.translatableText("command.register.already_registered.message"),
                               DiscordBotHelper.MessageType.WARNING
                             )
                           )
@@ -102,8 +98,8 @@ public class RegisterCommand extends CommandBase {
                         replyCallback.editMessage(
                           DiscordBotHelper.buildEmbedMessage(true,
                             DiscordBotHelper.Feedback.buildEmbed(
-                              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.locked.title"),
-                              /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.locked.message", DiscordBotHelper.formatDiscordTimestamp(whitelistedAccount.get().getProfile().getLockedUntil())),
+                              Stonecutter.translatableText("command.register.locked.title"),
+                              Stonecutter.translatableText("command.register.locked.message", DiscordBotHelper.formatDiscordTimestamp(whitelistedAccount.get().getProfile().getLockedUntil())),
                               DiscordBotHelper.MessageType.WARNING
                             )
                           )
@@ -119,8 +115,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   DiscordBotHelper.buildEmbedMessage(true,
                     DiscordBotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fatal.title"),
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fatal", "User does not have a valid role, yet it passed as qualified. Please report this bug."),
+                      Stonecutter.translatableText("command.register.fatal.title"),
+                      Stonecutter.translatableText("command.register.fatal", "User does not have a valid role, yet it passed as qualified. Please report this bug."),
                       DiscordBotHelper.MessageType.ERROR
                     )
                   )
@@ -135,8 +131,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                     DiscordBotHelper.buildEmbedMessage(true,
                         DiscordBotHelper.Feedback.buildEmbed(
-                          /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.fail.title"),
-                          /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.fatal.exception", e.getMessage()),
+                          Stonecutter.translatableText("command.fail.title"),
+                          Stonecutter.translatableText("command.fatal.exception", e.getMessage()),
                         DiscordBotHelper.MessageType.ERROR
                         )
                     )
@@ -149,8 +145,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   DiscordBotHelper.buildEmbedMessage(true,
                     DiscordBotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.few_args.title"),
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.few_args.message"),
+                      Stonecutter.translatableText("command.few_args.title"),
+                      Stonecutter.translatableText("command.few_args.message"),
                       DiscordBotHelper.MessageType.WARNING
                     )
                   )
@@ -162,8 +158,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   DiscordBotHelper.buildEmbedMessage(true,
                     DiscordBotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.too_many_args.title"),
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.too_many_args.message"),
+                      Stonecutter.translatableText("command.too_many_args.title"),
+                      Stonecutter.translatableText("command.too_many_args.message"),
                       DiscordBotHelper.MessageType.WARNING
                     )
                   )
@@ -177,8 +173,8 @@ public class RegisterCommand extends CommandBase {
                     replyCallback.editMessage(
                       DiscordBotHelper.buildEmbedMessage(true,
                         DiscordBotHelper.Feedback.buildEmbed(
-                          /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.invalid_username.title"),
-                          /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.invalid_username.message.too_long"),
+                          Stonecutter.translatableText("command.register.invalid_username.title"),
+                          Stonecutter.translatableText("command.register.invalid_username.message.too_long"),
                           DiscordBotHelper.MessageType.WARNING
                         )
                       )
@@ -188,8 +184,8 @@ public class RegisterCommand extends CommandBase {
                     replyCallback.editMessage(
                         DiscordBotHelper.buildEmbedMessage(true,
                             DiscordBotHelper.Feedback.buildEmbed(
-                            /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.invalid_username.title"),
-                            /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.invalid_username.message.too_short"),
+                            Stonecutter.translatableText("command.register.invalid_username.title"),
+                            Stonecutter.translatableText("command.register.invalid_username.message.too_short"),
                             DiscordBotHelper.MessageType.WARNING
                             )
                         )
@@ -203,8 +199,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   DiscordBotHelper.buildEmbedMessage(true,
                     DiscordBotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.fail.title"),
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fail.account_data", arg),
+                      Stonecutter.translatableText("command.fail.title"),
+                      Stonecutter.translatableText("command.register.fail.account_data", arg),
                       DiscordBotHelper.MessageType.ERROR
                     )
                   )
@@ -217,8 +213,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   DiscordBotHelper.buildEmbedMessage(true,
                     DiscordBotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.fail.title"),
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fail.account_data", arg),
+                      Stonecutter.translatableText("command.fail.title"),
+                      Stonecutter.translatableText("command.register.fail.account_data", arg),
                       DiscordBotHelper.MessageType.ERROR
                     )
                   )
@@ -230,8 +226,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   DiscordBotHelper.buildEmbedMessage(true,
                     DiscordBotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.player_banned.title"),
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.player_banned.message"),
+                      Stonecutter.translatableText("command.register.player_banned.title"),
+                      Stonecutter.translatableText("command.register.player_banned.message"),
                       DiscordBotHelper.MessageType.ERROR
                     )
                   )
@@ -243,8 +239,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   DiscordBotHelper.buildEmbedMessage(true,
                     DiscordBotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.username_already_registered.title"),
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.username_already_registered.message"),
+                      Stonecutter.translatableText("command.register.username_already_registered.title"),
+                      Stonecutter.translatableText("command.register.username_already_registered.message"),
                       DiscordBotHelper.MessageType.ERROR
                     )
                   )
@@ -253,8 +249,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   DiscordBotHelper.buildEmbedMessage(true,
                     DiscordBotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.last_steps.title"),
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.last_steps.message"),
+                      Stonecutter.translatableText("command.register.last_steps.title"),
+                      Stonecutter.translatableText("command.register.last_steps.message"),
                       DiscordBotHelper.MessageType.INFO
                     )
                   )
@@ -263,8 +259,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   DiscordBotHelper.buildEmbedMessage(true,
                     DiscordBotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.last_steps.title"),
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.last_steps.message"),
+                      Stonecutter.translatableText("command.register.last_steps.title"),
+                      Stonecutter.translatableText("command.register.last_steps.message"),
                       DiscordBotHelper.MessageType.INFO
                     )
                   )
@@ -285,8 +281,8 @@ public class RegisterCommand extends CommandBase {
                 replyCallback.editMessage(
                   DiscordBotHelper.buildEmbedMessage(true,
                     DiscordBotHelper.Feedback.buildEmbed(
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.success.title"),
-                      /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.success.message"),
+                      Stonecutter.translatableText("command.register.success.title"),
+                      Stonecutter.translatableText("command.register.success.message"),
                       DiscordBotHelper.MessageType.SUCCESS
                     )
                   )
@@ -296,8 +292,8 @@ public class RegisterCommand extends CommandBase {
             replyCallback.editMessage(
               DiscordBotHelper.buildEmbedMessage(true,
                 DiscordBotHelper.Feedback.buildEmbed(
-                  /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fail.not_allowed.title"),
-                  /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("command.register.fail.not_allowed.message"),
+                  Stonecutter.translatableText("command.register.fail.not_allowed.title"),
+                  Stonecutter.translatableText("command.register.fail.not_allowed.message"),
                   DiscordBotHelper.MessageType.NORMAL
                 )
               )

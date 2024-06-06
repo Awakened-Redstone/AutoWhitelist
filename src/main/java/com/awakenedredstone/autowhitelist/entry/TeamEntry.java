@@ -2,6 +2,7 @@ package com.awakenedredstone.autowhitelist.entry;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
+import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.mojang.authlib.GameProfile;
 import com.mojang.serialization.Codec;
@@ -18,7 +19,7 @@ import java.util.List;
 
 public class TeamEntry extends BaseEntry {
     public static final Identifier ID = AutoWhitelist.id("team");
-    public static final MapCodec<TeamEntry> CODEC = RecordCodecBuilder.mapCodec(instance ->
+    public static final /*? if <1.20.5 {*//*Codec*//*?} else {*/MapCodec/*?}*/<TeamEntry> CODEC = Stonecutter.entryCodec(instance ->
       instance.group(
         Codec.STRING.listOf().fieldOf("roles").forGetter(BaseEntry::getRoles),
         Identifier.CODEC.fieldOf("type").forGetter(BaseEntry::getType),

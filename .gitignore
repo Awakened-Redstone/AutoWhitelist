@@ -123,3 +123,4 @@ run/
 /remappedSrc/
 /CHANGELOG.md
 /runAll/
+/versions/*.sh

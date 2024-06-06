@@ -34,7 +34,7 @@ if (isOrNewer("1.20.5")) {
 }
 
 @Suppress("UNCHECKED_CAST")
-val modVersions: Map<String, List<String>> = JsonSlurper().parse(file("modrinth.json")) as Map<String, List<String>>
+val modVersions: Map<String, List<String>> = JsonSlurper().parse(file("versions/modrinth.json")) as Map<String, List<String>>
 val modVersion: String = property("mod_version").toString()
 
 base {
@@ -76,7 +76,7 @@ dependencies {
     include(modImplementation("eu.pb4:placeholder-api:${property("placeholder_api_version")}") {
         exclude(group = "net.fabricmc", module = "fabric-api")
     })
-    if (isOrOlder("1.18.2")) {
+    if (isOrOlder("1.19")) {
         include(modImplementation("fr.catcore:server-translations-api:${property("translation_api_version")}") {
             exclude(group = "net.fabricmc", module = "fabric-api")
         })
@@ -94,14 +94,14 @@ dependencies {
     })
 
     // JDA dependencies
-    include("com.fasterxml.jackson.core:jackson-annotations:2.16.0")
-    include("com.fasterxml.jackson.core:jackson-databind:2.16.0")
-    include("com.fasterxml.jackson.core:jackson-core:2.16.0")
+    include("com.fasterxml.jackson.core:jackson-annotations:2.17.0")
+    include("com.fasterxml.jackson.core:jackson-databind:2.17.0")
+    include("com.fasterxml.jackson.core:jackson-core:2.17.0")
     include("com.neovisionaries:nv-websocket-client:2.14")
     include("org.apache.commons:commons-collections4:4.4")
     include("com.squareup.okhttp3:okhttp:4.12.0")
-    include("com.squareup.okio:okio-jvm:2.13.0")
-    include("net.sf.trove4j:trove4j:3.0.3")
+    //include("com.squareup.okio:okio-jvm:2.13.0")
+    //include("net.sf.trove4j:core:3.1.0")
 
     // Chewtils
     include("pw.chew:jda-chewtils-command:${property("chewtils_version")}")
@@ -141,10 +141,11 @@ tasks.compileJava {
 }
 
 tasks.processResources {
-    val minecraftMajor = minecraftVersion.split(Regex("\\."), 3).take(2).joinToString(".")
+    val versions = JsonSlurper().parse(file("versions/versions.json")) as Map<String, String>
     val map = mapOf(
         "version" to version,
-        "minecraft_major" to minecraftMajor
+        "minecraft" to versions[minecraftVersion],
+        "fabric_api" to (if (isOrNewer("1.19.3")) "fabric-api" else "fabric")
     )
 
     inputs.properties(map)
@@ -180,6 +181,7 @@ tasks.register<net.fabricmc.loom.task.RemapJarTask>("remapMavenJar") {
     archiveFileName.set("${archivesBaseName}-${version}-maven.jar")
     addNestedDependencies.set(false)
 }
+
 tasks.build.get().dependsOn(tasks.getByName("remapMavenJar"))
 
 modrinth {
@@ -201,7 +203,7 @@ modrinth {
     }
 
     if (modVersions[minecraftVersion] == null) {
-        throw Throwable("Please update modrinth.json")
+        throw Throwable("Please update modrinth.json, missing $minecraftVersion")
     }
 
     token = System.getenv("MODRINTH_TOKEN")

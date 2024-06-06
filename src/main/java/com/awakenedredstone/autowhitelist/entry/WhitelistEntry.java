@@ -1,10 +1,10 @@
 package com.awakenedredstone.autowhitelist.entry;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
+import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.mojang.authlib.GameProfile;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,7 +12,7 @@ import java.util.List;
 
 public class WhitelistEntry extends BaseEntry {
     public static final Identifier ID = AutoWhitelist.id("whitelist");
-    public static final MapCodec<WhitelistEntry> CODEC = RecordCodecBuilder.mapCodec(instance ->
+    public static final /*? if <1.20.5 {*//*Codec*//*?} else {*/MapCodec/*?}*/<WhitelistEntry> CODEC = Stonecutter.entryCodec(instance ->
       instance.group(
         Codec.STRING.listOf().fieldOf("roles").forGetter(BaseEntry::getRoles),
         Identifier.CODEC.fieldOf("type").forGetter(BaseEntry::getType)

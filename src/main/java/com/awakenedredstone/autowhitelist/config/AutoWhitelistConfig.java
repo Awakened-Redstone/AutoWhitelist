@@ -14,33 +14,24 @@ import com.awakenedredstone.autowhitelist.entry.luckperms.GroupEntry;
 import com.awakenedredstone.autowhitelist.entry.luckperms.PermissionEntry;
 import com.awakenedredstone.autowhitelist.entry.serialization.JanksonOps;
 import com.awakenedredstone.autowhitelist.util.JanksonBuilder;
+import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.awakenedredstone.autowhitelist.util.TimeParser;
 import com.google.common.base.CaseFormat;
 import net.dv8tion.jda.api.entities.Activity;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.Identifier;
-/*? if >=1.19 {*/
-import net.minecraft.text.Text;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-/*?} else {*/
-/*import net.minecraft.text.TranslatableText;
-*//*?}*/
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 @NameFormat(NameFormat.Case.SNAKE_CASE)
 public class AutoWhitelistConfig extends ConfigHandler {
     public AutoWhitelistConfig() {
         super("autowhitelist", JanksonBuilder.buildJankson(builder -> {
-            builder.registerDeserializer(JsonObject.class, BaseEntry.class, (jsonObject, marshaller) -> BaseEntry.CODEC.parse(JanksonOps.INSTANCE, jsonObject).getOrThrow(/*? if <1.20.5 {*//*false, s -> {}*//*?}*/));
-            builder.registerSerializer(BaseEntry.class, (entryData, marshaller) -> BaseEntry.CODEC.encodeStart(JanksonOps.INSTANCE, entryData).getOrThrow(/*? if <1.20.5 {*//*false, s -> {}*//*?}*/));
+            builder.registerDeserializer(JsonObject.class, BaseEntry.class, (jsonObject, marshaller) -> Stonecutter.getOrThrowDataResult(BaseEntry.CODEC.parse(JanksonOps.INSTANCE, jsonObject)));
+            builder.registerSerializer(BaseEntry.class, (entryData, marshaller) -> Stonecutter.getOrThrowDataResult(BaseEntry.CODEC.encodeStart(JanksonOps.INSTANCE, entryData)));
         }));
     }
 
@@ -141,7 +132,7 @@ public class AutoWhitelistConfig extends ConfigHandler {
                         LOGGER.debug("Updating entry name from {} to {}", oldType, newType);
 
                         entryData.remove("type");
-                        entryData.put("type", Identifier.CODEC.encodeStart(JanksonOps.INSTANCE, newType).getOrThrow(/*? if <1.20.5 {*//*false, s -> {}*//*?}*/));
+                        entryData.put("type", Stonecutter.getOrThrowDataResult(Identifier.CODEC.encodeStart(JanksonOps.INSTANCE, newType)));
 
                         JsonArray rolesArray = entryData.get(JsonArray.class, "roleIds");
 
@@ -154,13 +145,13 @@ public class AutoWhitelistConfig extends ConfigHandler {
 
                         entryData = BaseEntry.getDataFixers().get(newType).apply(configVersion, entryData);
 
-                        entryList.add(BaseEntry.CODEC.parse(JanksonOps.INSTANCE, entryData).getOrThrow(/*? if <1.20.5 {*//*false, s -> {}*//*?}*/));
+                        entryList.add(Stonecutter.getOrThrowDataResult(BaseEntry.CODEC.parse(JanksonOps.INSTANCE, entryData)));
                     }
 
                     entries.clear();
                     for (BaseEntry entry : entryList) {
                         AutoWhitelist.LOGGER.debug("Encoding {}", entry.getType());
-                        entries.add(BaseEntry.CODEC.encodeStart(JanksonOps.INSTANCE, entry).getOrThrow(/*? if <1.20.5 {*//*false, s -> {}*//*?}*/));
+                        entries.add(Stonecutter.getOrThrowDataResult(BaseEntry.CODEC.encodeStart(JanksonOps.INSTANCE, entry)));
                     }
 
                     config.remove("entries");
@@ -268,7 +259,7 @@ public class AutoWhitelistConfig extends ConfigHandler {
         }
 
         public Activity getActivity() {
-            return activityType == null ? null : Activity.of(getActivityType(), /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/("discord.bot.activity.message").getString());
+            return activityType == null ? null : Activity.of(getActivityType(), Stonecutter.translatableText("discord.bot.activity.message").getString());
         }
     }
 }

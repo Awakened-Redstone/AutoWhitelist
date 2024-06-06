@@ -6,9 +6,13 @@ import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.api.SyntaxError;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.Constants;
+import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import net.fabricmc.loader.api.FabricLoader;
+/*? if >=1.18.2 {*/
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+ /*?} else {*/
+/*import org.apache.logging.log4j.Logger;
+*//*?}*/
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -20,7 +24,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 public abstract class ConfigHandler {
-    protected static final Logger LOGGER = /*? if >=1.18.2 {*/LoggerFactory/*?} else {*//*LogManager*//*?}*/.getLogger("AutoWhitelist Config");
+    protected static final Logger LOGGER = Stonecutter.logger("AutoWhitelist Config");
 
     private final Map<String, Consumer<Object>> listeners = new HashMap<>();
     private final Jankson interpreter;

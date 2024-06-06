@@ -6,6 +6,7 @@ import com.awakenedredstone.autowhitelist.discord.api.GatewayIntents;
 import com.awakenedredstone.autowhitelist.discord.command.InfoCommand;
 import com.awakenedredstone.autowhitelist.discord.command.RegisterCommand;
 import com.awakenedredstone.autowhitelist.discord.events.CoreEvents;
+import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
@@ -108,7 +109,7 @@ public class DiscordBot extends Thread {
         }
         if (jda != null) jda.shutdown();
 
-        source.sendFeedback(/*? if >=1.20 {*/() ->/*?}*/ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Discord bot starting."), true);
+        source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Discord bot starting.")), true);
 
         execute();
     }

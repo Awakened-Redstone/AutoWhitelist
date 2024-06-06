@@ -2,6 +2,8 @@ package com.awakenedredstone.autowhitelist.entry;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.util.DynamicPlaceholders;
+import com.awakenedredstone.autowhitelist.util.Stonecutter;
+import com.awakenedredstone.autowhitelist.util.Texts;
 import com.mojang.authlib.GameProfile;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -14,7 +16,7 @@ import java.util.List;
 
 public class CommandEntry extends BaseEntry {
     public static final Identifier ID = AutoWhitelist.id("execute_command");
-    public static final MapCodec<CommandEntry> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+    public static final /*? if <1.20.5 {*//*Codec*//*?} else {*/MapCodec/*?}*/<CommandEntry> CODEC = Stonecutter.entryCodec(instance -> instance.group(
         Codec.STRING.listOf().fieldOf("roles").forGetter(BaseEntry::getRoles),
         Identifier.CODEC.fieldOf("type").forGetter(BaseEntry::getType),
         Keys.CODEC.fieldOf("execute").forGetter(command -> new Keys(command.addCommand, command.removeCommand))
@@ -31,12 +33,12 @@ public class CommandEntry extends BaseEntry {
 
     @Override
     public <T extends GameProfile> void registerUser(T profile) {
-        AutoWhitelist.getServer().getCommandManager()./*? if >=1.19 {*/executeWithPrefix/*?} else {*//*execute*//*?}*/(AutoWhitelist.getCommandSource(), DynamicPlaceholders.parseText(addCommand, profile.getName()).getString());
+        AutoWhitelist.getServer().getCommandManager()./*? if >=1.19 {*/executeWithPrefix/*?} else {*//*execute*//*?}*/(AutoWhitelist.getCommandSource(), Texts.playerPlaceholder(addCommand, profile.getName()).getString());
     }
 
     @Override
     public <T extends GameProfile> void removeUser(T profile) {
-        AutoWhitelist.getServer().getCommandManager()./*? if >=1.19 {*/executeWithPrefix/*?} else {*//*execute*//*?}*/(AutoWhitelist.getCommandSource(), DynamicPlaceholders.parseText(removeCommand, profile.getName()).getString());
+        AutoWhitelist.getServer().getCommandManager()./*? if >=1.19 {*/executeWithPrefix/*?} else {*//*execute*//*?}*/(AutoWhitelist.getCommandSource(), Texts.playerPlaceholder(removeCommand, profile.getName()).getString());
     }
 
     @Override

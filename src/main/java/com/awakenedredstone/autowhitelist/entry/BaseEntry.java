@@ -7,6 +7,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
@@ -16,7 +17,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public abstract class BaseEntry {
-    private static final Map<Identifier, MapCodec<? extends BaseEntry>> ENTRIES = new HashMap<>();
+    private static final Map<Identifier, /*? if <1.20.5 {*//*Codec*//*?} else {*/MapCodec/*?}*/<? extends BaseEntry>> ENTRIES = new HashMap<>();
     public static final Codec<BaseEntry> CODEC = Identifier.CODEC.dispatch(BaseEntry::getType, ENTRIES::get);
     private static final Map<Identifier, BiFunction<Byte, JsonObject, JsonObject>> DATA_FIXERS = new HashMap<>();
     private final Set<String> roles = new HashSet<>();
@@ -27,7 +28,7 @@ public abstract class BaseEntry {
         this.roles.addAll(roles);
     }
 
-    public static void register(Identifier id, MapCodec<? extends BaseEntry> data) {
+    public static void register(Identifier id, /*? if <1.20.5 {*//*Codec*//*?} else {*/MapCodec/*?}*/<? extends BaseEntry> data) {
         ENTRIES.putIfAbsent(id, data);
     }
 

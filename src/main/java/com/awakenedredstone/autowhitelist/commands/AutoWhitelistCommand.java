@@ -4,6 +4,7 @@ import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.commands.api.Permission;
 import com.awakenedredstone.autowhitelist.discord.DiscordBot;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
+import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.awakenedredstone.autowhitelist.util.TimeParser;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.util.LinedStringBuilder;
@@ -22,7 +23,6 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 /*?} else {*/
 /*import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.text.LiteralText;
 *//*?}*/
 
 import java.util.Collection;
@@ -40,7 +40,7 @@ public class AutoWhitelistCommand {
             .then(
               literal("dump")
                 .executes(context -> {
-                    context.getSource().sendFeedback(/*? if >=1.20 {*/() ->/*?}*/ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("AutoWhitelist data dump..."), false);
+                    context.getSource().sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("AutoWhitelist data dump...")), false);
                     PlayerManager playerManager = AutoWhitelist.getServer().getPlayerManager();
 
                     LinedStringBuilder dump = new LinedStringBuilder();
@@ -61,12 +61,12 @@ public class AutoWhitelistCommand {
                     dump.appendLine("JDA version: ", JDAInfo.VERSION);
                     dump.appendLine("Bot status: ", DiscordBot.jda == null ? "offline" : "online");
 
-                    context.getSource().sendFeedback(/*? if >=1.20 {*/() ->/*?}*/ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(dump.toString()), false);
+                    context.getSource().sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText(dump.toString())), false);
                     return 0;
                 }).then(
                   literal("config")
                     .executes(context -> {
-                        context.getSource().sendFeedback(/*? if >=1.20 {*/() ->/*?}*/ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(AutoWhitelist.CONFIG.toString()), false);
+                        context.getSource().sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText(AutoWhitelist.CONFIG.toString())), false);
                         return 0;
                     })
                 )
@@ -77,7 +77,7 @@ public class AutoWhitelistCommand {
                   literal("bot")
                     .executes(context -> {
                         ServerCommandSource source = context.getSource();
-                        source.sendFeedback(/*? if >=1.20 {*/() ->/*?}*/ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Restarting bot, please wait."), true);
+                        source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Restarting bot, please wait.")), true);
                         DiscordBot.getInstance().reloadBot(source);
                         return 0;
                     })
@@ -85,7 +85,7 @@ public class AutoWhitelistCommand {
                   literal("config")
                     .executes(context -> {
                         ServerCommandSource source = context.getSource();
-                        source.sendFeedback(/*? if >=1.20 {*/() ->/*?}*/ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Reloading configurations."), true);
+                        source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Reloading configurations.")), true);
                         AutoWhitelist.CONFIG.load();
                         return 0;
                     })
@@ -93,7 +93,7 @@ public class AutoWhitelistCommand {
                   literal("cache")
                     .executes(context -> {
                         ServerCommandSource source = context.getSource();
-                        source.sendFeedback(/*? if >=1.20 {*/() ->/*?}*/ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Reloading cache."), true);
+                        source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Reloading cache.")), true);
                         AutoWhitelist.loadWhitelistCache();
                         return 0;
                     })
@@ -107,7 +107,7 @@ public class AutoWhitelistCommand {
 
     public static int executeEntries(ServerCommandSource source) /*? if <1.19 {*//*throws CommandSyntaxException*//*?}*/ {
         if (source.getPlayer() != null) {
-            source.getPlayer().sendMessage(/*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Loading info..."), true);
+            source.getPlayer().sendMessage(Stonecutter.literalText("Loading info..."), true);
         }
 
         Collection<? extends WhitelistEntry> entries = ((ExtendedWhitelist) source.getServer().getPlayerManager().getWhitelist()).getEntries();
@@ -125,19 +125,19 @@ public class AutoWhitelistCommand {
         profiles.filter(profile -> profile instanceof ExtendedGameProfile).forEach(player -> list.append("    ").append(player.getName()).append("\n"));
 
         if (source.getPlayer() != null) {
-            source.getPlayer().sendMessage(/*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(""), true);
+            source.getPlayer().sendMessage(Stonecutter.literalText(""), true);
         }
 
-        source.sendFeedback(/*? if >=1.20 {*/() ->/*?}*/ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/(list.toString()), false);
+        source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText(list.toString())), false);
         return 1;
     }
 
     public static int executeReload(ServerCommandSource source) {
-        source.sendFeedback(/*? if >=1.20 {*/() ->/*?}*/ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Reloading AutoWhitelist configurations, please wait."), true);
+        source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Reloading AutoWhitelist configurations, please wait.")), true);
 
         AutoWhitelist.CONFIG.load();
         AutoWhitelist.loadWhitelistCache();
-        source.sendFeedback(/*? if >=1.20 {*/() ->/*?}*/ /*? if >=1.19 {*/Text.literal/*?} else {*//*new LiteralText*//*?}*/("Restarting bot, please wait."), true);
+        source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Restarting bot, please wait.")), true);
         DiscordBot.getInstance().reloadBot(source);
 
         return 1;

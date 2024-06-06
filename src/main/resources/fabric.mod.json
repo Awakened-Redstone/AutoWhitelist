@@ -20,9 +20,9 @@
     ],
     "depends": {
         "fabricloader": "*",
-        "fabric-lifecycle-events-v1": "*",
+        "${fabric_api}": "*",
         "fabric-language-kotlin": "*",
-        "minecraft": "~${minecraft_major}"
+        "minecraft": "${minecraft}"
     },
     "recommends": {
         "luckperms": "*"
