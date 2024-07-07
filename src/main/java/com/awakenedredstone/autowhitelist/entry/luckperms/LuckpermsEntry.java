@@ -56,14 +56,6 @@ public abstract class LuckpermsEntry extends BaseEntry {
     }
 
     @Override
-    public <T extends GameProfile> void updateUser(T profile, @Nullable BaseEntry oldEntry) {
-        if (oldEntry != null) {
-            oldEntry.removeUser(profile);
-        }
-        registerUser(profile);
-    }
-
-    @Override
     public <T extends GameProfile> boolean shouldUpdate(T profile) {
         try {
             User user = getUser(profile).get(1, TimeUnit.SECONDS);

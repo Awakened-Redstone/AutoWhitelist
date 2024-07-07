@@ -54,7 +54,15 @@ public abstract class BaseEntry {
 
     public abstract <T extends GameProfile> void removeUser(T profile);
 
-    public abstract <T extends GameProfile> void updateUser(T profile, @Nullable BaseEntry oldEntry);
+    /**
+     * <b>When overriding this, remember to execute the removal of the old entry to avoid bugs<b/>
+     */
+    public <T extends GameProfile> void updateUser(T profile, @Nullable BaseEntry oldEntry) {
+        if (oldEntry != null) {
+            oldEntry.removeUser(profile);
+        }
+        registerUser(profile);
+    }
 
     public abstract <T extends GameProfile> boolean shouldUpdate(T profile);
 

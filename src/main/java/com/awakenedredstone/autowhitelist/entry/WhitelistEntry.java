@@ -34,11 +34,6 @@ public class WhitelistEntry extends BaseEntry {
     }
 
     @Override
-    public <T extends GameProfile> void updateUser(T profile, @Nullable BaseEntry entry) {
-        // Nothing to do here
-    }
-
-    @Override
     public <T extends GameProfile> boolean shouldUpdate(T profile) {
         return false;
     }

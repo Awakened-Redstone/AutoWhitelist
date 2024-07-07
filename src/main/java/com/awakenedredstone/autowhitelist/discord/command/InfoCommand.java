@@ -129,7 +129,7 @@ public class InfoCommand extends SlashCommand {
 
                     ButtonEventHandler confirmEventHandler = new ButtonEventHandler().addConsumer(btnId(eventId, "confirmDelete"), confirmEvent -> {
                         AutoWhitelist.WHITELIST_CACHE.remove(whitelistedAccount.get().getProfile());
-                        whitelist.remove(whitelistedAccount.get());
+                        AutoWhitelist.removePlayer(whitelistedAccount.get().getProfile());
 
                         MessageEditBuilder builder = new MessageEditBuilder();
                         builder.setContent("You have been removed from the whitelist.");

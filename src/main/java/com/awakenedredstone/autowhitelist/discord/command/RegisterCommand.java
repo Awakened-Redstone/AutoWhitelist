@@ -375,6 +375,7 @@ public class RegisterCommand extends CommandBase {
         public SlashCommand() {
             this.name = RegisterCommand.this.name;
             this.help = RegisterCommand.this.description;
+            this.guildOnly = true;
 
             options.add(new OptionData(OptionType.STRING, "username", "Your Minecraft username").setRequired(true));
         }

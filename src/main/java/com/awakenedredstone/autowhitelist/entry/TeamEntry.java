@@ -85,11 +85,6 @@ public class TeamEntry extends BaseEntry {
     }
 
     @Override
-    public <T extends GameProfile> void updateUser(T profile, @Nullable BaseEntry oldEntry) {
-        registerUser(profile);
-    }
-
-    @Override
     public <T extends GameProfile> boolean shouldUpdate(T profile) {
         ServerScoreboard scoreboard = AutoWhitelist.getServer().getScoreboard();
         net.minecraft.scoreboard.Team serverTeam = scoreboard.getTeam(team);
