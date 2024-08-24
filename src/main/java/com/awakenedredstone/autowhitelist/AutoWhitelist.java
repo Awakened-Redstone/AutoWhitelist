@@ -32,6 +32,7 @@ import eu.pb4.placeholders.PlaceholderResult;
 *//*?}*/
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.internal.JDAImpl;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -49,6 +50,12 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 /*? if >=1.18.2 {*/
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.slf4j.Logger;
 /*?} else {*/
 /*import org.apache.logging.log4j.Logger;
@@ -182,18 +189,18 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
                     });
                 }
                 CONFIG.save();
-                LOGGER.info("Successfully migrated from AutoWhitelist for Snapshots");
+                DATA_FIXER_LOGGER.info("Successfully migrated from AutoWhitelist for Snapshots");
 
                 try {
                     boolean newFile = oldOptions.resolve(".migrated").toFile().createNewFile();
                     if (!newFile) {
-                        LOGGER.error("Failed to create flag file, the will keep trying to migrate the old config file, please delete the old config file and restart the server");
+                        DATA_FIXER_LOGGER.error("Failed to create flag file, the will keep trying to migrate the old config file, please delete the old config file and restart the server");
                     }
                 } catch (IOException e) {
-                    LOGGER.error("Failed to create flag file, the will keep trying to migrate the old config file, please delete the old config file and restart the server", e);
+                    DATA_FIXER_LOGGER.error("Failed to create flag file, the will keep trying to migrate the old config file, please delete the old config file and restart the server", e);
                 }
             } catch (Throwable e) {
-                LOGGER.error("Failed to load old config file", e);
+                DATA_FIXER_LOGGER.error("Failed to load old config file", e);
             }
         }
 
@@ -219,6 +226,10 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, /*? if >=1.19 {*/registryAccess,/*?}*/ environment) -> AutoWhitelistCommand.register(dispatcher));
         ServerLifecycleEvents.SERVER_STOPPING.register((server -> DiscordBot.stopBot(false)));
         ServerLifecycleEvents.SERVER_STARTED.register((server -> {
+            if (!(server.getPlayerManager().getWhitelist() instanceof ExtendedWhitelist)) {
+                AutoWhitelist.LOGGER.error("Failed to replace whitelist, the mod can not work without the custom system!");
+            }
+
             DiscordBot.startInstance();
             if (!server.isOnlineMode()) {
                 LOGGER.warn("***** OFFLINE SERVER DETECTED! *****");
@@ -235,12 +246,13 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
 
         ServerLoginConnectionEvents.QUERY_START.register((handler, server, sender, synchronizer) -> {
             if (!AutoWhitelist.CONFIG.enableWhitelistCache) return;
+            if (!AutoWhitelist.getServer().isOnlineMode()) return;
             if (DiscordBot.jda == null) return;
             if (DiscordBot.guild == null) return;
             ServerLoginNetworkHandlerAccessor accessor = (ServerLoginNetworkHandlerAccessor) handler;
             GameProfile profile = accessor.getProfile();
             if (handler.getConnectionInfo() == null) return;
-            if (AutoWhitelist.getServer().getPlayerManager().checkCanJoin(accessor.getConnection().getAddress(), profile) == null) return;
+            if (AutoWhitelist.getServer().getPlayerManager().checkCanJoin(accessor.getConnection().getAddress(), profile) != null) return;
 
             WhitelistCacheEntry cachedEntry = AutoWhitelist.WHITELIST_CACHE.get(profile);
             if (cachedEntry == null) return;

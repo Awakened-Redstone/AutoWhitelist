@@ -1,6 +1,7 @@
 package com.awakenedredstone.autowhitelist.discord.events;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
+import com.awakenedredstone.autowhitelist.debug.DebugFlags;
 import com.awakenedredstone.autowhitelist.entry.BaseEntry;
 import com.awakenedredstone.autowhitelist.discord.DiscordBot;
 import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
@@ -10,6 +11,7 @@ import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
@@ -38,7 +40,7 @@ public class CoreEvents extends ListenerAdapter {
     @Override
     public void onReady(@NotNull ReadyEvent event) {
         if (AutoWhitelist.getServer() == null) {
-            AutoWhitelist.LOGGER.warn("The bot was ready while the server was null, refusing to proceed");
+            AutoWhitelist.LOGGER.error("The bot was ready while the server was null, refusing to proceed");
             if (DiscordBot.getInstance() != null) {
                 DiscordBot.getInstance().interrupt();
             }
@@ -51,6 +53,8 @@ public class CoreEvents extends ListenerAdapter {
                 DiscordBot.scheduledUpdate.get();
             } catch (Throwable ignored) {/**/}
         }
+
+        AutoWhitelist.LOGGER.info("Bot is in {} guilds", DiscordBot.jda.getGuilds().size());
 
         DiscordBot.guild = DiscordBot.jda.getGuildById(AutoWhitelist.CONFIG.discordServerId);
         if (DiscordBot.guild == null) {
@@ -121,11 +125,19 @@ public class CoreEvents extends ListenerAdapter {
 
     @Override
     public void onGuildMemberRoleAdd(@NotNull GuildMemberRoleAddEvent e) {
+        if (DebugFlags.trackRoleChanges) {
+            DebugFlags.LOGGER.info("User \"{}\" have gained the role(s) \"{}\"", e.getMember().getEffectiveName(), String.join(", ", e.getRoles().stream().map(Role::getName).toList()));
+        }
+
         updateUser(e.getMember());
     }
 
     @Override
     public void onGuildMemberRoleRemove(@NotNull GuildMemberRoleRemoveEvent e) {
+        if (DebugFlags.trackRoleChanges) {
+            DebugFlags.LOGGER.info("User \"{}\" have lost the role(s) \"{}\"", e.getMember().getEffectiveName(), String.join(", ", e.getRoles().stream().map(Role::getName).toList()));
+        }
+
         updateUser(e.getMember());
     }
 

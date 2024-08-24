@@ -1,5 +1,3 @@
-[<img src="https://storage.ko-fi.com/cdn/brandasset/kofi_button_blue.png" width="300px"/>](https://ko-fi.com/awakenedredstone)
-
 ![fabric-api](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/requires/fabric-api_vector.svg)
 
 <br/>
@@ -32,6 +30,14 @@ When a player looses the role or leaves the discord server they are automaticall
 <br/>  
 To reload a specific part of the mod run `/autowhitelist reload [bot|cache|config]` or `/autowhitelist reload` to reload everything
 
+<a href="https://bisecthosting.com/Redstone?r=autowhitelist" target="_blank">
+  <div>
+    <img src="https://www.bisecthosting.com/partners/custom-banners/acf5ce83-7faa-4bf7-ac60-1adc12f4fadd.png" alt="Get 25% off with code Redstone"/>
+  </div>
+</a>
+
+<br/>
+
 ### About porting
 Porting to other platforms is fully allowed, as long as:
 1. A link to the original mod's Modrinth page is put within the first 5 lines of the project description
@@ -41,5 +47,5 @@ Porting to other platforms is fully allowed, as long as:
 
 <br/>
 
-A _native_ Forge version will **not** be made, but I <u>**may**</u> add compatibility for [Connector](https://modrinth.com/mod/connector) if required  
+This mod is not compatible with [Sinytra Connector](https://modrinth.com/mod/connector) due to its dependencies  
 ![No froge](https://i.ibb.co/yphNcXz/fabric-only-banner.png)

@@ -14,7 +14,7 @@ repositories {
     maven("https://maven.wispforest.io")
     maven("https://maven.nucleoid.xyz")
     maven("https://oss.sonatype.org/content/repositories/snapshots")
-    maven("https://m2.chew.pro/snapshots")
+    maven("https://m2.chew.pro/releases")
 }
 
 val CHANGELOG: String =

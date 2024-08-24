@@ -5,6 +5,7 @@ import com.awakenedredstone.autowhitelist.config.AutoWhitelistConfig;
 import com.awakenedredstone.autowhitelist.discord.api.GatewayIntents;
 import com.awakenedredstone.autowhitelist.discord.command.InfoCommand;
 import com.awakenedredstone.autowhitelist.discord.command.RegisterCommand;
+import com.awakenedredstone.autowhitelist.discord.command.debug.UserInfoCommand;
 import com.awakenedredstone.autowhitelist.discord.events.CoreEvents;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.jagrosh.jdautilities.command.Command;
@@ -19,13 +20,13 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.exceptions.InvalidTokenException;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.command.ServerCommandSource;
 /*? if >=1.19 {*/
-import net.minecraft.text.Text;
 /*?} else {*/
 /*import net.minecraft.text.LiteralText;
 *//*?}*/
+import net.minecraft.util.crash.CrashException;
+import net.minecraft.util.crash.CrashReport;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -42,7 +43,16 @@ import java.util.function.Consumer;
 //TODO: Improve/rework the bot class
 public class DiscordBot extends Thread {
     public static final Logger LOGGER = LoggerFactory.getLogger("AutoWhitelist Bot");
-    public static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
+    public static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1, runnable -> {
+        Thread thread = new Thread(runnable);
+        thread.setName("AutoWhitelist-Worker");
+        thread.setDaemon(true); // Allow the server to shut down
+        thread.setUncaughtExceptionHandler((t, e) -> {
+            CrashReport crashReport = CrashReport.create(e, "Unhandled exception on AutoWhitelist worker");
+            throw new CrashException(crashReport);
+        });
+        return thread;
+    });
     public static EventWaiter eventWaiter;
     public static ScheduledFuture<?> scheduledUpdate;
     @Nullable
@@ -74,9 +84,6 @@ public class DiscordBot extends Thread {
             }
             scheduledUpdate = null;
         }
-
-        if (force) EXECUTOR_SERVICE.shutdownNow();
-        else EXECUTOR_SERVICE.shutdown();
 
         if (jda != null) {
             AutoWhitelist.LOGGER.info("Stopping the bot");
@@ -151,30 +158,32 @@ public class DiscordBot extends Thread {
 
         try {
             CommandClientBuilder commandBuilder = new CommandClientBuilder()
+              .setOwnerId(0) // Why is this required ._.
               .setPrefix(AutoWhitelist.CONFIG.prefix)
-              .setOwnerId("0")
               .setHelpConsumer(helpConsumer())
               .addCommands(
                 RegisterCommand.INSTANCE.new TextCommand()
               ).addSlashCommands(
                 RegisterCommand.INSTANCE.new SlashCommand(),
-                new InfoCommand()
+                new InfoCommand(),
+                new UserInfoCommand()
               ).setActivity(null);
-
-            if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
-                commandBuilder.setOwnerId("387745099204919297").forceGuildOnly("387760260166844418");
-            }
 
             CommandClient commands = commandBuilder.build();
 
+            JDABuilder builder = JDABuilder.createDefault(AutoWhitelist.CONFIG.token)
+              .addEventListeners(new CoreEvents(), commands)
+              .enableIntents(GatewayIntents.BASIC);
 
-            JDABuilder builder = JDABuilder.createDefault(AutoWhitelist.CONFIG.token);
-            builder.addEventListeners(new CoreEvents(), commands);
-            builder.enableIntents(GatewayIntents.BASIC);
-            builder.setMemberCachePolicy(MemberCachePolicy.ALL);
+            if (AutoWhitelist.CONFIG.cacheDiscordData) {
+                builder.setMemberCachePolicy(MemberCachePolicy.ALL);
+            } else {
+                builder.setMemberCachePolicy(MemberCachePolicy.NONE);
+            }
+
             jda = builder.build();
 
-            if (AutoWhitelist.CONFIG.botActivityType != AutoWhitelistConfig.BotActivity.NONE) {
+            if (AutoWhitelist.CONFIG.botActivityType != AutoWhitelistConfig.BotActivity.DONT_CHANGE) {
                 jda.getPresence().setActivity(AutoWhitelist.CONFIG.botActivityType.getActivity());
             }
         } catch (InvalidTokenException e) {

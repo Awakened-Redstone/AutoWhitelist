@@ -1,5 +1,6 @@
 package com.awakenedredstone.autowhitelist.whitelist;
 
+import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
@@ -18,6 +19,24 @@ public class ExtendedWhitelist extends Whitelist {
 
     public ExtendedWhitelist(File file) {
         super(file);
+    }
+
+    @Override
+    public void remove(GameProfile key) {
+        super.remove(key);
+
+        if (AutoWhitelist.getServer().getPlayerManager().isWhitelistEnabled()) {
+            AutoWhitelist.getServer().kickNonWhitelistedPlayers(AutoWhitelist.getServer().getCommandSource());
+        }
+    }
+
+    @Override
+    public void remove(ServerConfigEntry<GameProfile> entry) {
+        super.remove(entry);
+
+        if (AutoWhitelist.getServer().getPlayerManager().isWhitelistEnabled()) {
+            AutoWhitelist.getServer().kickNonWhitelistedPlayers(AutoWhitelist.getServer().getCommandSource());
+        }
     }
 
     protected ServerConfigEntry<GameProfile> fromJson(JsonObject json) {

@@ -43,7 +43,7 @@ public class RegisterCommand extends CommandBase {
 
     public RegisterCommand() {
         this.name = "register";
-        this.description = Stonecutter.translatableText("command.description.register").getString();
+        this.description = Stonecutter.translatedText("command.description.register");
     }
 
     public static void execute(Member member, String username, ReplyCallback replyCallback) {
@@ -272,6 +272,7 @@ public class RegisterCommand extends CommandBase {
                         AutoWhitelist.WHITELIST_CACHE.remove(new WhitelistCacheEntry(whitelistedAccount.get().getProfile()));
                     }
                 }
+
                 whitelist.add(new ExtendedWhitelistEntry(extendedProfile));
                 if (AutoWhitelist.CONFIG.enableWhitelistCache) {
                     AutoWhitelist.WHITELIST_CACHE.add(new WhitelistCacheEntry(extendedProfile));
@@ -377,7 +378,7 @@ public class RegisterCommand extends CommandBase {
             this.help = RegisterCommand.this.description;
             this.guildOnly = true;
 
-            options.add(new OptionData(OptionType.STRING, "username", "Your Minecraft username").setRequired(true));
+            this.options.add(new OptionData(OptionType.STRING, "username", Stonecutter.translatedText("command.description.register.argument")).setRequired(true));
         }
 
         @Override

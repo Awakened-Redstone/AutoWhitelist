@@ -8,8 +8,8 @@
         "ServerConfigEntryMixin",
         "ServerLoginNetworkHandlerAccessor",
         "compat.JanksonAcessor",
-        "compat.POJODeserializerMixin",
-        "compat.POJODeserializerAccessor"
+        "compat.POJODeserializerAccessor",
+        "compat.POJODeserializerMixin"
     ],
     "client": [
     ],

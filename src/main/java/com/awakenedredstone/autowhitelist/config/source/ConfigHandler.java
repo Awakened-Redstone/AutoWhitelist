@@ -94,13 +94,12 @@ public abstract class ConfigHandler {
             AutoWhitelist.LOGGER.error("Invalid config! Please follow the constraints", e);
         } catch (Throwable e) {
             AutoWhitelist.LOGGER.error("Could not load config!", e);
-            //TODO: Do not continue the mod loading
         } finally {
             this.loading = false;
         }
     }
 
-    public boolean tryLoad() {
+    public boolean canLoad() {
         if (!configExists()) {
             return false;
         }

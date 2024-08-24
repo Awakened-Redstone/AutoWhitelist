@@ -61,13 +61,23 @@ public class InfoCommand extends SlashCommand {
         replyCallback.sendMessage(null);
 
         Member member = event.getMember();
-        if (member == null) return;
+        if (member == null) {
+            EmbedBuilder embed = DiscordBotHelper.Feedback.defaultEmbed(
+              Stonecutter.translatableText("internal_error.title"),
+              Stonecutter.translatableText("internal_error.description")
+            );
+
+            replyCallback.editMessage((InteractionHook interactionHook) -> interactionHook
+              .editOriginal(DiscordBotHelper.<MessageEditData>buildEmbedMessage(true, embed.build()))
+            );
+            return;
+        }
 
         String memberId = member.getId();
         MinecraftServer server = AutoWhitelist.getServer();
         ExtendedWhitelist whitelist = (ExtendedWhitelist) server.getPlayerManager().getWhitelist();
 
-        final String eventId = UUID.randomUUID().toString().replaceAll("-", "");
+        final String eventId = event.getId();
 
         Optional<ExtendedWhitelistEntry> whitelistedAccount = RegisterCommand.getWhitelistedAccount(memberId, whitelist);
 

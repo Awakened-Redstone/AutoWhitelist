@@ -51,6 +51,10 @@ public class Stonecutter {
         return /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/(key);
     }
 
+    public static String translatedText(String key) {
+        return /*? if >=1.19 {*/Text.translatable/*?} else {*//*new TranslatableText*//*?}*/(key).getString();
+    }
+
     public static MutableText emptyText() {
         return /*? if >=1.19 {*/Text.empty()/*?} else {*//*(MutableText) new LiteralText("")*//*?}*/;
     }

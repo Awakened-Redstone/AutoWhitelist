@@ -1,7 +1,10 @@
 package com.awakenedredstone.autowhitelist.config;
 
-import blue.endless.jankson.*;
-import blue.endless.jankson.annotation.SerializedName;
+import blue.endless.jankson.Comment;
+import blue.endless.jankson.JsonArray;
+import blue.endless.jankson.JsonElement;
+import blue.endless.jankson.JsonObject;
+import blue.endless.jankson.JsonPrimitive;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.Constants;
 import com.awakenedredstone.autowhitelist.config.source.ConfigHandler;
@@ -25,6 +28,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.awakenedredstone.autowhitelist.AutoWhitelist.DATA_FIXER_LOGGER;
 
 @NameFormat(NameFormat.Case.SNAKE_CASE)
 public class AutoWhitelistConfig extends ConfigHandler {
@@ -63,6 +68,10 @@ public class AutoWhitelistConfig extends ConfigHandler {
     public long discordServerId = 0;
     @Comment("When enabled, all interactions and slash commands will be ephemeral, meaning only the user can see the response.")
     public boolean ephemeralReplies = true;
+    @Comment("""
+      When enabled, the bot will cache the data of the users on discord, this reduces response time, but may cause a higher time for the bot to update info about users.
+      Disabling the cache may improve RAM usage on big server, but remember that it will increase the bot to take more time to execute actions/tasks""")
+    public boolean cacheDiscordData = true;
     @Comment("The whitelist entry settings, please refer to the documentation to set them up")
     public List<BaseEntry> entries = new ArrayList<>();
 
@@ -100,8 +109,14 @@ public class AutoWhitelistConfig extends ConfigHandler {
         try {
             JsonObject config = this.getInterpreter().load(Files.readString(this.getFileLocation(), StandardCharsets.UTF_8));
             byte configVersion = config.getByte("CONFIG_VERSION", Constants.CONFIG_VERSION);
+
+            if (configVersion != Constants.CONFIG_VERSION) {
+                DATA_FIXER_LOGGER.info("New config version available!");
+                DATA_FIXER_LOGGER.info("Updating config from {} to {}", configVersion, Constants.CONFIG_VERSION);
+            }
+
             if (configVersion == 1) {
-                LOGGER.info("Updating config file from v{} to v{}", configVersion, Constants.CONFIG_VERSION);
+                DATA_FIXER_LOGGER.info("Updating config file from v{} to v{}", configVersion, Constants.CONFIG_VERSION);
                 JsonArray entries = config.get(JsonArray.class, "entries");
                 if (entries != null) {
                     List<BaseEntry> entryList = new ArrayList<>();
@@ -120,16 +135,16 @@ public class AutoWhitelistConfig extends ConfigHandler {
                                 default -> null;
                             };
                         } else {
-                            LOGGER.warn("Could not get type of an entry, the invalid entry was removed!");
+                            DATA_FIXER_LOGGER.warn("Could not get type of an entry, the invalid entry was removed!");
                             continue;
                         }
 
                         if (newType == null) {
-                            LOGGER.warn("Unknown entry type [{}], can not update to new config, the invalid entry was removed!", oldType);
+                            DATA_FIXER_LOGGER.warn("Unknown entry type [{}], can not update to new config, the invalid entry was removed!", oldType);
                             continue;
                         }
 
-                        LOGGER.debug("Updating entry name from {} to {}", oldType, newType);
+                        DATA_FIXER_LOGGER.debug("Updating entry name from {} to {}", oldType, newType);
 
                         entryData.remove("type");
                         entryData.put("type", Stonecutter.getOrThrowDataResult(Identifier.CODEC.encodeStart(JanksonOps.INSTANCE, newType)));
@@ -184,7 +199,7 @@ public class AutoWhitelistConfig extends ConfigHandler {
                             try {
                                 newAdmins.add(new JsonPrimitive(Long.parseLong(((JsonPrimitive) element).asString())));
                             } catch (Throwable e) {
-                                LOGGER.warn("Invalid user Id: {}, the value was removed", jsonElement);
+                                DATA_FIXER_LOGGER.warn("Invalid user Id: {}, the value was removed", jsonElement);
                             }
                         }
                         jsonElement = newAdmins;
@@ -194,18 +209,32 @@ public class AutoWhitelistConfig extends ConfigHandler {
                         try {
                             jsonElement = new JsonPrimitive(Long.parseLong(((JsonPrimitive) jsonElement).asString()));
                         } catch (Throwable e) {
-                            LOGGER.warn("Invalid user Id: {}, replacing with default", jsonElement);
+                            DATA_FIXER_LOGGER.warn("Invalid user Id: {}, replacing with default", jsonElement);
                             jsonElement = new JsonPrimitive(0L);
                         }
                     }
 
                     String newKey = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, key);
-                    LOGGER.debug("Updating {} to {}", key, newKey);
+                    DATA_FIXER_LOGGER.debug("Updating {} to {}", key, newKey);
 
                     newConfig.put(newKey, jsonElement, comment);
                 });
 
                 config = newConfig;
+                configVersion = config.getByte("CONFIG_VERSION", Constants.CONFIG_VERSION);
+            }
+
+            if (configVersion == 2) {
+                String activityType = config.get(String.class, "bot_activity_type");
+                if (activityType != null) {
+                    activityType = switch (activityType.toUpperCase()) {
+                        case "NONE" -> "DONT_CHANGE";
+                        case "RESET" -> "CLEAR";
+                        default -> activityType;
+                    };
+
+                    config.put("bot_activity_type", new JsonPrimitive(activityType));
+                }
             }
 
             if (configVersion != Constants.CONFIG_VERSION) {
@@ -230,19 +259,19 @@ public class AutoWhitelistConfig extends ConfigHandler {
                 });
                 newJson.put("CONFIG_VERSION", new JsonPrimitive(Constants.CONFIG_VERSION));
 
-                LOGGER.info("Saving updated config");
+                DATA_FIXER_LOGGER.info("Saving updated config");
                 this.save(newJson);
             }
         } catch (Throwable e) {
-            LOGGER.error("The config updater crashed!", e);
+            DATA_FIXER_LOGGER.error("The config updater crashed!", e);
         }
 
         super.load();
     }
 
     public enum BotActivity {
-        NONE(null),
-        RESET(null),
+        DONT_CHANGE(null),
+        CLEAR(null),
         PLAYING(Activity.ActivityType.PLAYING),
         STREAMING(Activity.ActivityType.STREAMING),
         LISTENING(Activity.ActivityType.LISTENING),

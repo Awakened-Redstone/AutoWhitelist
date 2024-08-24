@@ -2,6 +2,7 @@ package com.awakenedredstone.autowhitelist.commands;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.commands.api.Permission;
+import com.awakenedredstone.autowhitelist.debug.DebugFlags;
 import com.awakenedredstone.autowhitelist.discord.DiscordBot;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
@@ -12,6 +13,7 @@ import com.awakenedredstone.autowhitelist.util.ModData;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import net.dv8tion.jda.api.JDAInfo;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
@@ -19,16 +21,16 @@ import net.minecraft.SharedConstants;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.WhitelistEntry;
 import net.minecraft.server.command.ServerCommandSource;
-/*? if >=1.19 {*/
-import net.minecraft.text.Text;
-/*?} else {*/
+/*? if <1.19 {*/
 /*import com.mojang.brigadier.exceptions.CommandSyntaxException;
 *//*?}*/
 
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class AutoWhitelistCommand {
@@ -40,28 +42,45 @@ public class AutoWhitelistCommand {
             .then(
               literal("dump")
                 .executes(context -> {
-                    context.getSource().sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("AutoWhitelist data dump...")), false);
+                    context.getSource().sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Generating data dump...")), false);
                     PlayerManager playerManager = AutoWhitelist.getServer().getPlayerManager();
 
-                    LinedStringBuilder dump = new LinedStringBuilder();
-                    dump.appendLine();
-                    dump.appendLine("AutoWhitelist data dump");
-                    dump.appendLine("Minecraft version: ", SharedConstants.getGameVersion().getName());
-                    dump.appendLine("Mod loader: ", getLoaderName());
-                    dump.appendLine("Loader version: ", getLoaderVersion());
-                    dump.appendLine("Mod version: ", ModData.getVersion("autowhitelist"));
-                    dump.appendLine("Total whitelisted players: ", playerManager.getWhitelistedNames().length);
-                    dump.appendLine("Luckperms versions: ", ModData.getVersion("luckperms"));
-                    Collection<ModContainer> mods = FabricLoader.getInstance().getAllMods().stream().filter(mod -> !isCoreMod(mod.getMetadata().getId())).toList();
-                    dump.appendLine("Found ", mods.size(), " other non \"core\" mods");
-                    dump.appendLine("Total entries: ", AutoWhitelist.CONFIG.entries.size());
-                    dump.appendLine("Config exists: ", AutoWhitelist.CONFIG.configExists());
-                    dump.appendLine("Config loaded: ", AutoWhitelist.CONFIG.tryLoad());
-                    dump.appendLine("Lock time: ", TimeParser.parseTime(AutoWhitelist.CONFIG.lockTime));
-                    dump.appendLine("JDA version: ", JDAInfo.VERSION);
-                    dump.appendLine("Bot status: ", DiscordBot.jda == null ? "offline" : "online");
+                    CompletableFuture.runAsync(() -> {
+                        boolean canConfigLoad;
+                        LinedStringBuilder dump = new LinedStringBuilder().append(" ");
+                        dump.appendLine("==== AutoWhitelist data dump ====");
+                        dump.appendLine("Minecraft:");
+                        dump.appendLine("  Minecraft version: ", SharedConstants.getGameVersion().getName());
+                        dump.appendLine("  Java version: ", Runtime.version());
+                        dump.appendLine("  Mod loader: ", getLoaderName());
+                        dump.appendLine("  Loader version: ", getLoaderVersion());
+                        dump.appendLine("  Mod version: ", ModData.getVersion("autowhitelist"));
+                        dump.appendLine("  Total whitelisted players: ", playerManager.getWhitelistedNames().length);
+                        dump.appendLine("  Luckperms version: ", ModData.getVersion("luckperms"));
+                        Collection<ModContainer> mods = FabricLoader.getInstance().getAllMods().stream().filter(mod -> !isCoreMod(mod.getMetadata().getId())).toList();
+                        dump.appendLine("  Found ", mods.size(), " other non \"core\" mods");
 
-                    context.getSource().sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText(dump.toString())), false);
+                        dump.appendLine();
+                        dump.appendLine("AutoWhitelist:");
+                        dump.appendLine("  Config:");
+                        dump.appendLine("    Total entries: ", AutoWhitelist.CONFIG.entries.size());
+                        dump.appendLine("    Config exists: ", AutoWhitelist.CONFIG.configExists());
+                        dump.appendLine("    Is config valid: ", canConfigLoad = AutoWhitelist.CONFIG.canLoad());
+                        if (!canConfigLoad) {
+                            dump.append(" <-- BAD CONFIG! Check the logs for the error cause");
+                        }
+                        dump.appendLine("    Lock time: ", TimeParser.parseTime(AutoWhitelist.CONFIG.lockTime));
+                        dump.appendLine("  Bot:");
+                        dump.appendLine("    JDA version: ", JDAInfo.VERSION);
+                        dump.appendLine("    Bot status: ", DiscordBot.jda == null ? "offline" : "online");
+                        if (DiscordBot.jda != null) {
+                            dump.appendLine("    Gateway ping: ", DiscordBot.jda.getGatewayPing());
+                            dump.appendLine("    Rest ping: ", DiscordBot.jda.getRestPing().complete());
+                        }
+
+                        context.getSource().sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText(dump.toString())), false);
+                    });
+
                     return 0;
                 }).then(
                   literal("config")
@@ -72,7 +91,6 @@ public class AutoWhitelistCommand {
                 )
             ).then(
               literal("reload")
-                .executes(context -> executeReload(context.getSource()))
                 .then(
                   literal("bot")
                     .executes(context -> {
@@ -101,6 +119,23 @@ public class AutoWhitelistCommand {
             ).then(
               literal("entries")
                 .executes(context -> executeEntries(context.getSource()))
+            ).then(
+              literal("debug")
+                .then(
+                  literal("trackRoleChanges")
+                    .then(
+                      argument("enable", BoolArgumentType.bool())
+                        .executes(context -> {
+                            ServerCommandSource source = context.getSource();
+                            DebugFlags.trackRoleChanges = BoolArgumentType.getBool(context, "enable");
+
+                            source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Updated debug flag")), true);
+                            AutoWhitelist.loadWhitelistCache();
+
+                            return 0;
+                        })
+                    )
+                )
             )
         );
     }
@@ -132,20 +167,9 @@ public class AutoWhitelistCommand {
         return 1;
     }
 
-    public static int executeReload(ServerCommandSource source) {
-        source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Reloading AutoWhitelist configurations, please wait.")), true);
-
-        AutoWhitelist.CONFIG.load();
-        AutoWhitelist.loadWhitelistCache();
-        source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Restarting bot, please wait.")), true);
-        DiscordBot.getInstance().reloadBot(source);
-
-        return 1;
-    }
-
     private static boolean isCoreMod(String modid) {
         return Pattern.compile("^fabric(-\\w+)+-v\\d$").matcher(modid).matches() || equals(modid, "java", "minecraft", "fabricloader", "autowhitelist",
-          "placeholder-api", "server_translations_api", "packet_tweaker", "fabric-language-kotlin", "fabric-api", "fabric-api-base");
+          "placeholder-api", "server_translations_api", "packet_tweaker", "fabric-language-kotlin", "fabric-api", "fabric-api-base", "mixinextras");
     }
 
     private static String getLoaderName() {
