@@ -1,20 +1,19 @@
 package com.awakenedredstone.autowhitelist.entry;
 
 import blue.endless.jankson.JsonObject;
-import com.awakenedredstone.autowhitelist.entry.serialization.JanksonOps;
 import com.mojang.authlib.GameProfile;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.text.Text;
+/*? if >=1.20.5 {*/import com.mojang.serialization.MapCodec;/*?}*/
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public abstract class BaseEntry {
     private static final Map<Identifier, /*? if <1.20.5 {*//*Codec*//*?} else {*/MapCodec/*?}*/<? extends BaseEntry>> ENTRIES = new HashMap<>();

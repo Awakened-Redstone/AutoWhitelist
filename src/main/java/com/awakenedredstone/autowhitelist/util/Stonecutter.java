@@ -17,8 +17,6 @@ import com.mojang.serialization.MapCodec;
 /*import com.mojang.serialization.Codec;
 *//*?}*/
 /*? if >=1.18.2 {*/
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 /*?} else {*/
