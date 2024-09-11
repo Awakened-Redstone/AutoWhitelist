@@ -37,6 +37,6 @@ public class ExtendedGameProfile extends GameProfile {
     }
 
     public boolean isLocked() {
-        return lockedUntil != -1 && lockedUntil > System.currentTimeMillis();
+        return lockedUntil == -1 || lockedUntil > System.currentTimeMillis();
     }
 }
