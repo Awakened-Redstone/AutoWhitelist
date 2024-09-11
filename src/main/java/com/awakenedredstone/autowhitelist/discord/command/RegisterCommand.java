@@ -1,11 +1,13 @@
 package com.awakenedredstone.autowhitelist.discord.command;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
+import com.awakenedredstone.autowhitelist.debug.DebugFlags;
 import com.awakenedredstone.autowhitelist.entry.BaseEntry;
 import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
 import com.awakenedredstone.autowhitelist.discord.DiscordDataProcessor;
 import com.awakenedredstone.autowhitelist.discord.api.ReplyCallback;
 import com.awakenedredstone.autowhitelist.discord.api.command.CommandBase;
+import com.awakenedredstone.autowhitelist.mixin.UserCacheAccessor;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
@@ -14,7 +16,9 @@ import com.awakenedredstone.autowhitelist.whitelist.WhitelistCacheEntry;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
+/*? if <1.20.2 {*//*import com.mojang.authlib.Agent;*//*?}*/
 import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.ProfileLookupCallback;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -206,6 +210,23 @@ public class RegisterCommand extends CommandBase {
                   )
                 );
                 return;
+            }
+
+            if (DebugFlags.trackEntryError) {
+                ProfileLookupCallback profileLookupCallback = new ProfileLookupCallback(){
+
+                    @Override
+                    public void onProfileLookupSucceeded(GameProfile profile) {
+                        AutoWhitelist.LOGGER.info("Successfully got user profile {}" ,profile);
+                    }
+
+                    @Override
+                    public void onProfileLookupFailed(/*? if >=1.20.2 {*/String/*?} else {*//*GameProfile*//*?}*/ name, Exception exception) {
+                        AutoWhitelist.LOGGER.error("Failed to get user profile for {}", name, exception);
+                    }
+                };
+
+                ((UserCacheAccessor) server.getUserCache()).getProfileRepository().findProfilesByNames(new String[]{arg}/*? if <1.20.2 {*//*, Agent.MINECRAFT*//*?}*/, profileLookupCallback);
             }
 
             GameProfile profile = server.getUserCache().findByName(arg).orElse(null);

@@ -23,7 +23,7 @@ import net.minecraft.server.WhitelistEntry;
 import net.minecraft.server.command.ServerCommandSource;
 /*? if <1.19 {*/
 /*import com.mojang.brigadier.exceptions.CommandSyntaxException;
-*//*?}*/
+ *//*?}*/
 
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
@@ -130,7 +130,19 @@ public class AutoWhitelistCommand {
                             DebugFlags.trackRoleChanges = BoolArgumentType.getBool(context, "enable");
 
                             source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Updated debug flag")), true);
-                            AutoWhitelist.loadWhitelistCache();
+
+                            return 0;
+                        })
+                    )
+                ).then(
+                  literal("trackEntryError")
+                    .then(
+                      argument("enable", BoolArgumentType.bool())
+                        .executes(context -> {
+                            ServerCommandSource source = context.getSource();
+                            DebugFlags.trackEntryError = BoolArgumentType.getBool(context, "enable");
+
+                            source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Updated debug flag")), true);
 
                             return 0;
                         })
