@@ -28,6 +28,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,8 +96,25 @@ public class DiscordBot extends Thread {
         guild = null;
     }
 
+    @Nullable
     public static DiscordBot getInstance() {
         return instance;
+    }
+
+    @NotNull
+    public static DiscordBot getInstanceSafe() {
+        if (instance == null) {
+            throw new NullPointerException("Bot instance is null, expected bot to be running, please open a bug report!");
+        }
+        return instance;
+    }
+
+    @NotNull
+    public static JDA getJDASafe() {
+        if (instance == null) {
+            throw new NullPointerException("Bot is null, expected bot to exist, please open a bug report!");
+        }
+        return jda;
     }
 
     public static void startInstance() {
@@ -202,7 +220,7 @@ public class DiscordBot extends Thread {
 
     private Consumer<CommandEvent> helpConsumer() {
         return (event) -> {
-            EmbedBuilder builder = new EmbedBuilder().setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
+            EmbedBuilder builder = new EmbedBuilder().setAuthor(getJDASafe().getSelfUser().getName(), "https://discord.com", getJDASafe().getSelfUser().getAvatarUrl());
             Command.Category category;
             List<MessageEmbed.Field> fields = new ArrayList<>();
             for (Command command : event.getClient().getCommands()) {

@@ -52,14 +52,14 @@ public class CommandEntry extends BaseEntry {
         String addCmdStart = addCommand.split(" ", 2)[0];
         if (root.getChild(addCmdStart) == null && !StringUtils.isBlank(addCmdStart)) {
             if (addCmdStart.startsWith("/")) {
-                AutoWhitelist.LOGGER.warn("You don't need a slash at the start of the command");
+                AutoWhitelist.LOGGER.warn("You don't need a slash at the start of the command, found on {}", addCmdStart);
             }
             throw new AssertionError(String.format("Add command \"%s\" does not exist!", addCmdStart));
         }
         String removeCmdStart = addCommand.split(" ", 2)[0];
         if (root.getChild(removeCmdStart) == null && !StringUtils.isBlank(removeCmdStart)) {
             if (removeCmdStart.startsWith("/")) {
-                AutoWhitelist.LOGGER.warn("You don't need a slash at the start of the command");
+                AutoWhitelist.LOGGER.warn("You don't need a slash at the start of the command, found on {}", removeCmdStart);
             }
             throw new AssertionError(String.format("Remove command \"%s\" does not exist!", removeCmdStart));
         }

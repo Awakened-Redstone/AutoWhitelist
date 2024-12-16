@@ -47,7 +47,7 @@ public class DiscordBotHelper extends DiscordBot {
             String roleSearch = roleString.equalsIgnoreCase("@everyone") ? roleString : roleString.substring(1);
             List<Role> roles = DiscordBot.guild.getRolesByName(roleSearch, true);
             if (!roles.isEmpty()) {
-                role = roles.getFirst();
+                role = roles.get(0);
             } else {
                 role = null;
             }
@@ -60,7 +60,7 @@ public class DiscordBotHelper extends DiscordBot {
     public static class Feedback {
         public static EmbedBuilder defaultEmbed(Text title, Text message) {
             EmbedBuilder embedBuilder = new EmbedBuilder();
-            embedBuilder.setAuthor(jda.getSelfUser().getName(), "https://discord.com", jda.getSelfUser().getAvatarUrl());
+            embedBuilder.setAuthor(getJDASafe().getSelfUser().getName(), "https://discord.com", getJDASafe().getSelfUser().getAvatarUrl());
             embedBuilder.setTitle(title.getString());
             embedBuilder.setDescription(message.getString());
             embedBuilder.setFooter(Stonecutter.translatableText("command.feedback.message.signature").getString());

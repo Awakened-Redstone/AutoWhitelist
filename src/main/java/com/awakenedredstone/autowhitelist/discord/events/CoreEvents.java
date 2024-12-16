@@ -39,6 +39,11 @@ public class CoreEvents extends ListenerAdapter {
 
     @Override
     public void onReady(@NotNull ReadyEvent event) {
+        if (DiscordBot.jda == null) {
+            AutoWhitelist.LOGGER.error("The bot was marked as ready but it doesn't exist, refusing to proceed");
+            return;
+        }
+
         if (AutoWhitelist.getServer() == null) {
             AutoWhitelist.LOGGER.error("The bot was ready while the server was null, refusing to proceed");
             if (DiscordBot.getInstance() != null) {
@@ -54,9 +59,9 @@ public class CoreEvents extends ListenerAdapter {
             } catch (Throwable ignored) {/**/}
         }
 
-        AutoWhitelist.LOGGER.info("Bot is in {} guilds", DiscordBot.jda.getGuilds().size());
+        AutoWhitelist.LOGGER.info("Bot is in {} guilds", DiscordBot.getJDASafe().getGuilds().size());
 
-        DiscordBot.guild = DiscordBot.jda.getGuildById(AutoWhitelist.CONFIG.discordServerId);
+        DiscordBot.guild = DiscordBot.getJDASafe().getGuildById(AutoWhitelist.CONFIG.discordServerId);
         if (DiscordBot.guild == null) {
             AutoWhitelist.LOGGER.error("Could not find the guild with id {}", AutoWhitelist.CONFIG.discordServerId);
             return;

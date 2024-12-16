@@ -44,7 +44,10 @@ public abstract class ConfigHandler {
         if (this.loading) return;
 
         try {
-            this.getFileLocation().getParent().toFile().mkdirs();
+            if (!this.getFileLocation().getParent().toFile().mkdirs()) {
+                AutoWhitelist.LOGGER.error("Could not create config path!");
+                return;
+            }
             Files.writeString(this.getFileLocation(), this.interpreter.toJson(this).toJson(Constants.GRAMMAR), StandardCharsets.UTF_8);
         } catch (IOException e) {
             AutoWhitelist.LOGGER.warn("Could not save config!", e);
@@ -55,7 +58,10 @@ public abstract class ConfigHandler {
         if (this.loading) return;
 
         try {
-            this.getFileLocation().getParent().toFile().mkdirs();
+            if (!this.getFileLocation().getParent().toFile().mkdirs()) {
+                AutoWhitelist.LOGGER.error("Could not create config path!");
+                return;
+            }
             Files.writeString(this.getFileLocation(), config.toJson(Constants.GRAMMAR), StandardCharsets.UTF_8);
         } catch (IOException e) {
             AutoWhitelist.LOGGER.warn("Could not save config!", e);

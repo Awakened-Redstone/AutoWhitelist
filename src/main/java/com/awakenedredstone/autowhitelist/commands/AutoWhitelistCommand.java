@@ -96,7 +96,7 @@ public class AutoWhitelistCommand {
                     .executes(context -> {
                         ServerCommandSource source = context.getSource();
                         source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Restarting bot, please wait.")), true);
-                        DiscordBot.getInstance().reloadBot(source);
+                        DiscordBot.getInstanceSafe().reloadBot(source);
                         return 0;
                     })
                 ).then(

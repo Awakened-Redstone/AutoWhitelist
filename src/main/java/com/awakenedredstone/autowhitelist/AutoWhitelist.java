@@ -169,7 +169,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
                     CONFIG.token = json.get(String.class, "token");
                 }
                 if (json.containsKey("discordServerId")) {
-                    CONFIG.discordServerId = Long.parseLong(json.get(String.class, "discordServerId"));
+                    CONFIG.discordServerId = Long.parseLong(NullUtils.orElse(json.get(String.class, "discordServerId"), "0"));
                 }
                 if (json.containsKey("whitelist")) {
                     JsonObject whitelist = json.getObject("whitelist");
