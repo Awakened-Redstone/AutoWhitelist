@@ -41,6 +41,7 @@ val modVersion: String = property("mod_version").toString()
 base {
     archivesName.set(property("archives_base_name").toString())
 }
+
 var archivesBaseName: String = property("archives_base_name").toString()
 version = "${property("mod_version")}+$minecraftVersion"
 group = property("maven_group") as String
@@ -88,11 +89,14 @@ dependencies {
     }
 
     // Libraries
-    include(api("blue.endless:jankson:${property("jankson_version")}") as Any)
-    api("pw.chew:jda-chewtils:${property("chewtils_version")}")
+    include(api("blue.endless:jankson:${property("jankson_version")}")!!)
+    api("pw.chew:jda-chewtils:${property("chewtils_version")}") {
+        exclude(module = "log4j-core")
+    }
     include(api("net.dv8tion:JDA:${property("jda_version")}") {
         exclude(module = "opus-java")
-        exclude(module = "okio-jvm")
+        exclude(module = "log4j-core")
+        exclude(module = "log4j-api")
     })
 
     // JDA dependencies
@@ -102,7 +106,10 @@ dependencies {
     include("com.neovisionaries:nv-websocket-client:2.14")
     include("org.apache.commons:commons-collections4:4.4")
     include("com.squareup.okhttp3:okhttp:4.12.0")
+    include("com.squareup.okio:okio-jvm:3.6.0")
+    include("com.squareup.okio:okio:3.6.0")
     include("net.sf.trove4j:core:3.1.0")
+    include("org.json:json:20241224")
 
     // Chewtils
     include("pw.chew:jda-chewtils-command:${property("chewtils_version")}")
@@ -209,7 +216,7 @@ modrinth {
     }
 
     versionType = projectVersionType.toString().lowercase()
-    token = System.getenv("MODRINTH_TOKEN")
+    token = providers.gradleProperty("MODRINTH_TOKEN")
     projectId = "BMaqFQAd"
     versionName = "[$minecraftVersion] $projectVersionName"
     changelog = CHANGELOG
@@ -227,6 +234,10 @@ modrinth {
 publishMods {
     if (modVersions[minecraftVersion] == null) {
         throw Throwable("Please update modrinth.json, missing $minecraftVersion")
+    }
+
+    if (CHANGELOG.isEmpty()) {
+        throw Throwable("Update the changelog!")
     }
 
     file = (tasks.getByName("remapJar") as AbstractArchiveTask).archiveFile

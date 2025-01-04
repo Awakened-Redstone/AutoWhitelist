@@ -44,7 +44,7 @@ public abstract class ConfigHandler {
         if (this.loading) return;
 
         try {
-            if (!this.getFileLocation().getParent().toFile().mkdirs()) {
+            if (!this.getFileLocation().getParent().toFile().exists() && !this.getFileLocation().getParent().toFile().mkdirs()) {
                 AutoWhitelist.LOGGER.error("Could not create config path!");
                 return;
             }
@@ -58,7 +58,7 @@ public abstract class ConfigHandler {
         if (this.loading) return;
 
         try {
-            if (!this.getFileLocation().getParent().toFile().mkdirs()) {
+            if (!this.getFileLocation().getParent().toFile().exists() && !this.getFileLocation().getParent().toFile().mkdirs()) {
                 AutoWhitelist.LOGGER.error("Could not create config path!");
                 return;
             }
