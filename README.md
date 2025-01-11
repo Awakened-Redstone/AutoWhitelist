@@ -30,22 +30,12 @@ When a player looses the role or leaves the discord server they are automaticall
 <br/>  
 To reload a specific part of the mod run `/autowhitelist reload [bot|cache|config]` or `/autowhitelist reload` to reload everything
 
-<a href="https://bisecthosting.com/Redstone?r=autowhitelist" target="_blank">
+<!--a href="https://bisecthosting.com/Redstone?r=autowhitelist" target="_blank">
   <div>
     <img src="https://www.bisecthosting.com/partners/custom-banners/acf5ce83-7faa-4bf7-ac60-1adc12f4fadd.png" alt="Get 25% off with code Redstone"/>
   </div>
-</a>
+</a-->
 
-<br/>
+This mod is compatible with [Sinytra Connector](https://modrinth.com/mod/connector)
 
-### About porting
-Porting to other platforms is fully allowed, as long as:
-1. A link to the original mod's Modrinth page is put within the first 5 lines of the project description
-2. Credits are given to the author of the original mod
-3. The ported version is free and open source
-4. The config structure allows a seamless or easy migration from/to the original mod
-
-<br/>
-
-This mod is not compatible with [Sinytra Connector](https://modrinth.com/mod/connector) due to its dependencies  
 ![No froge](https://i.ibb.co/yphNcXz/fabric-only-banner.png)

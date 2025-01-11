@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(value = Jankson.class, remap = false)
-public interface JanksonAcessor {
+public interface JanksonAccessor {
     @Invoker("<init>") static Jankson createJankson(Jankson.Builder builder) {
         throw new IllegalStateException("Mixin failed to apply");
     }

@@ -5,13 +5,13 @@ import com.awakenedredstone.autowhitelist.entry.BaseEntry;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.luckperms.api.node.Node;
 import net.luckperms.api.node.types.PermissionNode;
 import net.minecraft.util.Identifier;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 public class PermissionEntry extends LuckpermsEntry {
     public static final Identifier ID = AutoWhitelist.id("luckperms/permission");
@@ -35,12 +35,22 @@ public class PermissionEntry extends LuckpermsEntry {
     }
 
     @Override
-    public void assertSafe() {
+    public void assertValid() {
         if (StringUtils.isBlank(permission)) {
             throw new IllegalArgumentException("PermissionEntry can not be blank!");
         }
     }
 
     @Override
-    public void purgeInvalid() {/**/}
+    public String toString() {
+        return "PermissionEntry{" +
+               "permission='" + permission + '\'' +
+               '}';
+    }
+
+    @Override
+    public boolean equals(BaseEntry otherEntry) {
+        PermissionEntry other = (PermissionEntry) otherEntry;
+        return Objects.equals(permission, other.permission);
+    }
 }

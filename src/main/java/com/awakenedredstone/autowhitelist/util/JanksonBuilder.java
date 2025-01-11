@@ -10,7 +10,7 @@ import com.awakenedredstone.autowhitelist.config.source.annotation.PredicateCons
 import com.awakenedredstone.autowhitelist.config.source.annotation.RangeConstraint;
 import com.awakenedredstone.autowhitelist.config.source.annotation.RegexConstraint;
 import com.awakenedredstone.autowhitelist.config.source.jankson.Marshaller;
-import com.awakenedredstone.autowhitelist.mixin.compat.JanksonAcessor;
+import com.awakenedredstone.autowhitelist.mixin.compat.JanksonAccessor;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -185,8 +185,8 @@ public class JanksonBuilder {
         }
 
         public Jankson build() {
-            Jankson result = JanksonAcessor.createJankson(this);
-            JanksonAcessor accessor = (JanksonAcessor) result;
+            Jankson result = JanksonAccessor.createJankson(this);
+            JanksonAccessor accessor = (JanksonAccessor) result;
             accessor.setMarshaller(marshaller);
             accessor.setAllowBareRootObject(allowBareRootObject);
             return result;

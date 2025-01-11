@@ -5,9 +5,9 @@ import com.awakenedredstone.autowhitelist.config.AutoWhitelistConfig;
 import com.awakenedredstone.autowhitelist.discord.api.GatewayIntents;
 import com.awakenedredstone.autowhitelist.discord.command.InfoCommand;
 import com.awakenedredstone.autowhitelist.discord.command.RegisterCommand;
-import com.awakenedredstone.autowhitelist.discord.command.debug.UserInfoCommand;
+import com.awakenedredstone.autowhitelist.discord.command.admin.ModifyCommand;
+import com.awakenedredstone.autowhitelist.discord.command.admin.UserInfoCommand;
 import com.awakenedredstone.autowhitelist.discord.events.CoreEvents;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
@@ -20,13 +20,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.exceptions.InvalidTokenException;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
-import net.minecraft.server.command.ServerCommandSource;
-/*? if >=1.19 {*/
-/*?} else {*/
-/*import net.minecraft.text.LiteralText;
-*//*?}*/
-import net.minecraft.util.crash.CrashException;
-import net.minecraft.util.crash.CrashReport;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,27 +39,21 @@ public class DiscordBot extends Thread {
     public static final Logger LOGGER = LoggerFactory.getLogger("AutoWhitelist Bot");
     public static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1, runnable -> {
         Thread thread = new Thread(runnable);
-        thread.setName("AutoWhitelist-Worker");
+        thread.setName("AutoWhitelist Worker");
         thread.setDaemon(true); // Allow the server to shut down
-        thread.setUncaughtExceptionHandler((t, e) -> {
-            CrashReport crashReport = CrashReport.create(e, "Unhandled exception on AutoWhitelist worker");
-            throw new CrashException(crashReport);
-        });
+        thread.setUncaughtExceptionHandler((t, e) -> LOGGER.error("Unhandled exception in worker thread", e));
         return thread;
     });
     public static EventWaiter eventWaiter;
     public static ScheduledFuture<?> scheduledUpdate;
-    @Nullable
-    public static JDA jda = null;
-    @Nullable
-    public static Guild guild = null;
-    @Nullable
-    private static DiscordBot instance;
+    @Nullable private static JDA jda = null;
+    @Nullable private static Guild guild = null;
+    @Nullable private static DiscordBot instance;
 
     public DiscordBot() {
         super("AutoWhitelist Bot");
         this.setDaemon(true);
-        this.setUncaughtExceptionHandler(new net.minecraft.util.logging.UncaughtExceptionHandler(AutoWhitelist.LOGGER));
+        this.setUncaughtExceptionHandler((t, e) -> LOGGER.error("Unhandled exception in bot thread", e));
         if (instance != null) {
             LOGGER.warn("Bot instance already exists, stopping the previous instance");
             instance.interrupt();
@@ -93,7 +80,7 @@ public class DiscordBot extends Thread {
             AutoWhitelist.LOGGER.info("Bot stopped");
         }
         jda = null;
-        guild = null;
+        setGuild(null);
     }
 
     @Nullable
@@ -110,11 +97,28 @@ public class DiscordBot extends Thread {
     }
 
     @NotNull
-    public static JDA getJDASafe() {
-        if (instance == null) {
+    public static JDA getJda() {
+        if (jda == null) {
             throw new NullPointerException("Bot is null, expected bot to exist, please open a bug report!");
         }
+
         return jda;
+    }
+
+    public static void setJda(@Nullable JDA jda) {
+        DiscordBot.jda = jda;
+    }
+
+    public static boolean botExists() {
+        return jda != null;
+    }
+
+    public static @Nullable Guild getGuild() {
+        return guild;
+    }
+
+    public static void setGuild(@Nullable Guild guild) {
+        DiscordBot.guild = guild;
     }
 
     public static void startInstance() {
@@ -125,7 +129,7 @@ public class DiscordBot extends Thread {
         }
     }
 
-    public void reloadBot(ServerCommandSource source) {
+    public void restartBot() {
         if (scheduledUpdate != null) {
             scheduledUpdate.cancel(false);
             try {
@@ -133,8 +137,6 @@ public class DiscordBot extends Thread {
             } catch (Throwable ignored) {/**/}
         }
         if (jda != null) jda.shutdown();
-
-        source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Discord bot starting.")), true);
 
         execute();
     }
@@ -172,7 +174,7 @@ public class DiscordBot extends Thread {
         }
 
         jda = null;
-        guild = null;
+        setGuild(null);
 
         try {
             CommandClientBuilder commandBuilder = new CommandClientBuilder()
@@ -184,7 +186,8 @@ public class DiscordBot extends Thread {
               ).addSlashCommands(
                 RegisterCommand.INSTANCE.new SlashCommand(),
                 new InfoCommand(),
-                new UserInfoCommand()
+                new UserInfoCommand(),
+                new ModifyCommand()
               ).setActivity(null);
 
             CommandClient commands = commandBuilder.build();
@@ -220,7 +223,7 @@ public class DiscordBot extends Thread {
 
     private Consumer<CommandEvent> helpConsumer() {
         return (event) -> {
-            EmbedBuilder builder = new EmbedBuilder().setAuthor(getJDASafe().getSelfUser().getName(), "https://discord.com", getJDASafe().getSelfUser().getAvatarUrl());
+            EmbedBuilder builder = new EmbedBuilder().setAuthor(getJda().getSelfUser().getName(), "https://discord.com", getJda().getSelfUser().getAvatarUrl());
             Command.Category category;
             List<MessageEmbed.Field> fields = new ArrayList<>();
             for (Command command : event.getClient().getCommands()) {

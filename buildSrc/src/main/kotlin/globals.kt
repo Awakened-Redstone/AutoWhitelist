@@ -144,11 +144,11 @@ class VersionNumber(
             val str = versionString
 
             fun hasDigit(): Boolean {
-                return pos < str.length && Character.isDigit(str.get(pos))
+                return pos < str.length && Character.isDigit(str[pos])
             }
 
             fun isSeparatorAndDigit(vararg separators: Char): Boolean {
-                return pos < str.length - 1 && oneOf(*separators) && Character.isDigit(str.get(pos + 1))
+                return pos < str.length - 1 && oneOf(*separators) && Character.isDigit(str[pos + 1])
             }
 
             fun isSeparatorAndDigit(separators: String): Boolean {
@@ -156,7 +156,7 @@ class VersionNumber(
             }
 
             private fun oneOf(vararg separators: Char): Boolean {
-                val current = str.get(pos)
+                val current = str[pos]
                 separators.forEach {
                     if (current == it) {
                         return true

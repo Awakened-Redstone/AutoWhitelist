@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 
@@ -47,14 +48,33 @@ public abstract class BaseEntry {
         return Map.copyOf(DATA_FIXERS);
     }
 
-    public abstract void assertSafe();
+    public List<String> getRoles() {
+        return List.copyOf(roles);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) return true;
+        if (!(o instanceof BaseEntry baseEntry)) return false;
+        if (o.getClass() != this.getClass()) return false;
+
+        if (Objects.equals(getRoles(), baseEntry.getRoles()) && Objects.equals(getType(), baseEntry.getType())) {
+            return equals(baseEntry);
+        }
+
+        return false;
+    }
+
+    public abstract boolean equals(BaseEntry otherEntry);
+
+    public abstract void assertValid();
 
     public abstract <T extends GameProfile> void registerUser(T profile);
 
     public abstract <T extends GameProfile> void removeUser(T profile);
 
     /**
-     * <b>When overriding this, remember to execute the removal of the old entry to avoid bugs<b/>
+     * When overriding this, remember to <b>execute the removal of the old entry</b> to avoid bugs
      */
     public <T extends GameProfile> void updateUser(T profile, @Nullable BaseEntry oldEntry) {
         if (oldEntry != null) {
@@ -63,13 +83,8 @@ public abstract class BaseEntry {
         registerUser(profile);
     }
 
-    public abstract <T extends GameProfile> boolean shouldUpdate(T profile);
-
-    public abstract void purgeInvalid();
-
-    public List<String> getRoles() {
-        return List.copyOf(roles);
-    }
+    @Override
+    public abstract String toString();
 }
 
 

@@ -1,5 +1,6 @@
 package com.awakenedredstone.autowhitelist.whitelist;
 
+import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.mojang.authlib.GameProfile;
 
 import java.util.UUID;
@@ -25,7 +26,7 @@ public class ExtendedGameProfile extends GameProfile {
     }
 
     public long getLockedUntil() {
-        return lockedUntil;
+        return AutoWhitelist.getServer().getPlayerManager().getUserBanList().contains(this) ? -1 : lockedUntil;
     }
 
     public ExtendedGameProfile withRole(String newRole) {
@@ -37,6 +38,6 @@ public class ExtendedGameProfile extends GameProfile {
     }
 
     public boolean isLocked() {
-        return lockedUntil == -1 || lockedUntil > System.currentTimeMillis();
+        return lockedUntil == -1 || lockedUntil > System.currentTimeMillis() || AutoWhitelist.getServer().getPlayerManager().getUserBanList().contains(this);
     }
 }

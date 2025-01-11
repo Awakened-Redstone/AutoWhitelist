@@ -1,7 +1,6 @@
 package com.awakenedredstone.autowhitelist.discord.events;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.awakenedredstone.autowhitelist.debug.DebugFlags;
 import com.awakenedredstone.autowhitelist.entry.BaseEntry;
 import com.awakenedredstone.autowhitelist.discord.DiscordBot;
 import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
@@ -11,7 +10,6 @@ import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
@@ -23,7 +21,6 @@ import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +36,7 @@ public class CoreEvents extends ListenerAdapter {
 
     @Override
     public void onReady(@NotNull ReadyEvent event) {
-        if (DiscordBot.jda == null) {
+        if (!DiscordBot.botExists()) {
             AutoWhitelist.LOGGER.error("The bot was marked as ready but it doesn't exist, refusing to proceed");
             return;
         }
@@ -59,10 +56,10 @@ public class CoreEvents extends ListenerAdapter {
             } catch (Throwable ignored) {/**/}
         }
 
-        AutoWhitelist.LOGGER.info("Bot is in {} guilds", DiscordBot.getJDASafe().getGuilds().size());
+        AutoWhitelist.LOGGER.info("Bot is in {} guilds", DiscordBot.getJda().getGuilds().size());
 
-        DiscordBot.guild = DiscordBot.getJDASafe().getGuildById(AutoWhitelist.CONFIG.discordServerId);
-        if (DiscordBot.guild == null) {
+        DiscordBot.setGuild(DiscordBot.getJda().getGuildById(AutoWhitelist.CONFIG.discordServerId));
+        if (DiscordBot.getGuild() == null) {
             AutoWhitelist.LOGGER.error("Could not find the guild with id {}", AutoWhitelist.CONFIG.discordServerId);
             return;
         }
@@ -77,16 +74,7 @@ public class CoreEvents extends ListenerAdapter {
 
         DiscordBot.eventWaiter = new EventWaiter();
 
-        if (AutoWhitelist.ENTRY_MAP_CACHE.isEmpty()) {
-            for (BaseEntry newEntry : AutoWhitelist.CONFIG.entries) {
-                for (String roleString : newEntry.getRoles()) {
-                    Role role = DiscordBotHelper.getRoleFromString(roleString);
-                    if (role != null) {
-                        AutoWhitelist.ENTRY_MAP_CACHE.put(role.getId(), newEntry);
-                    }
-                }
-            }
-        }
+        AutoWhitelist.updateEntryMap(AutoWhitelist.CONFIG.entries);
     }
 
     @Override
@@ -102,8 +90,8 @@ public class CoreEvents extends ListenerAdapter {
             DiscordBot.eventWaiter.shutdown();
             DiscordBot.eventWaiter = null;
         }
-        DiscordBot.jda = null;
-        DiscordBot.guild = null;
+        DiscordBot.setJda(null);
+        DiscordBot.setGuild(null);
     }
 
     @Override
@@ -130,24 +118,19 @@ public class CoreEvents extends ListenerAdapter {
 
     @Override
     public void onGuildMemberRoleAdd(@NotNull GuildMemberRoleAddEvent e) {
-        if (DebugFlags.trackRoleChanges) {
-            DebugFlags.LOGGER.info("User \"{}\" have gained the role(s) \"{}\"", e.getMember().getEffectiveName(), String.join(", ", e.getRoles().stream().map(Role::getName).toList()));
-        }
-
+        AutoWhitelist.LOGGER.debug("User \"{}\" gained the role(s) \"{}\"", e.getMember().getEffectiveName(), String.join(", ", e.getRoles().stream().map(Role::getName).toList()));
         updateUser(e.getMember());
     }
 
     @Override
     public void onGuildMemberRoleRemove(@NotNull GuildMemberRoleRemoveEvent e) {
-        if (DebugFlags.trackRoleChanges) {
-            DebugFlags.LOGGER.info("User \"{}\" have lost the role(s) \"{}\"", e.getMember().getEffectiveName(), String.join(", ", e.getRoles().stream().map(Role::getName).toList()));
-        }
-
+        AutoWhitelist.LOGGER.debug("User \"{}\" lost the role(s) \"{}\"", e.getMember().getEffectiveName(), String.join(", ", e.getRoles().stream().map(Role::getName).toList()));
         updateUser(e.getMember());
     }
 
     private void updateUser(Member member) {
-        Optional<String> roleOptional = getTopRole(DiscordBotHelper.getRolesForMember(member));
+        AutoWhitelist.LOGGER.debug("Updating entry for {}", member.getEffectiveName());
+        Optional<String> roleOptional = DiscordDataProcessor.getTopRole(DiscordBotHelper.getRolesForMember(member));
 
         ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
 
@@ -169,24 +152,13 @@ public class CoreEvents extends ListenerAdapter {
         ExtendedGameProfile profile = profiles.get(0);
         BaseEntry oldEntry = AutoWhitelist.ENTRY_MAP_CACHE.get(profile.getRole());
         if (!profile.getRole().equals(role)) {
+            entry.assertValid();
             whitelist.add(new ExtendedWhitelistEntry(profile.withRole(role)));
-
-            entry.assertSafe();
             entry.updateUser(profile, oldEntry);
         }
 
         if (AutoWhitelist.getServer().getPlayerManager().isWhitelistEnabled()) {
             AutoWhitelist.getServer().kickNonWhitelistedPlayers(AutoWhitelist.getServer().getCommandSource());
         }
-    }
-
-    private Optional<String> getTopRole(List<Role> roles) {
-        for (Role r : roles) {
-            if (AutoWhitelist.ENTRY_MAP_CACHE.containsKey(r.getId())) {
-                return Optional.of(r.getId());
-            }
-        }
-
-        return Optional.empty();
     }
 }

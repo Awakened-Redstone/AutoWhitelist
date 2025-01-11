@@ -6,7 +6,6 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.util.Identifier;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -34,15 +33,15 @@ public class WhitelistEntry extends BaseEntry {
     }
 
     @Override
-    public <T extends GameProfile> boolean shouldUpdate(T profile) {
-        return false;
+    public void assertValid() {/**/}
+
+    @Override
+    public String toString() {
+        return "WhitelistEntry{}";
     }
 
     @Override
-    public void assertSafe() {
-        // Nothing to do here
+    public boolean equals(BaseEntry otherEntry) {
+        return true;
     }
-
-    @Override
-    public void purgeInvalid() {/**/}
 }

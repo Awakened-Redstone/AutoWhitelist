@@ -5,30 +5,29 @@ import com.awakenedredstone.autowhitelist.commands.api.Permission;
 import com.awakenedredstone.autowhitelist.debug.DebugFlags;
 import com.awakenedredstone.autowhitelist.discord.DiscordBot;
 import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
-import com.awakenedredstone.autowhitelist.util.TimeParser;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.util.LinedStringBuilder;
 import com.awakenedredstone.autowhitelist.util.ModData;
+import com.awakenedredstone.autowhitelist.util.TimeParser;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import net.dv8tion.jda.api.JDAInfo;
+import net.dv8tion.jda.api.entities.Role;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
+import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.WhitelistEntry;
 import net.minecraft.server.command.ServerCommandSource;
-/*? if <1.19 {*/
-/*import com.mojang.brigadier.exceptions.CommandSyntaxException;
- *//*?}*/
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
-import java.util.Collection;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -42,7 +41,7 @@ public class AutoWhitelistCommand {
             .then(
               literal("dump")
                 .executes(context -> {
-                    context.getSource().sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Generating data dump...")), false);
+                    context.getSource().sendFeedback(() -> Text.literal("Generating data dump..."), false);
                     PlayerManager playerManager = AutoWhitelist.getServer().getPlayerManager();
 
                     CompletableFuture.runAsync(() -> {
@@ -52,13 +51,14 @@ public class AutoWhitelistCommand {
                         dump.appendLine("Minecraft:");
                         dump.appendLine("  Minecraft version: ", SharedConstants.getGameVersion().getName());
                         dump.appendLine("  Java version: ", Runtime.version());
-                        dump.appendLine("  Mod loader: ", getLoaderName());
+                        dump.appendLine("  Mod loader: ", getPlatformName());
+                        if (FabricLoader.getInstance().isModLoaded("connectormod")) {
+                            dump.appendLine("  Connector version: ", ModData.getVersion("connectormod"));
+                        }
                         dump.appendLine("  Loader version: ", getLoaderVersion());
                         dump.appendLine("  Mod version: ", ModData.getVersion("autowhitelist"));
                         dump.appendLine("  Total whitelisted players: ", playerManager.getWhitelistedNames().length);
                         dump.appendLine("  Luckperms version: ", ModData.getVersion("luckperms"));
-                        Collection<ModContainer> mods = FabricLoader.getInstance().getAllMods().stream().filter(mod -> !isCoreMod(mod.getMetadata().getId())).toList();
-                        dump.appendLine("  Found ", mods.size(), " other non \"core\" mods");
 
                         dump.appendLine();
                         dump.appendLine("AutoWhitelist:");
@@ -72,21 +72,36 @@ public class AutoWhitelistCommand {
                         dump.appendLine("    Lock time: ", TimeParser.parseTime(AutoWhitelist.CONFIG.lockTime));
                         dump.appendLine("  Bot:");
                         dump.appendLine("    JDA version: ", JDAInfo.VERSION);
-                        dump.appendLine("    Bot status: ", DiscordBot.jda == null ? "offline" : "online");
-                        if (DiscordBot.jda != null) {
-                            dump.appendLine("    Gateway ping: ", DiscordBot.jda.getGatewayPing());
-                            dump.appendLine("    Rest ping: ", DiscordBot.jda.getRestPing().complete());
+                        dump.appendLine("    Bot status: ", DiscordBot.botExists() ? "online" : "offline");
+                        if (DiscordBot.botExists()) {
+                            dump.appendLine("    Gateway ping: ", DiscordBot.getJda().getGatewayPing());
+                            dump.appendLine("    Rest ping: ", DiscordBot.getJda().getRestPing().complete());
                         }
 
-                        context.getSource().sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText(dump.toString())), false);
+                        context.getSource().sendFeedback(() -> Text.literal(dump.toString()), false);
                     });
 
                     return 0;
                 }).then(
                   literal("config")
                     .executes(context -> {
-                        context.getSource().sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText(AutoWhitelist.CONFIG.toString())), false);
+                        context.getSource().sendFeedback(() -> Text.literal(AutoWhitelist.CONFIG.toString()), false);
                         return 0;
+                    })
+                ).then(
+                  literal("mods")
+                    .executes(context -> {
+                        List<ModContainer> mods = new ArrayList<>(FabricLoader.getInstance().getAllMods());
+                        mods.sort(Comparator.comparing(o -> o.getMetadata().getName()));
+                        LinedStringBuilder builder = new LinedStringBuilder("Detected ", mods.size(), " mods:");
+
+                        for (ModContainer mod : mods) {
+                            ModMetadata modMeta = mod.getMetadata();
+                            builder.appendLine(modMeta.getName()).append(" - ").append(modMeta.getVersion().getFriendlyString());
+                        }
+
+                        context.getSource().sendFeedback(() -> Text.literal(builder.toString()), false);
+                        return mods.size();
                     })
                 )
             ).then(
@@ -95,15 +110,16 @@ public class AutoWhitelistCommand {
                   literal("bot")
                     .executes(context -> {
                         ServerCommandSource source = context.getSource();
-                        source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Restarting bot, please wait.")), true);
-                        DiscordBot.getInstanceSafe().reloadBot(source);
+                        source.sendFeedback(() -> Text.literal("Restarting bot, please wait."), true);
+                        DiscordBot.getInstanceSafe().restartBot();
+                        source.sendFeedback(() -> Text.literal("The bot is now starting."), true);
                         return 0;
                     })
                 ).then(
                   literal("config")
                     .executes(context -> {
                         ServerCommandSource source = context.getSource();
-                        source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Reloading configurations.")), true);
+                        source.sendFeedback(() -> Text.literal("Reloading configurations."), true);
                         AutoWhitelist.CONFIG.load();
                         return 0;
                     })
@@ -111,30 +127,17 @@ public class AutoWhitelistCommand {
                   literal("cache")
                     .executes(context -> {
                         ServerCommandSource source = context.getSource();
-                        source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Reloading cache.")), true);
+                        source.sendFeedback(() -> Text.literal("Reloading cache."), true);
                         AutoWhitelist.loadWhitelistCache();
                         return 0;
                     })
                 )
             ).then(
-              literal("entries")
-                .executes(context -> executeEntries(context.getSource()))
+              literal("list")
+                .executes(context -> executeList(context.getSource()))
             ).then(
               literal("debug")
                 .then(
-                  literal("trackRoleChanges")
-                    .then(
-                      argument("enable", BoolArgumentType.bool())
-                        .executes(context -> {
-                            ServerCommandSource source = context.getSource();
-                            DebugFlags.trackRoleChanges = BoolArgumentType.getBool(context, "enable");
-
-                            source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Updated debug flag")), true);
-
-                            return 0;
-                        })
-                    )
-                ).then(
                   literal("trackEntryError")
                     .then(
                       argument("enable", BoolArgumentType.bool())
@@ -142,7 +145,7 @@ public class AutoWhitelistCommand {
                             ServerCommandSource source = context.getSource();
                             DebugFlags.trackEntryError = BoolArgumentType.getBool(context, "enable");
 
-                            source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText("Updated debug flag")), true);
+                            source.sendFeedback(() -> Text.literal("Updated debug flag"), true);
 
                             return 0;
                         })
@@ -152,43 +155,68 @@ public class AutoWhitelistCommand {
         );
     }
 
-    public static int executeEntries(ServerCommandSource source) /*? if <1.19 {*//*throws CommandSyntaxException*//*?}*/ {
+    public static int executeList(ServerCommandSource source) {
         if (source.getPlayer() != null) {
-            source.getPlayer().sendMessage(Stonecutter.literalText("Loading info..."), true);
+            source.getPlayer().sendMessage(Text.literal("Loading info..."), true);
         }
 
         Collection<? extends WhitelistEntry> entries = ((ExtendedWhitelist) source.getServer().getPlayerManager().getWhitelist()).getEntries();
 
-        Stream<GameProfile> profiles = entries.stream().map(v -> (GameProfile) ((ServerConfigEntryMixin<?>) v).getKey());
+        @SuppressWarnings("unchecked")
+        List<GameProfile> profiles = entries.stream()
+          .map(v -> ((ServerConfigEntryMixin<GameProfile>) v).getKey())
+          .filter(profile -> !(profile instanceof ExtendedGameProfile))
+          .toList();
 
-        StringBuilder list = new StringBuilder();
-        list.append("Non-managed players:\n");
-        profiles.filter(profile -> !(profile instanceof ExtendedGameProfile)).forEach(player -> list.append("    ").append(player.getName()).append("\n"));
-
-        profiles = entries.stream().map(v -> (GameProfile) ((ServerConfigEntryMixin<?>) v).getKey());
-
-        list.append("\n");
-        list.append("Managed players:\n");
-        profiles.filter(profile -> profile instanceof ExtendedGameProfile).forEach(player -> list.append("    ").append(player.getName()).append("\n"));
-
-        if (source.getPlayer() != null) {
-            source.getPlayer().sendMessage(Stonecutter.literalText(""), true);
+        MutableText list = Text.literal("");
+        if (!profiles.isEmpty()) {
+            list.append("Vanilla whitelist:");
+            profiles.forEach(player -> list.append("\n").append("    ").append(player.getName()));
         }
 
-        source.sendFeedback(Stonecutter.feedbackText(Stonecutter.literalText(list.toString())), false);
+        @SuppressWarnings("unchecked")
+        List<ExtendedGameProfile> extendedProfiles = entries.stream()
+          .map(v -> ((ServerConfigEntryMixin<? extends GameProfile>) v).getKey() instanceof ExtendedGameProfile profile ? profile : null)
+          .filter(Objects::nonNull)
+          .toList();
+
+        if (!extendedProfiles.isEmpty()) {
+            if (!list.getString().isEmpty()) list.append("\n");
+            list.append("Automated whitelist:");
+            extendedProfiles.forEach(player -> {
+                list.append("\n").append("    ").append(player.getName()).append(Text.literal(" - ").formatted(Formatting.DARK_GRAY));
+                if (DiscordBot.getGuild() != null) {
+                    Role role = DiscordBot.getGuild().getRoleById(player.getRole());
+                    if (role == null) {
+                        list.append(Text.literal("Invalid role").formatted(Formatting.RED));
+                    } else {
+                        list.append(Text.literal("@" + role.getName()).formatted(Formatting.GRAY));
+                    }
+                } else {
+                    list.append(Text.literal("Guild is missing").formatted(Formatting.RED));
+                }
+              }
+            );
+        }
+
+        if (source.getPlayer() != null) {
+            source.getPlayer().sendMessage(Text.literal(""), true);
+        }
+
+        source.sendFeedback(() -> list, false);
         return 1;
     }
 
-    private static boolean isCoreMod(String modid) {
-        return Pattern.compile("^fabric(-\\w+)+-v\\d$").matcher(modid).matches() || equals(modid, "java", "minecraft", "fabricloader", "autowhitelist",
-          "placeholder-api", "server_translations_api", "packet_tweaker", "fabric-language-kotlin", "fabric-api", "fabric-api-base", "mixinextras");
+    private static String getPlatformName() {
+        String loaderName = getLoaderName();
+        if (FabricLoader.getInstance().isModLoaded("connectormod")) {
+            return loaderName + " - Via Connector";
+        }
+
+        return loaderName;
     }
 
     private static String getLoaderName() {
-        if (FabricLoader.getInstance().isModLoaded("connectormod")) {
-            return "Forge - Via Connector";
-        }
-
         return switch (AutoWhitelist.getServer().getServerModName()) {
             case "fabric" -> "Fabric";
             case "quilt" -> "Quilt";
@@ -199,22 +227,12 @@ public class AutoWhitelistCommand {
     }
 
     private static String getLoaderVersion() {
-        if (FabricLoader.getInstance().isModLoaded("connectormod")) {
-            return ModData.getVersion("connectormod");
-        }
-
         return switch (AutoWhitelist.getServer().getServerModName()) {
             case "fabric" -> ModData.getVersion("fabricloader");
             case "quilt" -> ModData.getVersion("quilt_loader");
+            case "forge" -> ModData.getVersion("forge");
+            case "neoforge" -> ModData.getVersion("neoforge");
             default -> "unknown";
         };
-    }
-
-    private static boolean equals(String stringA, String... stringB) {
-        //return true if stringA equals to any of stringB
-        for (String string : stringB) {
-            if (stringA.equals(string)) return true;
-        }
-        return false;
     }
 }

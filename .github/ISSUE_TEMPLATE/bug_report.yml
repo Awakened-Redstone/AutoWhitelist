@@ -37,7 +37,7 @@ body:
         Please provide the exact version of the mod you are using. Every part of
         the version is important! If you do not know what version you are using,
         look at the file name in your `mods` folder.
-      placeholder: 'Example: 1.0.4-beta.2'
+      placeholder: 'Example: 1.0.0-beta.8'
     validations:
       required: true
   - type: input
@@ -48,7 +48,7 @@ body:
         Please provide the exact version of the mod you are using. Every part of
         the version is important! If you do not know what version you are using,
         look at the file name in your `mods` folder.
-      placeholder: '1.20.2'
+      placeholder: '1.21.4'
     validations:
       required: true
   - type: textarea
@@ -87,7 +87,7 @@ body:
     id: java
     attributes:
       label: Java version
-      placeholder: 'Example: Java 17'
+      placeholder: 'Example: Java 21'
     validations:
       required: true
   - type: textarea

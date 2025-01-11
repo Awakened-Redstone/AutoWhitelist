@@ -13,32 +13,38 @@ import java.util.List;
 import java.util.Optional;
 
 public class DiscordDataProcessor implements Runnable {
-
     @Override
     public void run() {
-        updateWhitelist();
+        try {
+            updateWhitelist();
+        } catch (Throwable e) {
+            AutoWhitelist.LOGGER.error("Failed to run the periodic whitelist check!", e);
+        }
     }
 
     public void updateWhitelist() {
-        if (DiscordBot.guild == null) return;
+        if (DiscordBot.getGuild() == null) return;
+        AutoWhitelist.LOGGER.debug("Reading trough whitelisted players");
 
         ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
 
-        List<Member> members = DiscordBot.guild.findMembers(v -> {
+        List<Member> members = DiscordBot.getGuild().findMembers(v -> {
             if (v.getUser().isBot()) return false;
             return hasRole(DiscordBotHelper.getRolesForMember(v));
         }).get();
         List<String> memberIds = members.stream().map(ISnowflake::getId).toList();
 
-        List<ExtendedGameProfile> invalidPlayers = whitelist.getEntries().stream()
+        List<ExtendedGameProfile> playersToRemove = whitelist.getEntries().stream()
           .filter(entry -> entry instanceof ExtendedWhitelistEntry)
           .map(entry -> ((ExtendedWhitelistEntry) entry).getProfile())
           .filter(profile -> !memberIds.contains(profile.getDiscordId()))
           .toList();
 
-        if (!invalidPlayers.isEmpty()) {
-            for (ExtendedGameProfile invalidPlayer : invalidPlayers) {
-                AutoWhitelist.removePlayer(invalidPlayer);
+        if (!playersToRemove.isEmpty()) {
+            AutoWhitelist.LOGGER.debug("Removing {} players that don't qualify", playersToRemove.size());
+            for (ExtendedGameProfile profile : playersToRemove) {
+                AutoWhitelist.LOGGER.debug("Removing entry for {}", profile.getName());
+                AutoWhitelist.removePlayer(profile);
             }
         }
 
@@ -62,15 +68,18 @@ public class DiscordDataProcessor implements Runnable {
 
             ExtendedGameProfile profile = profiles.get(0);
             if (!profile.getRole().equals(topRole)) {
+                AutoWhitelist.LOGGER.debug("Updating entry for {}", profile.getName());
                 BaseEntry entry = AutoWhitelist.ENTRY_MAP_CACHE.get(topRole);
                 BaseEntry oldEntry = AutoWhitelist.ENTRY_MAP_CACHE.get(profile.getRole());
+                entry.assertValid();
                 whitelist.add(new ExtendedWhitelistEntry(profile.withRole(topRole)));
-
-                entry.assertSafe();
                 entry.updateUser(profile, oldEntry);
             }
         }
-        AutoWhitelist.updateWhitelist();
+
+        if (AutoWhitelist.getServer().getPlayerManager().isWhitelistEnabled()) {
+            AutoWhitelist.getServer().kickNonWhitelistedPlayers(AutoWhitelist.getServer().getCommandSource());
+        }
     }
 
     public static boolean hasRole(List<Role> roles) {

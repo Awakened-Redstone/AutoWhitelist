@@ -8,7 +8,10 @@ import blue.endless.jankson.JsonPrimitive;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.Constants;
 import com.awakenedredstone.autowhitelist.config.source.ConfigHandler;
-import com.awakenedredstone.autowhitelist.config.source.annotation.*;
+import com.awakenedredstone.autowhitelist.config.source.annotation.NameFormat;
+import com.awakenedredstone.autowhitelist.config.source.annotation.PredicateConstraint;
+import com.awakenedredstone.autowhitelist.config.source.annotation.RangeConstraint;
+import com.awakenedredstone.autowhitelist.config.source.annotation.SkipNameFormat;
 import com.awakenedredstone.autowhitelist.entry.BaseEntry;
 import com.awakenedredstone.autowhitelist.entry.CommandEntry;
 import com.awakenedredstone.autowhitelist.entry.TeamEntry;
@@ -21,7 +24,10 @@ import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.awakenedredstone.autowhitelist.util.TimeParser;
 import com.google.common.base.CaseFormat;
 import net.dv8tion.jda.api.entities.Activity;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
@@ -31,6 +37,7 @@ import java.util.List;
 
 import static com.awakenedredstone.autowhitelist.AutoWhitelist.DATA_FIXER_LOGGER;
 
+@SuppressWarnings("CanBeFinal")
 @NameFormat(NameFormat.Case.SNAKE_CASE)
 public class AutoWhitelistConfig extends ConfigHandler {
     public AutoWhitelistConfig() {
@@ -45,6 +52,7 @@ public class AutoWhitelistConfig extends ConfigHandler {
     public String $schema = Constants.CONFIG_SCHEMA;
 
     @SkipNameFormat
+    @SuppressWarnings("unused")
     @Comment("DO NOT CHANGE, MODIFYING THIS VALUE WILL BREAK THE CONFIGURATION FILE")
     public byte CONFIG_VERSION = Constants.CONFIG_VERSION;
     @Comment("When enabled, it will keep a cache of previous registered users and will use it to automatically add the user back (if they have the proper role)")
@@ -55,10 +63,11 @@ public class AutoWhitelistConfig extends ConfigHandler {
     @PredicateConstraint("idConstraint")
     @Comment("A list of ids to allow users to use the debug commands")
     public List<Long> admins = new ArrayList<>();
+    @PredicateConstraint("nonEmptyConstraint")
+    @Comment("[DEPRECATED] The bot command prefix")
+    public String prefix = "np!";
     @Comment("The activity type shown on the bot status")
     public BotActivity botActivityType = BotActivity.PLAYING;
-    @Comment("The bot command prefix [DEPRECATED]")
-    public String prefix = "np!";
     @PredicateConstraint("timeConstraint")
     @Comment("The time in seconds the bot will lock a whitelist entry after it is added or updated, use -1 to disable changing the linked username")
     public String lockTime = "1d";
@@ -70,8 +79,13 @@ public class AutoWhitelistConfig extends ConfigHandler {
     public boolean ephemeralReplies = true;
     @Comment("""
       When enabled, the bot will cache the data of the users on discord, this reduces response time, but may cause a higher time for the bot to update info about users.
-      Disabling the cache may improve RAM usage on big server, but remember that it will increase the bot to take more time to execute actions/tasks""")
+      Disabling the cache may improve RAM usage on big server, but remember that it will cause the bot to take more time to execute actions/tasks""")
     public boolean cacheDiscordData = true;
+    @RangeConstraint(min = 0, max = 4)
+    @Comment("""
+      The permission level used for command entries. This limits what commands the mod can run, you likely don't need to change this.
+      Check https://minecraft.wiki/w/Permission_level for more about permission levels.""")
+    public int commandPermissionLevel = 3;
     @Comment("The whitelist entry settings, please refer to the documentation to set them up")
     public List<BaseEntry> entries = new ArrayList<>();
 
@@ -85,6 +99,11 @@ public class AutoWhitelistConfig extends ConfigHandler {
         if (timeString.equals("-1")) return true;
         int time = TimeParser.parseTime(timeString);
         return time >= 0;
+    }
+
+    @SuppressWarnings("unused")
+    public static boolean nonEmptyConstraint(String string) {
+        return StringUtils.isNotBlank(string);
     }
 
     public long lockTime() {
@@ -269,6 +288,10 @@ public class AutoWhitelistConfig extends ConfigHandler {
         super.load();
     }
 
+    public static Logger getLogger() {
+        return LOGGER;
+    }
+
     public enum BotActivity {
         DONT_CHANGE(null),
         CLEAR(null),
@@ -288,7 +311,7 @@ public class AutoWhitelistConfig extends ConfigHandler {
         }
 
         public Activity getActivity() {
-            return activityType == null ? null : Activity.of(getActivityType(), Stonecutter.translatableText("discord.bot.activity.message").getString());
+            return activityType == null ? null : Activity.of(getActivityType(), Text.translatable("discord.bot.activity.message").getString());
         }
     }
 }

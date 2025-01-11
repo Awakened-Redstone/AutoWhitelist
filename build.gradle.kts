@@ -1,7 +1,6 @@
 import com.modrinth.minotaur.dependencies.ModDependency
 import groovy.json.JsonSlurper
 import me.modmuss50.mpp.ReleaseType
-import me.modmuss50.mpp.platforms.discord.MessageLook
 import java.io.File
 
 plugins {
@@ -20,7 +19,7 @@ repositories {
     maven("https://m2.chew.pro/releases")
 }
 
-val CHANGELOG: String =
+val changelog: String =
     if (file("CHANGELOG.md").exists()) {
         file("CHANGELOG.md").readText()
     } else {
@@ -57,11 +56,11 @@ fun compareVer(ver1: String, ver2: String): Int {
 }
 
 fun isOrNewer(version: String): Boolean {
-    return compareVer(stonecutter.current.version, version) >= 0;
+    return compareVer(stonecutter.current.version, version) >= 0
 }
 
 fun isOrOlder(version: String): Boolean {
-    return compareVer(stonecutter.current.version, version) <= 0;
+    return compareVer(stonecutter.current.version, version) <= 0
 }
 
 fun file(path: String): File {
@@ -78,15 +77,10 @@ dependencies {
     include(modImplementation("eu.pb4:placeholder-api:${property("placeholder_api_version")}") {
         exclude(group = "net.fabricmc", module = "fabric-api")
     })
-    if (isOrOlder("1.19")) {
-        include(modImplementation("fr.catcore:server-translations-api:${property("translation_api_version")}") {
-            exclude(group = "net.fabricmc", module = "fabric-api")
-        })
-    } else {
-        include(modImplementation("xyz.nucleoid:server-translations-api:${property("translation_api_version")}") {
-            exclude(group = "net.fabricmc", module = "fabric-api")
-        })
-    }
+
+    include(modImplementation("xyz.nucleoid:server-translations-api:${property("translation_api_version")}") {
+        exclude(group = "net.fabricmc", module = "fabric-api")
+    })
 
     // Libraries
     include(api("blue.endless:jankson:${property("jankson_version")}")!!)
@@ -97,18 +91,20 @@ dependencies {
         exclude(module = "opus-java")
         exclude(module = "log4j-core")
         exclude(module = "log4j-api")
+        exclude(module = "slf4j-api")
     })
 
     // JDA dependencies
-    include("com.fasterxml.jackson.core:jackson-annotations:2.17.0")
-    include("com.fasterxml.jackson.core:jackson-databind:2.17.0")
-    include("com.fasterxml.jackson.core:jackson-core:2.17.0")
+    include("com.fasterxml.jackson.core:jackson-annotations:2.17.2")
+    include("com.fasterxml.jackson.core:jackson-databind:2.17.2")
+    include("com.fasterxml.jackson.core:jackson-core:2.17.2")
     include("com.neovisionaries:nv-websocket-client:2.14")
-    include("org.apache.commons:commons-collections4:4.4")
+    include("com.google.crypto.tink:tink:1.14.1")
     include("com.squareup.okhttp3:okhttp:4.12.0")
     include("com.squareup.okio:okio-jvm:3.6.0")
     include("com.squareup.okio:okio:3.6.0")
     include("net.sf.trove4j:core:3.1.0")
+    include("org.apache.commons:commons-collections4:4.4")
     include("org.json:json:20241224")
 
     // Chewtils
@@ -152,8 +148,7 @@ tasks.processResources {
     val versions = JsonSlurper().parse(file("versions/versions.json")) as Map<*, *>
     val map = mapOf(
         "version" to version,
-        "minecraft" to versions[minecraftVersion],
-        "fabric_api" to (if (isOrNewer("1.19.3")) "fabric-api" else "fabric")
+        "minecraft" to versions[minecraftVersion]
     )
 
     inputs.properties(map)
@@ -219,7 +214,7 @@ modrinth {
     token = providers.gradleProperty("MODRINTH_TOKEN")
     projectId = "BMaqFQAd"
     versionName = "[$minecraftVersion] $projectVersionName"
-    changelog = CHANGELOG
+    changelog = this@Build_gradle.changelog
     uploadFile = tasks.getByName("remapJar")
     gameVersions = modVersions[minecraftVersion]
     syncBodyFrom = file("README.md").readText()
@@ -236,34 +231,32 @@ publishMods {
         throw Throwable("Please update modrinth.json, missing $minecraftVersion")
     }
 
-    if (CHANGELOG.isEmpty()) {
+    if (this@Build_gradle.changelog.isEmpty()) {
         throw Throwable("Update the changelog!")
     }
 
     file = (tasks.getByName("remapJar") as AbstractArchiveTask).archiveFile
-    changelog = CHANGELOG
+    changelog = this@Build_gradle.changelog
     type = projectVersionType
     modLoaders.add("fabric")
-    displayName = projectVersionName
+    displayName = "[$minecraftVersion] $projectVersionName"
 
-    /*curseforge {
-        displayName = projectVersionName
-        projectId = "1099230"
-        projectSlug = "default-components" // Required for discord webhook
+    curseforge {
+        projectId = "575422"
+        projectSlug = "autowhitelist" // Required for discord webhook
         accessToken = providers.gradleProperty("CURSEFORGE_TOKEN")
         minecraftVersions = modVersions[minecraftVersion]
-        changelog = CHANGELOG
+        changelog = this@Build_gradle.changelog
         requires("fabric-api", "fabric-language-kotlin")
         embeds("placeholder-api")
         optional("luckperms")
-    }*/
+    }
 
     modrinth {
-        displayName = "[$minecraftVersion] $projectVersionName"
         projectId = "BMaqFQAd"
         accessToken = providers.gradleProperty("MODRINTH_TOKEN")
         minecraftVersions = modVersions[minecraftVersion]
-        changelog = CHANGELOG
+        changelog = this@Build_gradle.changelog
         requires("fabric-api", "fabric-language-kotlin")
         embeds("placeholder-api")
         optional("luckperms")
@@ -280,7 +273,7 @@ publishMods {
             content = """
                 # AutoWhitelist | $projectVersionName
                 
-                $CHANGELOG
+                ${this@Build_gradle.changelog}
             """.trimIndent()
 
             avatarUrl = "https://cdn.discordapp.com/avatars/1268055578073108574/73106a33f497ea5f2c676bcfb4816917.webp"

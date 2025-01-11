@@ -1,20 +1,20 @@
 {
-    "required": true,
-    "minVersion": "0.8",
-    "package": "com.awakenedredstone.autowhitelist.mixin",
-    "compatibilityLevel": "JAVA_8",
-    "mixins": [
-        "PlayerManagerMixin",
-        "ServerConfigEntryMixin",
-        "ServerLoginNetworkHandlerAccessor",
-        "UserCacheAccessor",
-        "compat.JanksonAcessor",
-        "compat.POJODeserializerAccessor",
-        "compat.POJODeserializerMixin"
-    ],
-    "client": [
-    ],
-    "injectors": {
-        "defaultRequire": 1
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.awakenedredstone.autowhitelist.mixin",
+  "compatibilityLevel": "JAVA_16",
+  "mixins": [
+    "PlayerManagerMixin",
+    "ServerConfigEntryMixin",
+    "ServerLoginNetworkHandlerAccessor",
+    "UserCacheAccessor",
+    "compat.JanksonAccessor",
+    "compat.POJODeserializerAccessor",
+    "compat.POJODeserializerMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
   }
 }

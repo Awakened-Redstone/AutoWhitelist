@@ -1,6 +1,7 @@
 package com.awakenedredstone.autowhitelist.util;
 
 import com.google.common.collect.ImmutableMap;
+import net.minecraft.text.Text;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +36,23 @@ public class MapBuilder<K, V> {
         public StringMap putAny(String key, Object value) {
             super.put(key, String.valueOf(value));
             return this;
+        }
+    }
+
+    public static class TextMap extends MapBuilder<String, Text> {
+        @Override
+        public TextMap put(String key, Text value) {
+            super.put(key, value);
+            return this;
+        }
+
+        public TextMap put(String key, String value) {
+            super.put(key, Text.literal(value));
+            return this;
+        }
+
+        public TextMap putAny(String key, Object value) {
+            return put(key, String.valueOf(value));
         }
     }
 }

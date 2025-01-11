@@ -1,6 +1,5 @@
 package com.awakenedredstone.autowhitelist.discord;
 
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -38,21 +37,21 @@ public class DiscordBotHelper extends DiscordBot {
 
     @Nullable
     public static Role getRoleFromString(String roleString) {
-        if (DiscordBot.getInstance() == null || DiscordBot.guild == null) {
+        if (DiscordBot.getInstance() == null || DiscordBot.getGuild() == null) {
             return null;
         }
 
         Role role;
         if (roleString.charAt(0) == '@') {
             String roleSearch = roleString.equalsIgnoreCase("@everyone") ? roleString : roleString.substring(1);
-            List<Role> roles = DiscordBot.guild.getRolesByName(roleSearch, true);
+            List<Role> roles = DiscordBot.getGuild().getRolesByName(roleSearch, true);
             if (!roles.isEmpty()) {
                 role = roles.get(0);
             } else {
                 role = null;
             }
         } else {
-            role = DiscordBot.guild.getRoleById(roleString);
+            role = DiscordBot.getGuild().getRoleById(roleString);
         }
         return role;
     }
@@ -60,15 +59,18 @@ public class DiscordBotHelper extends DiscordBot {
     public static class Feedback {
         public static EmbedBuilder defaultEmbed(Text title, Text message) {
             EmbedBuilder embedBuilder = new EmbedBuilder();
-            embedBuilder.setAuthor(getJDASafe().getSelfUser().getName(), "https://discord.com", getJDASafe().getSelfUser().getAvatarUrl());
             embedBuilder.setTitle(title.getString());
             embedBuilder.setDescription(message.getString());
-            embedBuilder.setFooter(Stonecutter.translatableText("command.feedback.message.signature").getString());
+            embedBuilder.setFooter(Text.translatable("discord.command.feedback.message.signature").getString());
             return embedBuilder;
         }
 
         public static MessageEmbed buildEmbed(Text title, Text message, MessageType type) {
             return defaultEmbed(title, message).setColor(type.hexColor).build();
+        }
+
+        public static MessageEmbed buildEmbed(Text title, Text message) {
+            return buildEmbed(title, message, MessageType.NORMAL);
         }
     }
 

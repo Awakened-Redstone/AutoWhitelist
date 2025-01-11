@@ -30,6 +30,15 @@ public class WhitelistCache extends ServerConfigList<ExtendedGameProfile, Whitel
     }
 
     @Nullable
+    public WhitelistCacheEntry get(ExtendedGameProfile key) {
+        return super.get(key);
+    }
+
+    public WhitelistCacheEntry getFromId(String id) {
+        return super.values().stream().filter(entry -> entry.getProfile().getDiscordId().equals(id)).findFirst().orElse(null);
+    }
+
+    @Nullable
     public WhitelistCacheEntry get(GameProfile key) {
         return super.get(new ExtendedGameProfile(key.getId(), key.getName(), null, null, -1));
     }

@@ -1,7 +1,22 @@
 package com.awakenedredstone.autowhitelist.util;
 
 public class LinedStringBuilder {
-    private final StringBuilder stringBuilder = new StringBuilder();
+    private final StringBuilder stringBuilder;
+
+    public LinedStringBuilder() {
+        stringBuilder = new StringBuilder();
+    }
+
+    public LinedStringBuilder(String str) {
+        stringBuilder = new StringBuilder(str);
+    }
+
+    public LinedStringBuilder(Object ...str) {
+        stringBuilder = new StringBuilder();
+        for (Object s : str) {
+            stringBuilder.append(s);
+        }
+    }
 
     public LinedStringBuilder append(String... content) {
         for (String s : content) {

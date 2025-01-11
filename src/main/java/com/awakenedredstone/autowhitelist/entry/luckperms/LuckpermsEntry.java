@@ -8,15 +8,10 @@ import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.model.user.UserManager;
 import net.luckperms.api.node.Node;
-import net.luckperms.api.node.NodeEqualityPredicate;
 import net.minecraft.util.Identifier;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public abstract class LuckpermsEntry extends BaseEntry {
     protected LuckpermsEntry(Identifier type, List<String> roles) {
@@ -53,17 +48,6 @@ public abstract class LuckpermsEntry extends BaseEntry {
             // Save the user to LuckPerms
             getUserManager().saveUser(user);
         });
-    }
-
-    @Override
-    public <T extends GameProfile> boolean shouldUpdate(T profile) {
-        try {
-            User user = getUser(profile).get(1, TimeUnit.SECONDS);
-            return user.data().contains(getNode(), NodeEqualityPredicate.EXACT).asBoolean();
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            AutoWhitelist.LOGGER.error("Failed to get permission or group data", e);
-            return false;
-        }
     }
 
     protected CompletableFuture<User> getUser(GameProfile profile) {

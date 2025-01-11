@@ -17,14 +17,10 @@ import com.awakenedredstone.autowhitelist.config.source.AnnotationParserExceptio
 import com.awakenedredstone.autowhitelist.config.source.annotation.NameFormat;
 import com.awakenedredstone.autowhitelist.config.source.annotation.SkipNameFormat;
 import com.awakenedredstone.autowhitelist.mixin.compat.POJODeserializerAccessor;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.google.common.base.CaseFormat;
 import org.jetbrains.annotations.Nullable;
-/*? if >=1.18.2 {*/
 import org.slf4j.Logger;
- /*?} else {*/
-/*import org.apache.logging.log4j.Logger;
-*//*?}*/
+import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
@@ -44,7 +40,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Marshaller implements blue.endless.jankson.api.Marshaller {
-    public static final Logger LOGGER = Stonecutter.logger(Marshaller.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(Marshaller.class);
     private static final Marshaller INSTANCE = new Marshaller();
 
     public static blue.endless.jankson.api.Marshaller getFallback() {

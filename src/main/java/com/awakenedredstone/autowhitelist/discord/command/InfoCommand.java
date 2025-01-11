@@ -4,7 +4,6 @@ import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.discord.DiscordBot;
 import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
 import com.awakenedredstone.autowhitelist.discord.api.ReplyCallback;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
@@ -13,6 +12,7 @@ import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -34,14 +34,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class InfoCommand extends SlashCommand {
     public InfoCommand() {
         this.name = "info";
-        this.help = Stonecutter.translatableText("command.description.info").getString();
+        this.help = Text.translatable("discord.command.description.info").getString();
 
         this.guildOnly = true;
     }
@@ -62,13 +61,15 @@ public class InfoCommand extends SlashCommand {
 
         Member member = event.getMember();
         if (member == null) {
-            EmbedBuilder embed = DiscordBotHelper.Feedback.defaultEmbed(
-              Stonecutter.translatableText("internal_error.title"),
-              Stonecutter.translatableText("internal_error.description")
+            AutoWhitelist.LOGGER.error("Member is null", new IllegalStateException());
+            MessageEmbed embed = DiscordBotHelper.Feedback.buildEmbed(
+              Text.translatable("discord.command.fatal.title"),
+              Text.translatable("discord.command.fatal.generic", "Member is null"),
+              DiscordBotHelper.MessageType.FATAL
             );
 
             replyCallback.editMessage((InteractionHook interactionHook) -> interactionHook
-              .editOriginal(DiscordBotHelper.<MessageEditData>buildEmbedMessage(true, embed.build()))
+              .editOriginal(DiscordBotHelper.<MessageEditData>buildEmbedMessage(true, embed))
             );
             return;
         }
@@ -86,19 +87,19 @@ public class InfoCommand extends SlashCommand {
             ExtendedGameProfile profile = entry.getProfile();
 
             EmbedBuilder embed = DiscordBotHelper.Feedback.defaultEmbed(
-              Stonecutter.translatableText("command.info.title"),
-              Stonecutter.translatableText("command.info.description")
+              Text.translatable("discord.command.info.title"),
+              Text.translatable("discord.command.info.description")
             );
 
             String[] fields = new String[]{"username", "role", "lock"};
             for (String field : fields) {
-                Text title = Stonecutter.translatableText("command.info.field.%s.title".formatted(field));
+                Text title = Text.translatable("discord.command.info.field.%s.title".formatted(field));
                 if (title.getString().isEmpty()) continue;
 
-                String descriptionKey = "command.info.field.%s.description".formatted(field);
+                String descriptionKey = "discord.command.info.field.%s.description".formatted(field);
                 Text description = switch (field) {
-                    case "username" -> Stonecutter.translatableText(descriptionKey, profile.getName());
-                    case "role" -> Stonecutter.translatableText(descriptionKey, "<@&" + profile.getRole() + ">");
+                    case "username" -> Text.translatable(descriptionKey, profile.getName());
+                    case "role" -> Text.translatable(descriptionKey, "<@&" + profile.getRole() + ">");
                     case "lock" -> {
                         String time = "future";
                         if (profile.getLockedUntil() == -1) {
@@ -107,7 +108,7 @@ public class InfoCommand extends SlashCommand {
                             time = "past";
                         }
                         String timeKey = "." + time;
-                        yield Stonecutter.translatableText(descriptionKey + timeKey, DiscordBotHelper.formatDiscordTimestamp(profile.getLockedUntil()));
+                        yield Text.translatable(descriptionKey + timeKey, DiscordBotHelper.formatDiscordTimestamp(profile.getLockedUntil()));
                     }
                     default -> Text.of("");
                 };
@@ -158,9 +159,9 @@ public class InfoCommand extends SlashCommand {
                 waitForButton(eventId, replyCallback, buttonEventHandler);
             }
         } else {
-            EmbedBuilder embed = DiscordBotHelper.Feedback.defaultEmbed(
-              Stonecutter.translatableText("command.info.missing.title"),
-              Stonecutter.translatableText("command.info.missing.description")
+            MessageEmbed embed = DiscordBotHelper.Feedback.buildEmbed(
+              Text.translatable("discord.command.info.missing.title"),
+              Text.translatable("discord.command.info.missing.description")
             );
 
             //Check if account qualifies for registration
@@ -171,21 +172,21 @@ public class InfoCommand extends SlashCommand {
 
             replyCallback.editMessage((InteractionHook interactionHook) -> interactionHook
               .editOriginal(
-                DiscordBotHelper.<MessageEditData>buildEmbedMessage(true, embed.build())
+                DiscordBotHelper.<MessageEditData>buildEmbedMessage(true, embed)
               ).setComponents(ActionRow.of(button))
             );
             ButtonEventHandler buttonEventHandler = new ButtonEventHandler().addConsumer(btnId(eventId, "register"), buttonEvent -> {
                 Modal.Builder builder = Modal.create(
                   btnId(eventId, "register"),
-                  Stonecutter.translatableText("discord.modal.register.title").getString()
+                  Text.translatable("discord.modal.register.title").getString()
                 ).addComponents(
                   ActionRow.of(
                     TextInput.create(
                       "username",
-                      Stonecutter.translatableText("discord.modal.register.input.label").getString(),
+                      Text.translatable("discord.modal.register.input.label").getString(),
                       TextInputStyle.SHORT
                     ).setPlaceholder(
-                      Stonecutter.translatableText("discord.modal.register.input.placeholder").getString()
+                      Text.translatable("discord.modal.register.input.placeholder").getString()
                     ).setRequired(true).build()
                   )
                 );

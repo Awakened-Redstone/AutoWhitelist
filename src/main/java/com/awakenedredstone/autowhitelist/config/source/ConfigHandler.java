@@ -6,13 +6,9 @@ import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.api.SyntaxError;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.Constants;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import net.fabricmc.loader.api.FabricLoader;
-/*? if >=1.18.2 {*/
 import org.slf4j.Logger;
- /*?} else {*/
-/*import org.apache.logging.log4j.Logger;
-*//*?}*/
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,7 +20,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 public abstract class ConfigHandler {
-    protected static final Logger LOGGER = Stonecutter.logger("AutoWhitelist Config");
+    protected static final Logger LOGGER = LoggerFactory.getLogger("AutoWhitelist Config");
 
     private final Map<String, Consumer<Object>> listeners = new HashMap<>();
     private final Jankson interpreter;
@@ -83,7 +79,7 @@ public abstract class ConfigHandler {
             ConfigHandler newValues = this.interpreter.fromJsonCarefully(Files.readString(this.getFileLocation(), StandardCharsets.UTF_8), this.getClass());
 
             if (newValues == null) {
-                LOGGER.error("An unknown error occurred when trying to load the configs!");
+                LOGGER.error("An unknown error occurred when trying to load the config file!");
                 return;
             }
 
