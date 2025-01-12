@@ -220,6 +220,7 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
             if (constants == null) return null;
             for (T t : constants) {
                 if (((Enum<?>) t).name().equals(name)) return t;
+                if (((Enum<?>) t).name().equals(name.toUpperCase())) return t;
             }
         }
 

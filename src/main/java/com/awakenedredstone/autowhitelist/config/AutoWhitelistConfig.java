@@ -55,37 +55,49 @@ public class AutoWhitelistConfig extends ConfigHandler {
     @SuppressWarnings("unused")
     @Comment("DO NOT CHANGE, MODIFYING THIS VALUE WILL BREAK THE CONFIGURATION FILE")
     public byte CONFIG_VERSION = Constants.CONFIG_VERSION;
+
     @Comment("When enabled, it will keep a cache of previous registered users and will use it to automatically add the user back (if they have the proper role)")
     public boolean enableWhitelistCache = true;
+
     @RangeConstraint(min = 10, max = 300)
     @Comment("The period the mod looks for outdated and invalid entries, this is an extra action to guarantee everything is updated")
     public short updatePeriod = 60;
+
     @PredicateConstraint("idConstraint")
     @Comment("A list of ids to allow users to use the debug commands")
     public List<Long> admins = new ArrayList<>();
+
     @PredicateConstraint("nonEmptyConstraint")
     @Comment("[DEPRECATED] The bot command prefix")
     public String prefix = "np!";
+
     @Comment("The activity type shown on the bot status")
     public BotActivity botActivityType = BotActivity.PLAYING;
+
     @PredicateConstraint("timeConstraint")
     @Comment("The time in seconds the bot will lock a whitelist entry after it is added or updated, use -1 to disable changing the linked username")
     public String lockTime = "1d";
+
     @Comment("Your bot token. Never share it, anyone with it has full control of the bot")
     public String token = "DO NOT SHARE THE BOT TOKEN";
+
     @RangeConstraint(min = 0, max = Long.MAX_VALUE)
     public long discordServerId = 0;
+
     @Comment("When enabled, all interactions and slash commands will be ephemeral, meaning only the user can see the response.")
     public boolean ephemeralReplies = true;
+
     @Comment("""
       When enabled, the bot will cache the data of the users on discord, this reduces response time, but may cause a higher time for the bot to update info about users.
       Disabling the cache may improve RAM usage on big server, but remember that it will cause the bot to take more time to execute actions/tasks""")
     public boolean cacheDiscordData = true;
+
     @RangeConstraint(min = 0, max = 4)
     @Comment("""
       The permission level used for command entries. This limits what commands the mod can run, you likely don't need to change this.
       Check https://minecraft.wiki/w/Permission_level for more about permission levels.""")
     public int commandPermissionLevel = 3;
+
     @Comment("The whitelist entry settings, please refer to the documentation to set them up")
     public List<BaseEntry> entries = new ArrayList<>();
 
@@ -134,125 +146,133 @@ public class AutoWhitelistConfig extends ConfigHandler {
                 DATA_FIXER_LOGGER.info("Updating config from {} to {}", configVersion, Constants.CONFIG_VERSION);
             }
 
-            if (configVersion == 1) {
-                DATA_FIXER_LOGGER.info("Updating config file from v{} to v{}", configVersion, Constants.CONFIG_VERSION);
-                JsonArray entries = config.get(JsonArray.class, "entries");
-                if (entries != null) {
-                    List<BaseEntry> entryList = new ArrayList<>();
-                    for (JsonElement jsonElement : entries) {
-                        JsonObject entryData = (JsonObject) jsonElement;
-                        String oldType = entryData.get(String.class, "type");
-                        Identifier newType;
-                        if (oldType != null) {
-                            // Don't use "case null, default ->" as the code has to work on Java 17 too
-                            newType = switch (oldType) {
-                                case "WHITELIST" -> WhitelistEntry.ID;
-                                case "COMMAND" -> CommandEntry.ID;
-                                case "TEAM" -> TeamEntry.ID;
-                                case "LUCKPERMS_GROUP" -> GroupEntry.ID;
-                                case "LUCKPERMS_PERMISSION" -> PermissionEntry.ID;
-                                default -> null;
-                            };
-                        } else {
-                            DATA_FIXER_LOGGER.warn("Could not get type of an entry, the invalid entry was removed!");
-                            continue;
+            switch (configVersion) {
+                case 1: {
+                    DATA_FIXER_LOGGER.info("Updating config file from v{} to v{}", configVersion, Constants.CONFIG_VERSION);
+                    JsonArray entries = config.get(JsonArray.class, "entries");
+                    if (entries != null) {
+                        List<BaseEntry> entryList = new ArrayList<>();
+                        for (JsonElement jsonElement : entries) {
+                            JsonObject entryData = (JsonObject) jsonElement;
+                            String oldType = entryData.get(String.class, "type");
+                            Identifier newType;
+                            if (oldType != null) {
+                                // Don't use "case null, default ->" as the code has to work on Java 17 too
+                                newType = switch (oldType) {
+                                    case "WHITELIST" -> WhitelistEntry.ID;
+                                    case "COMMAND" -> CommandEntry.ID;
+                                    case "TEAM" -> TeamEntry.ID;
+                                    case "LUCKPERMS_GROUP" -> GroupEntry.ID;
+                                    case "LUCKPERMS_PERMISSION" -> PermissionEntry.ID;
+                                    default -> null;
+                                };
+                            } else {
+                                DATA_FIXER_LOGGER.warn("Could not get type of an entry, the invalid entry was removed!");
+                                continue;
+                            }
+
+                            if (newType == null) {
+                                DATA_FIXER_LOGGER.warn("Unknown entry type [{}], can not update to new config, the invalid entry was removed!", oldType);
+                                continue;
+                            }
+
+                            DATA_FIXER_LOGGER.debug("Updating entry name from {} to {}", oldType, newType);
+
+                            entryData.remove("type");
+                            entryData.put("type", Stonecutter.getOrThrowDataResult(Identifier.CODEC.encodeStart(JanksonOps.INSTANCE, newType)));
+
+                            JsonArray rolesArray = entryData.get(JsonArray.class, "roleIds");
+
+                            if (rolesArray == null) {
+                                rolesArray = new JsonArray();
+                            }
+
+                            entryData.put("roles", rolesArray);
+                            entryData.remove("roleIds");
+
+                            entryData = BaseEntry.getDataFixers().get(newType).apply(configVersion, entryData);
+
+                            entryList.add(Stonecutter.getOrThrowDataResult(BaseEntry.CODEC.parse(JanksonOps.INSTANCE, entryData)));
                         }
 
-                        if (newType == null) {
-                            DATA_FIXER_LOGGER.warn("Unknown entry type [{}], can not update to new config, the invalid entry was removed!", oldType);
-                            continue;
+                        entries.clear();
+                        for (BaseEntry entry : entryList) {
+                            AutoWhitelist.LOGGER.debug("Encoding {}", entry.getType());
+                            entries.add(Stonecutter.getOrThrowDataResult(BaseEntry.CODEC.encodeStart(JanksonOps.INSTANCE, entry)));
                         }
 
-                        DATA_FIXER_LOGGER.debug("Updating entry name from {} to {}", oldType, newType);
-
-                        entryData.remove("type");
-                        entryData.put("type", Stonecutter.getOrThrowDataResult(Identifier.CODEC.encodeStart(JanksonOps.INSTANCE, newType)));
-
-                        JsonArray rolesArray = entryData.get(JsonArray.class, "roleIds");
-
-                        if (rolesArray == null) {
-                            rolesArray = new JsonArray();
-                        }
-
-                        entryData.put("roles", rolesArray);
-                        entryData.remove("roleIds");
-
-                        entryData = BaseEntry.getDataFixers().get(newType).apply(configVersion, entryData);
-
-                        entryList.add(Stonecutter.getOrThrowDataResult(BaseEntry.CODEC.parse(JanksonOps.INSTANCE, entryData)));
+                        config.remove("entries");
+                        config.put("entries", entries);
                     }
 
-                    entries.clear();
-                    for (BaseEntry entry : entryList) {
-                        AutoWhitelist.LOGGER.debug("Encoding {}", entry.getType());
-                        entries.add(Stonecutter.getOrThrowDataResult(BaseEntry.CODEC.encodeStart(JanksonOps.INSTANCE, entry)));
-                    }
+                    JsonObject newConfig = new JsonObject();
 
-                    config.remove("entries");
-                    config.put("entries", entries);
-                }
-
-                JsonObject newConfig = new JsonObject();
-
-                config.forEach((key, jsonElement) -> {
-                    String comment;
-                    try {
-                        Field field = this.getClass().getField(key);
-                        if (field.isAnnotationPresent(Comment.class)) {
-                            comment = field.getAnnotation(Comment.class).value();
-                        } else {
+                    config.forEach((key, jsonElement) -> {
+                        String comment;
+                        try {
+                            Field field = this.getClass().getField(key);
+                            if (field.isAnnotationPresent(Comment.class)) {
+                                comment = field.getAnnotation(Comment.class).value();
+                            } else {
+                                comment = null;
+                            }
+                        } catch (NoSuchFieldException e) {
                             comment = null;
                         }
-                    } catch (NoSuchFieldException e) {
-                        comment = null;
-                    }
 
-                    if (key.equals("CONFIG_VERSION")) {
-                        newConfig.put(key, jsonElement, comment);
-                        return;
-                    }
+                        if (key.equals("CONFIG_VERSION")) {
+                            newConfig.put(key, jsonElement, comment);
+                            return;
+                        }
 
-                    if (key.equals("admins")) {
-                        JsonArray newAdmins = new JsonArray();
-                        for (JsonElement element : (JsonArray) jsonElement) {
+                        if (key.equals("admins")) {
+                            JsonArray newAdmins = new JsonArray();
+                            for (JsonElement element : (JsonArray) jsonElement) {
+                                try {
+                                    newAdmins.add(new JsonPrimitive(Long.parseLong(((JsonPrimitive) element).asString())));
+                                } catch (Throwable e) {
+                                    DATA_FIXER_LOGGER.warn("Invalid user Id: {}, the value was removed", jsonElement);
+                                }
+                            }
+                            jsonElement = newAdmins;
+                        }
+
+                        if (key.equals("discordServerId")) {
                             try {
-                                newAdmins.add(new JsonPrimitive(Long.parseLong(((JsonPrimitive) element).asString())));
+                                jsonElement = new JsonPrimitive(Long.parseLong(((JsonPrimitive) jsonElement).asString()));
                             } catch (Throwable e) {
-                                DATA_FIXER_LOGGER.warn("Invalid user Id: {}, the value was removed", jsonElement);
+                                DATA_FIXER_LOGGER.warn("Invalid user Id: {}, replacing with default", jsonElement);
+                                jsonElement = new JsonPrimitive(0L);
                             }
                         }
-                        jsonElement = newAdmins;
+
+                        String newKey = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, key);
+                        DATA_FIXER_LOGGER.debug("Updating {} to {}", key, newKey);
+
+                        newConfig.put(newKey, jsonElement, comment);
+                    });
+
+                    config = newConfig;
+                    configVersion = config.getByte("CONFIG_VERSION", Constants.CONFIG_VERSION);
+                }
+                case 2: {
+                    String activityType = config.get(String.class, "bot_activity_type");
+                    if (activityType != null) {
+                        activityType = switch (activityType.toUpperCase()) {
+                            case "NONE" -> "DONT_CHANGE";
+                            case "RESET" -> "CLEAR";
+                            default -> activityType;
+                        };
+
+                        config.put("bot_activity_type", new JsonPrimitive(activityType));
+                    }
+                }
+                case 3: {
+                    if (!config.containsKey("cache_discord_data")) {
+                        config.put("cache_discord_data", new JsonPrimitive(cacheDiscordData));
                     }
 
-                    if (key.equals("discordServerId")) {
-                        try {
-                            jsonElement = new JsonPrimitive(Long.parseLong(((JsonPrimitive) jsonElement).asString()));
-                        } catch (Throwable e) {
-                            DATA_FIXER_LOGGER.warn("Invalid user Id: {}, replacing with default", jsonElement);
-                            jsonElement = new JsonPrimitive(0L);
-                        }
-                    }
-
-                    String newKey = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, key);
-                    DATA_FIXER_LOGGER.debug("Updating {} to {}", key, newKey);
-
-                    newConfig.put(newKey, jsonElement, comment);
-                });
-
-                config = newConfig;
-                configVersion = config.getByte("CONFIG_VERSION", Constants.CONFIG_VERSION);
-            }
-
-            if (configVersion == 2) {
-                String activityType = config.get(String.class, "bot_activity_type");
-                if (activityType != null) {
-                    activityType = switch (activityType.toUpperCase()) {
-                        case "NONE" -> "DONT_CHANGE";
-                        case "RESET" -> "CLEAR";
-                        default -> activityType;
-                    };
-
-                    config.put("bot_activity_type", new JsonPrimitive(activityType));
+                    config.put("command_permission_level", new JsonPrimitive(commandPermissionLevel));
                 }
             }
 

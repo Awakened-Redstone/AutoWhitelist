@@ -1,6 +1,7 @@
 package com.awakenedredstone.autowhitelist.config.source;
 
 import blue.endless.jankson.Jankson;
+import blue.endless.jankson.JsonElement;
 import blue.endless.jankson.JsonGrammar;
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.api.SyntaxError;
@@ -37,20 +38,10 @@ public abstract class ConfigHandler {
     }
 
     public void save() {
-        if (this.loading) return;
-
-        try {
-            if (!this.getFileLocation().getParent().toFile().exists() && !this.getFileLocation().getParent().toFile().mkdirs()) {
-                AutoWhitelist.LOGGER.error("Could not create config path!");
-                return;
-            }
-            Files.writeString(this.getFileLocation(), this.interpreter.toJson(this).toJson(Constants.GRAMMAR), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            AutoWhitelist.LOGGER.warn("Could not save config!", e);
-        }
+        save(this.interpreter.toJson(this));
     }
 
-    protected void save(JsonObject config) {
+    protected void save(JsonElement config) {
         if (this.loading) return;
 
         try {
@@ -118,8 +109,8 @@ public abstract class ConfigHandler {
         return Files.exists(this.getFileLocation());
     }
 
+    @SuppressWarnings("unchecked")
     public <T> void registerListener(String key, Consumer<T> listener) {
-        //noinspection unchecked
         this.listeners.put(key, (Consumer<Object>) listener);
     }
 
