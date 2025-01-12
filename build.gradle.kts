@@ -19,7 +19,7 @@ repositories {
     maven("https://m2.chew.pro/releases")
 }
 
-val changelog: String =
+val changelogText: String =
     if (file("CHANGELOG.md").exists()) {
         file("CHANGELOG.md").readText()
     } else {
@@ -214,7 +214,7 @@ modrinth {
     token = providers.gradleProperty("MODRINTH_TOKEN")
     projectId = "BMaqFQAd"
     versionName = "[$minecraftVersion] $projectVersionName"
-    changelog = this@Build_gradle.changelog
+    changelog = changelogText
     uploadFile = tasks.getByName("remapJar")
     gameVersions = modVersions[minecraftVersion]
     syncBodyFrom = file("README.md").readText()
@@ -231,12 +231,12 @@ publishMods {
         throw Throwable("Please update modrinth.json, missing $minecraftVersion")
     }
 
-    if (this@Build_gradle.changelog.isEmpty()) {
+    if (changelogText.isEmpty()) {
         throw Throwable("Update the changelog!")
     }
 
     file = (tasks.getByName("remapJar") as AbstractArchiveTask).archiveFile
-    changelog = this@Build_gradle.changelog
+    changelog = changelogText
     type = projectVersionType
     modLoaders.add("fabric")
     displayName = "[$minecraftVersion] $projectVersionName"
@@ -246,9 +246,9 @@ publishMods {
         projectSlug = "autowhitelist" // Required for discord webhook
         accessToken = providers.gradleProperty("CURSEFORGE_TOKEN")
         minecraftVersions = modVersions[minecraftVersion]
-        changelog = this@Build_gradle.changelog
+        changelog = changelogText
         requires("fabric-api", "fabric-language-kotlin")
-        embeds("placeholder-api")
+        embeds("text-placeholder-api")
         optional("luckperms")
     }
 
@@ -256,7 +256,7 @@ publishMods {
         projectId = "BMaqFQAd"
         accessToken = providers.gradleProperty("MODRINTH_TOKEN")
         minecraftVersions = modVersions[minecraftVersion]
-        changelog = this@Build_gradle.changelog
+        changelog = changelogText
         requires("fabric-api", "fabric-language-kotlin")
         embeds("placeholder-api")
         optional("luckperms")
@@ -273,7 +273,7 @@ publishMods {
             content = """
                 # AutoWhitelist | $projectVersionName
                 
-                ${this@Build_gradle.changelog}
+                ${changelogText}
             """.trimIndent()
 
             avatarUrl = "https://cdn.discordapp.com/avatars/1268055578073108574/73106a33f497ea5f2c676bcfb4816917.webp"
