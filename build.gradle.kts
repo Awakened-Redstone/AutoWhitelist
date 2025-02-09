@@ -19,8 +19,7 @@ repositories {
     maven("https://m2.chew.pro/releases")
 }
 
-val changelogText: String =
-    if (file("CHANGELOG.md").exists()) {
+val changelogText: String = if (file("CHANGELOG.md").exists()) {
         file("CHANGELOG.md").readText()
     } else {
         "No changelog provided"
@@ -141,7 +140,6 @@ tasks.compileJava {
     sourceCompatibility = javaVer
     targetCompatibility = javaVer
     options.encoding = "UTF-8"
-
 }
 
 tasks.processResources {
@@ -183,6 +181,7 @@ tasks.register<net.fabricmc.loom.task.RemapJarTask>("remapMavenJar") {
     inputFile.set(tasks.jar.get().archiveFile)
     archiveFileName.set("${archivesBaseName}-${version}-maven.jar")
     addNestedDependencies.set(false)
+    java.withSourcesJar()
 }
 
 tasks.build.get().dependsOn(tasks.getByName("remapMavenJar"))
@@ -205,11 +204,25 @@ if (projectVersion.contains("beta")) {
     projectVersionType = ReleaseType.BETA
 }
 
-modrinth {
+fun <T> action(action: Action<T>) : Action<T> where T : Task {
+    return action
+}
+
+val checks: Action<Task> = action {
     if (modVersions[minecraftVersion] == null) {
-        throw Throwable("Please update modrinth.json, missing $minecraftVersion")
+        throw MissingResourceException("Please update modrinth.json, missing $minecraftVersion")
     }
 
+    if (changelogText.isEmpty()) {
+        throw MissingResourceException("Update the changelog!")
+    }
+}
+
+tasks.getByName("modrinth").doFirst(checks)
+tasks.getByName("modrinthSyncBody").doFirst(checks)
+tasks.getByName("publishMods").doFirst(checks)
+
+modrinth {
     versionType = projectVersionType.toString().lowercase()
     token = providers.gradleProperty("MODRINTH_TOKEN")
     projectId = "BMaqFQAd"
@@ -227,14 +240,7 @@ modrinth {
 }
 
 publishMods {
-    if (modVersions[minecraftVersion] == null) {
-        throw Throwable("Please update modrinth.json, missing $minecraftVersion")
-    }
-
-    if (changelogText.isEmpty()) {
-        throw Throwable("Update the changelog!")
-    }
-
+    dryRun = true
     file = (tasks.getByName("remapJar") as AbstractArchiveTask).archiveFile
     changelog = changelogText
     type = projectVersionType
