@@ -11,13 +11,12 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface ReplyCallback {
-
     void sendMessage(MessageCreateData message);
     void editMessage(MessageEditData messageData);
 
     abstract class InteractionReplyCallback implements ReplyCallback {
         protected boolean isFirstRun = true;
-        protected CompletableFuture<?> lastTask;
+        public CompletableFuture<?> lastTask;
         protected Consumer<?> editConsumer;
         protected Object lastMessage;
 

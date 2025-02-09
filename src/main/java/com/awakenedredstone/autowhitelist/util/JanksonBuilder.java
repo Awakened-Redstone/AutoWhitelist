@@ -10,7 +10,7 @@ import com.awakenedredstone.autowhitelist.config.source.annotation.PredicateCons
 import com.awakenedredstone.autowhitelist.config.source.annotation.RangeConstraint;
 import com.awakenedredstone.autowhitelist.config.source.annotation.RegexConstraint;
 import com.awakenedredstone.autowhitelist.config.source.jankson.Marshaller;
-import com.awakenedredstone.autowhitelist.mixin.compat.JanksonAccessor;
+import com.awakenedredstone.autowhitelist.mixin.jackson.JanksonAccessor;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -28,7 +28,7 @@ import java.util.function.Supplier;
 
 public class JanksonBuilder {
     public static final Logger LOGGER = LoggerFactory.getLogger("Jankson Marshaller");
-    public static final Jankson JANKSON;
+    public static final Jankson DEFAULT;
 
     /**
      * Creates a Jankson instance with the default serializers and deserializers, it takes a consumer as parameter
@@ -129,11 +129,11 @@ public class JanksonBuilder {
     }
 
     static {
-        JANKSON = buildJankson();
+        DEFAULT = buildJankson();
     }
 
     public static class Builder extends Jankson.Builder {
-        protected Marshaller marshaller = new Marshaller();
+        protected final Marshaller marshaller = new Marshaller();
         boolean allowBareRootObject = false;
 
         /**
@@ -142,7 +142,7 @@ public class JanksonBuilder {
          *
          * @param clazz      The class to register a serializer for
          * @param serializer A function which takes the object and a Marshaller, and produces a serialized JsonElement
-         * @return This Builder for further modificaton.
+         * @return This Builder for further modification.
          */
         public <T> Builder registerSerializer(Class<T> clazz, BiFunction<T, blue.endless.jankson.api.Marshaller, JsonElement> serializer) {
             marshaller.registerSerializer(clazz, serializer);

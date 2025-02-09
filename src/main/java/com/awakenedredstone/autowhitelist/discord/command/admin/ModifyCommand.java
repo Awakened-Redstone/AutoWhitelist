@@ -3,10 +3,10 @@ package com.awakenedredstone.autowhitelist.discord.command.admin;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.debug.DebugFlags;
 import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
-import com.awakenedredstone.autowhitelist.discord.DiscordDataProcessor;
 import com.awakenedredstone.autowhitelist.discord.api.ReplyCallback;
 import com.awakenedredstone.autowhitelist.discord.command.RegisterCommand;
-import com.awakenedredstone.autowhitelist.entry.BaseEntry;
+import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
+import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
 import com.awakenedredstone.autowhitelist.mixin.UserCacheAccessor;
 import com.awakenedredstone.autowhitelist.util.Validation;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
@@ -28,9 +28,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -71,11 +68,10 @@ public class ModifyCommand extends SlashCommand {
         @NotNull String username = Objects.requireNonNull(event.getOption("username", OptionMapping::getAsString));
 
         String id = member.getId();
-        List<Role> roles = DiscordBotHelper.getRolesForMember(member);
 
-        boolean accepted = !Collections.disjoint(roles.stream().map(Role::getId).toList(), new ArrayList<>(AutoWhitelist.ENTRY_MAP_CACHE.keySet()));
+        Optional<Role> highestRole = DiscordBotHelper.getHighestEntryRole(member);
 
-        if (!accepted) {
+        if (highestRole.isEmpty()) {
             replyCallback.editMessage(
               DiscordBotHelper.buildEmbedMessage(true,
                 DiscordBotHelper.Feedback.buildEmbed(
@@ -108,36 +104,18 @@ public class ModifyCommand extends SlashCommand {
             }
         }
 
-        Optional<String> highestRoleOptional = DiscordDataProcessor.getTopRole(roles);
-        if (highestRoleOptional.isEmpty()) {
-            AutoWhitelist.LOGGER.error("Impossible case, the user {} has no valid role, but it passed as qualified. Please report this bug.", id, new IllegalStateException());
-            replyCallback.editMessage(
-              DiscordBotHelper.buildEmbedMessage(true,
-                DiscordBotHelper.Feedback.buildEmbed(
-                  Text.translatable("discord.command.register.fatal.title"),
-                  Text.translatable("discord.command.register.fatal", "User does not have a valid role, yet it passed as qualified. Please report this bug."),
-                  DiscordBotHelper.MessageType.FATAL
-                )
-              )
-            );
-            return;
-        }
-
-        String highestRole = highestRoleOptional.get();
-        BaseEntry entry = AutoWhitelist.ENTRY_MAP_CACHE.get(highestRole);
-        try {
-            entry.assertValid();
-        } catch (Throwable e) {
+        BaseEntryAction entry = RoleActionMap.get(highestRole.get());
+        if (!entry.isValid()) {
             replyCallback.editMessage(
               DiscordBotHelper.buildEmbedMessage(true,
                 DiscordBotHelper.Feedback.buildEmbed(
                   Text.translatable("discord.command.fail.title"),
-                  Text.translatable("discord.command.fatal.exception", e.getMessage()),
+                  Text.translatable("discord.command.fatal.generic", "Failed to validate entry action"),
                   DiscordBotHelper.MessageType.FATAL
                 )
               )
             );
-            AutoWhitelist.LOGGER.error("Failed to whitelist user, tried to assert entry but got an exception", e);
+            AutoWhitelist.LOGGER.error("Failed to whitelist user, tried to validate entry {} but failed", entry);
             return;
         }
 
@@ -168,6 +146,7 @@ public class ModifyCommand extends SlashCommand {
             return;
         }
 
+        //noinspection DuplicatedCode
         if (DebugFlags.trackEntryError) {
             ProfileLookupCallback profileLookupCallback = new ProfileLookupCallback(){
 
@@ -198,7 +177,7 @@ public class ModifyCommand extends SlashCommand {
             );
             return;
         }
-        ExtendedGameProfile extendedProfile = new ExtendedGameProfile(profile.getId(), profile.getName(), highestRole, id, AutoWhitelist.CONFIG.lockTime());
+        ExtendedGameProfile extendedProfile = new ExtendedGameProfile(profile.getId(), profile.getName(), highestRole.get().getId(), id, AutoWhitelist.CONFIG.lockTime());
         if (AutoWhitelist.getServer().getPlayerManager().getUserBanList().contains(extendedProfile)) {
             replyCallback.editMessage(
               DiscordBotHelper.buildEmbedMessage(true,

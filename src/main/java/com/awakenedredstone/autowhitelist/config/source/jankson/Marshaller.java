@@ -16,7 +16,7 @@ import blue.endless.jankson.magic.TypeMagic;
 import com.awakenedredstone.autowhitelist.config.source.AnnotationParserException;
 import com.awakenedredstone.autowhitelist.config.source.annotation.NameFormat;
 import com.awakenedredstone.autowhitelist.config.source.annotation.SkipNameFormat;
-import com.awakenedredstone.autowhitelist.mixin.compat.POJODeserializerAccessor;
+import com.awakenedredstone.autowhitelist.mixin.jackson.POJODeserializerAccessor;
 import com.google.common.base.CaseFormat;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -428,6 +428,7 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
             field.setAccessible(true);
 
             try {
+                //noinspection DuplicatedCode
                 Object child = field.get(obj);
                 String name = field.getName();
                 NameFormat nameFormat = field.getAnnotation(NameFormat.class);
@@ -458,6 +459,7 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
             field.setAccessible(true);
 
             try {
+                //noinspection DuplicatedCode
                 Object child = field.get(obj);
                 String name = field.getName();
                 NameFormat nameFormat = field.getAnnotation(NameFormat.class);

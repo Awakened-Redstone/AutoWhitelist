@@ -2,6 +2,7 @@ package com.awakenedredstone.autowhitelist.whitelist;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.mojang.authlib.GameProfile;
+import net.dv8tion.jda.api.entities.Role;
 
 import java.util.UUID;
 
@@ -31,6 +32,10 @@ public class ExtendedGameProfile extends GameProfile {
 
     public ExtendedGameProfile withRole(String newRole) {
         return new ExtendedGameProfile(getId(), getName(), newRole, discordId, lockedUntil);
+    }
+
+    public ExtendedGameProfile withRole(Role newRole) {
+        return withRole(newRole.getId());
     }
 
     public ExtendedGameProfile withLockedUntil(long newLockedUntil) {

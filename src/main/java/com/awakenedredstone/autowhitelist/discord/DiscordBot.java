@@ -181,10 +181,8 @@ public class DiscordBot extends Thread {
               .setOwnerId(0) // Why is this required ._.
               .setPrefix(AutoWhitelist.CONFIG.prefix)
               .setHelpConsumer(helpConsumer())
-              .addCommands(
-                RegisterCommand.INSTANCE.new TextCommand()
-              ).addSlashCommands(
-                RegisterCommand.INSTANCE.new SlashCommand(),
+              .addSlashCommands(
+                new RegisterCommand(),
                 new InfoCommand(),
                 new UserInfoCommand(),
                 new ModifyCommand()

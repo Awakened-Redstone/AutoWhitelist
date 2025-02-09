@@ -1,6 +1,5 @@
 package com.awakenedredstone.autowhitelist.whitelist;
 
-import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
 import com.google.gson.JsonObject;
 import net.minecraft.server.ServerConfigEntry;
 import org.jetbrains.annotations.Nullable;
@@ -30,13 +29,13 @@ public class WhitelistCacheEntry extends ServerConfigEntry<ExtendedGameProfile> 
     }
 
     public ExtendedGameProfile getProfile() {
-        return (ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey();
+        return this.getKey();
     }
 
     @Override
     protected void write(JsonObject json) {
-        json.addProperty("uuid", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getId().toString());
-        json.addProperty("name", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getName());
-        json.addProperty("discordId", ((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) this).getKey()).getDiscordId());
+        json.addProperty("uuid", this.getKey().getId().toString());
+        json.addProperty("name", this.getKey().getName());
+        json.addProperty("discordId", this.getKey().getDiscordId());
     }
 }

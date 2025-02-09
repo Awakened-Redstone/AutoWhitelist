@@ -12,12 +12,12 @@ import com.awakenedredstone.autowhitelist.config.source.annotation.NameFormat;
 import com.awakenedredstone.autowhitelist.config.source.annotation.PredicateConstraint;
 import com.awakenedredstone.autowhitelist.config.source.annotation.RangeConstraint;
 import com.awakenedredstone.autowhitelist.config.source.annotation.SkipNameFormat;
-import com.awakenedredstone.autowhitelist.entry.BaseEntry;
-import com.awakenedredstone.autowhitelist.entry.CommandEntry;
-import com.awakenedredstone.autowhitelist.entry.TeamEntry;
-import com.awakenedredstone.autowhitelist.entry.WhitelistEntry;
-import com.awakenedredstone.autowhitelist.entry.luckperms.GroupEntry;
-import com.awakenedredstone.autowhitelist.entry.luckperms.PermissionEntry;
+import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
+import com.awakenedredstone.autowhitelist.entry.implementation.CommandEntryAction;
+import com.awakenedredstone.autowhitelist.entry.implementation.VanillaTeamEntryAction;
+import com.awakenedredstone.autowhitelist.entry.implementation.WhitelistEntryAction;
+import com.awakenedredstone.autowhitelist.entry.implementation.luckperms.GroupEntryAction;
+import com.awakenedredstone.autowhitelist.entry.implementation.luckperms.PermissionEntryAction;
 import com.awakenedredstone.autowhitelist.entry.serialization.JanksonOps;
 import com.awakenedredstone.autowhitelist.util.JanksonBuilder;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
@@ -27,6 +27,7 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.lang.reflect.Field;
@@ -42,12 +43,13 @@ import static com.awakenedredstone.autowhitelist.AutoWhitelist.DATA_FIXER_LOGGER
 public class AutoWhitelistConfig extends ConfigHandler {
     public AutoWhitelistConfig() {
         super("autowhitelist", JanksonBuilder.buildJankson(builder -> {
-            builder.registerDeserializer(JsonObject.class, BaseEntry.class, (jsonObject, marshaller) -> Stonecutter.getOrThrowDataResult(BaseEntry.CODEC.parse(JanksonOps.INSTANCE, jsonObject)));
-            builder.registerSerializer(BaseEntry.class, (entryData, marshaller) -> Stonecutter.getOrThrowDataResult(BaseEntry.CODEC.encodeStart(JanksonOps.INSTANCE, entryData)));
+            builder.registerDeserializer(JsonObject.class, BaseEntryAction.class, (jsonObject, marshaller) -> Stonecutter.getOrThrowDataResult(BaseEntryAction.CODEC.parse(JanksonOps.INSTANCE, jsonObject)));
+            builder.registerSerializer(BaseEntryAction.class, (entryData, marshaller) -> Stonecutter.getOrThrowDataResult(BaseEntryAction.CODEC.encodeStart(JanksonOps.INSTANCE, entryData)));
         }));
     }
 
     @SkipNameFormat
+    @SuppressWarnings("unused")
     @Comment("The JSON schema for the config, this is for text editors to show syntax highlighting, do not change it")
     public String $schema = Constants.CONFIG_SCHEMA;
 
@@ -62,10 +64,6 @@ public class AutoWhitelistConfig extends ConfigHandler {
     @RangeConstraint(min = 10, max = 300)
     @Comment("The period the mod looks for outdated and invalid entries, this is an extra action to guarantee everything is updated")
     public short updatePeriod = 60;
-
-    @PredicateConstraint("idConstraint")
-    @Comment("A list of ids to allow users to use the debug commands")
-    public List<Long> admins = new ArrayList<>();
 
     @PredicateConstraint("nonEmptyConstraint")
     @Comment("[DEPRECATED] The bot command prefix")
@@ -99,7 +97,7 @@ public class AutoWhitelistConfig extends ConfigHandler {
     public int commandPermissionLevel = 3;
 
     @Comment("The whitelist entry settings, please refer to the documentation to set them up")
-    public List<BaseEntry> entries = new ArrayList<>();
+    public List<BaseEntryAction> entries = new ArrayList<>();
 
     @SuppressWarnings("unused")
     public static boolean idConstraint(List<Long> roles) {
@@ -151,7 +149,7 @@ public class AutoWhitelistConfig extends ConfigHandler {
                     DATA_FIXER_LOGGER.info("Updating config file from v{} to v{}", configVersion, Constants.CONFIG_VERSION);
                     JsonArray entries = config.get(JsonArray.class, "entries");
                     if (entries != null) {
-                        List<BaseEntry> entryList = new ArrayList<>();
+                        List<BaseEntryAction> entryList = new ArrayList<>();
                         for (JsonElement jsonElement : entries) {
                             JsonObject entryData = (JsonObject) jsonElement;
                             String oldType = entryData.get(String.class, "type");
@@ -159,11 +157,11 @@ public class AutoWhitelistConfig extends ConfigHandler {
                             if (oldType != null) {
                                 // Don't use "case null, default ->" as the code has to work on Java 17 too
                                 newType = switch (oldType) {
-                                    case "WHITELIST" -> WhitelistEntry.ID;
-                                    case "COMMAND" -> CommandEntry.ID;
-                                    case "TEAM" -> TeamEntry.ID;
-                                    case "LUCKPERMS_GROUP" -> GroupEntry.ID;
-                                    case "LUCKPERMS_PERMISSION" -> PermissionEntry.ID;
+                                    case "WHITELIST" -> WhitelistEntryAction.ID;
+                                    case "COMMAND" -> CommandEntryAction.ID;
+                                    case "TEAM" -> VanillaTeamEntryAction.ID;
+                                    case "LUCKPERMS_GROUP" -> GroupEntryAction.ID;
+                                    case "LUCKPERMS_PERMISSION" -> PermissionEntryAction.ID;
                                     default -> null;
                                 };
                             } else {
@@ -190,15 +188,15 @@ public class AutoWhitelistConfig extends ConfigHandler {
                             entryData.put("roles", rolesArray);
                             entryData.remove("roleIds");
 
-                            entryData = BaseEntry.getDataFixers().get(newType).apply(configVersion, entryData);
+                            entryData = BaseEntryAction.getDataFixers().get(newType).apply(configVersion, entryData);
 
-                            entryList.add(Stonecutter.getOrThrowDataResult(BaseEntry.CODEC.parse(JanksonOps.INSTANCE, entryData)));
+                            entryList.add(Stonecutter.getOrThrowDataResult(BaseEntryAction.CODEC.parse(JanksonOps.INSTANCE, entryData)));
                         }
 
                         entries.clear();
-                        for (BaseEntry entry : entryList) {
+                        for (BaseEntryAction entry : entryList) {
                             AutoWhitelist.LOGGER.debug("Encoding {}", entry.getType());
-                            entries.add(Stonecutter.getOrThrowDataResult(BaseEntry.CODEC.encodeStart(JanksonOps.INSTANCE, entry)));
+                            entries.add(Stonecutter.getOrThrowDataResult(BaseEntryAction.CODEC.encodeStart(JanksonOps.INSTANCE, entry)));
                         }
 
                         config.remove("entries");
@@ -208,17 +206,7 @@ public class AutoWhitelistConfig extends ConfigHandler {
                     JsonObject newConfig = new JsonObject();
 
                     config.forEach((key, jsonElement) -> {
-                        String comment;
-                        try {
-                            Field field = this.getClass().getField(key);
-                            if (field.isAnnotationPresent(Comment.class)) {
-                                comment = field.getAnnotation(Comment.class).value();
-                            } else {
-                                comment = null;
-                            }
-                        } catch (NoSuchFieldException e) {
-                            comment = null;
-                        }
+                        String comment = getComment(key);
 
                         if (key.equals("CONFIG_VERSION")) {
                             newConfig.put(key, jsonElement, comment);
@@ -278,17 +266,7 @@ public class AutoWhitelistConfig extends ConfigHandler {
 
             if (configVersion != Constants.CONFIG_VERSION) {
                 JsonObject newJson = new JsonObject();
-                String comment;
-                try {
-                    Field field = this.getClass().getField("$schema");
-                    if (field.isAnnotationPresent(Comment.class)) {
-                        comment = field.getAnnotation(Comment.class).value();
-                    } else {
-                        comment = null;
-                    }
-                } catch (NoSuchFieldException e) {
-                    comment = null;
-                }
+                String comment = getComment("$schema");
 
                 newJson.put("$schema", new JsonPrimitive(Constants.CONFIG_SCHEMA), comment);
                 JsonObject finalConfig = config;
@@ -306,6 +284,21 @@ public class AutoWhitelistConfig extends ConfigHandler {
         }
 
         super.load();
+    }
+
+    private @Nullable String getComment(String key) {
+        String comment;
+        try {
+            Field field = this.getClass().getField(key);
+            if (field.isAnnotationPresent(Comment.class)) {
+                comment = field.getAnnotation(Comment.class).value();
+            } else {
+                comment = null;
+            }
+        } catch (NoSuchFieldException e) {
+            comment = null;
+        }
+        return comment;
     }
 
     public static Logger getLogger() {

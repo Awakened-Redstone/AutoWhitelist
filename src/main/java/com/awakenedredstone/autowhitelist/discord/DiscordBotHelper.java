@@ -1,5 +1,6 @@
 package com.awakenedredstone.autowhitelist.discord;
 
+import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -8,11 +9,11 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageData;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import net.minecraft.text.Text;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 //TODO: Rewrite for cleaner code and better uses (1/2 - Clean up)
 public class DiscordBotHelper extends DiscordBot {
@@ -20,6 +21,10 @@ public class DiscordBotHelper extends DiscordBot {
         List<Role> roles = new ArrayList<>(member.getRoles());
         roles.add(member.getGuild().getPublicRole());
         return roles;
+    }
+
+    public static List<Role> getValidRolesForMember(Member member) {
+        return getRolesForMember(member).stream().filter(RoleActionMap::containsRole).toList();
     }
 
     @SuppressWarnings("unchecked")
@@ -35,25 +40,39 @@ public class DiscordBotHelper extends DiscordBot {
         return "<t:" + (timestamp / 1000) + ":R>";
     }
 
-    @Nullable
-    public static Role getRoleFromString(String roleString) {
+    public static Optional<Role> getRoleFromString(String roleString) {
         if (DiscordBot.getInstance() == null || DiscordBot.getGuild() == null) {
-            return null;
+            return Optional.empty();
         }
 
-        Role role;
+        Optional<Role> role;
         if (roleString.charAt(0) == '@') {
             String roleSearch = roleString.equalsIgnoreCase("@everyone") ? roleString : roleString.substring(1);
             List<Role> roles = DiscordBot.getGuild().getRolesByName(roleSearch, true);
             if (!roles.isEmpty()) {
-                role = roles.get(0);
+                role = Optional.of(roles.get(0));
             } else {
-                role = null;
+                role = Optional.empty();
             }
         } else {
-            role = DiscordBot.getGuild().getRoleById(roleString);
+            role = Optional.ofNullable(DiscordBot.getGuild().getRoleById(roleString));
         }
+
         return role;
+    }
+
+    public static Optional<Role> getHighestEntryRole(Member member) {
+        return getHighestEntryRole(getRolesForMember(member));
+    }
+
+    public static Optional<Role> getHighestEntryRole(List<Role> roles) {
+        for (Role role : roles) {
+            if (RoleActionMap.containsRole(role)) {
+                return Optional.of(role);
+            }
+        }
+
+        return Optional.empty();
     }
 
     public static class Feedback {

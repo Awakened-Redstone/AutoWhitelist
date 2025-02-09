@@ -5,12 +5,12 @@
   "compatibilityLevel": "JAVA_16",
   "mixins": [
     "PlayerManagerMixin",
-    "ServerConfigEntryMixin",
     "ServerLoginNetworkHandlerAccessor",
     "UserCacheAccessor",
-    "compat.JanksonAccessor",
-    "compat.POJODeserializerAccessor",
-    "compat.POJODeserializerMixin"
+    "WhitelistCommandMixin",
+    "jackson.JanksonAccessor",
+    "jackson.POJODeserializerAccessor",
+    "jackson.POJODeserializerMixin"
   ],
   "client": [
   ],

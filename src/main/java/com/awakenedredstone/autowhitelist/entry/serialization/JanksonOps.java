@@ -26,6 +26,7 @@ import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
+@SuppressWarnings("DataFlowIssue")
 public class JanksonOps implements DynamicOps<JsonElement> {
     public static final JanksonOps INSTANCE = new JanksonOps(false);
     public static final JanksonOps COMPRESSED = new JanksonOps(true);
@@ -172,7 +173,7 @@ public class JanksonOps implements DynamicOps<JsonElement> {
         if (map != empty()) {
             output.putAll(((JsonObject) map));
         }
-        output.put(((JsonPrimitive) key).asString(), value);
+        output.put(primitive.asString(), value);
 
         return DataResult.success(output);
     }

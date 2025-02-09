@@ -1,30 +1,31 @@
 {
-    "schemaVersion": 1,
-    "id": "autowhitelist",
-    "version": "${version}",
-    "name": "AutoWhitelist",
-    "description": "A way to automate the whitelist of a minecraft server based on discord roles",
-    "authors": [
-        "Awakened Redstone"
-    ],
-    "license": "LGPL-3",
-    "icon": "assets/autowhitelist/icon.png",
-    "environment": "server",
-    "entrypoints": {
-        "server": [
-            "com.awakenedredstone.autowhitelist.AutoWhitelist"
-        ]
-    },
-    "mixins": [
-        "autowhitelist.mixins.json"
-    ],
-    "depends": {
-        "fabricloader": "*",
-        "fabric-api": "*",
-        "fabric-language-kotlin": "*",
-        "minecraft": "${minecraft}"
-    },
-    "recommends": {
-        "luckperms": "*"
-    }
+  "schemaVersion": 1,
+  "id": "autowhitelist",
+  "version": "${version}",
+  "name": "AutoWhitelist",
+  "description": "A way to automate the whitelist of a minecraft server based on discord roles",
+  "authors": [
+    "Awakened Redstone"
+  ],
+  "license": "LGPL-3",
+  "icon": "assets/autowhitelist/icon.png",
+  "environment": "server",
+  "entrypoints": {
+    "server": [
+      "com.awakenedredstone.autowhitelist.AutoWhitelist"
+    ]
+  },
+  "accessWidener": "autowhitelist.accesswidener",
+  "mixins": [
+    "autowhitelist.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.9",
+    "fabric-api": "*",
+    "fabric-language-kotlin": "*",
+    "minecraft": "${minecraft}"
+  },
+  "recommends": {
+    "luckperms": "*"
+  }
 }

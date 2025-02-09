@@ -1,4 +1,6 @@
 {
+  "commands.autowhitelist.whitelist.remove.failed": "Could not remove %s from the whitelist. Failed to validate entry",
+
   "discord.command.description.register": "Adds the informed Minecraft account to the server whitelist",
   "discord.command.description.register.argument": "Your Minecraft username",
   "discord.command.description.info": "Shows information about your user",
@@ -53,6 +55,7 @@
   "discord.command.userinfo.title": "User info",
   "discord.command.userinfo.description": "Information about %s",
   "discord.command.userinfo.roles": "Roles",
+  "discord.command.userinfo.valid_roles": "Valid roles",
   "discord.command.userinfo.whitelisted": "Whitelisted",
   "discord.command.userinfo.qualifies": "Qualifies",
 

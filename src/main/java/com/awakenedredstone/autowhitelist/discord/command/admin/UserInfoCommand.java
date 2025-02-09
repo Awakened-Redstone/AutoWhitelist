@@ -22,8 +22,6 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.minecraft.text.Text;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,6 +51,7 @@ public class UserInfoCommand extends SlashCommand {
         ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
         Member member = event.getOption("user", event.getMember(), OptionMapping::getAsMember);
 
+        //noinspection DuplicatedCode
         if (member == null) {
             AutoWhitelist.LOGGER.error("Member is null", new IllegalStateException());
             MessageEmbed embed = DiscordBotHelper.Feedback.buildEmbed(
@@ -64,13 +63,15 @@ public class UserInfoCommand extends SlashCommand {
             replyCallback.editMessage((InteractionHook interactionHook) -> interactionHook
               .editOriginal(DiscordBotHelper.<MessageEditData>buildEmbedMessage(true, embed))
             );
+
             return;
         }
 
         Optional<ExtendedWhitelistEntry> whitelistedAccount = RegisterCommand.getWhitelistedAccount(member.getId(), whitelist);
 
         List<Role> roles = DiscordBotHelper.getRolesForMember(member);
-        boolean accepted = !Collections.disjoint(roles.stream().map(Role::getId).toList(), new ArrayList<>(AutoWhitelist.ENTRY_MAP_CACHE.keySet()));
+        List<Role> validRoles = DiscordBotHelper.getValidRolesForMember(member);
+        boolean accepted = DiscordBotHelper.getHighestEntryRole(roles).isPresent();
 
         EmbedBuilder embed = DiscordBotHelper.Feedback.defaultEmbed(
           Text.translatable("discord.command.userinfo.title"),
@@ -78,12 +79,19 @@ public class UserInfoCommand extends SlashCommand {
         );
 
         embed.addField(Text.translatable("discord.command.userinfo.roles").getString(), String.join(" ", roles.stream().map(IMentionable::getAsMention).toList()), false);
+        embed.addField(
+          Text.translatable("discord.command.userinfo.valid_roles").getString(),
+          validRoles.isEmpty() ? "None" : String.join(" ", validRoles.stream().map(IMentionable::getAsMention).toList()),
+          false
+        );
         embed.addField(Text.translatable("discord.command.userinfo.whitelisted").getString(), String.valueOf(whitelistedAccount.isPresent()), true);
         embed.addField(Text.translatable("discord.command.userinfo.qualifies").getString(), String.valueOf(accepted), true);
 
         if (whitelistedAccount.isPresent()) {
             ExtendedWhitelistEntry entry = whitelistedAccount.get();
             ExtendedGameProfile profile = entry.getProfile();
+
+            //noinspection DuplicatedCode
             String[] fields = new String[]{"username", "role", "lock"};
             for (String field : fields) {
                 Text title = Text.translatable("discord.command.info.field.%s.title".formatted(field));

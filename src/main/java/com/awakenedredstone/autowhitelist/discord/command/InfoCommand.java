@@ -28,10 +28,7 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -48,12 +45,11 @@ public class InfoCommand extends SlashCommand {
     @Override
     @SuppressWarnings("DuplicatedCode")
     protected void execute(SlashCommandEvent event) {
-        boolean ephemeral = AutoWhitelist.CONFIG.ephemeralReplies;
         ReplyCallback.InteractionReplyCallback replyCallback = new ReplyCallback.InteractionReplyCallback() {
 
             @Override
             public void acknowledge() {
-                lastTask = event.deferReply(ephemeral).submit();
+                lastTask = event.deferReply(AutoWhitelist.CONFIG.ephemeralReplies).submit();
             }
         };
 
@@ -71,6 +67,7 @@ public class InfoCommand extends SlashCommand {
             replyCallback.editMessage((InteractionHook interactionHook) -> interactionHook
               .editOriginal(DiscordBotHelper.<MessageEditData>buildEmbedMessage(true, embed))
             );
+
             return;
         }
 
@@ -91,6 +88,7 @@ public class InfoCommand extends SlashCommand {
               Text.translatable("discord.command.info.description")
             );
 
+            //noinspection DuplicatedCode
             String[] fields = new String[]{"username", "role", "lock"};
             for (String field : fields) {
                 Text title = Text.translatable("discord.command.info.field.%s.title".formatted(field));
@@ -165,10 +163,8 @@ public class InfoCommand extends SlashCommand {
             );
 
             //Check if account qualifies for registration
-            List<Role> roles = DiscordBotHelper.getRolesForMember(member);
-            boolean accepted = !Collections.disjoint(roles.stream().map(Role::getId).toList(), new ArrayList<>(AutoWhitelist.ENTRY_MAP_CACHE.keySet()));
-
-            Button button = Button.success(btnId(eventId, "register"), "Register").withDisabled(!accepted);
+            Optional<Role> highestRole = DiscordBotHelper.getHighestEntryRole(member);
+            Button button = Button.success(btnId(eventId, "register"), "Register").withDisabled(highestRole.isEmpty());
 
             replyCallback.editMessage((InteractionHook interactionHook) -> interactionHook
               .editOriginal(

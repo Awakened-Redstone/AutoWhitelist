@@ -1,4 +1,4 @@
-package com.awakenedredstone.autowhitelist.mixin.compat;
+package com.awakenedredstone.autowhitelist.mixin.jackson;
 
 import blue.endless.jankson.annotation.SerializedName;
 import blue.endless.jankson.impl.POJODeserializer;

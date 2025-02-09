@@ -119,6 +119,8 @@ dependencies {
 }
 
 loom {
+    accessWidenerPath.set(rootProject.file("src/main/resources/$archivesBaseName.accesswidener"))
+
     runConfigs.getByName("server") {
         ideConfigGenerated(true)
         runDir("../../run")
@@ -137,7 +139,7 @@ if (stonecutter.current.isActive) {
 }
 
 tasks.compileJava {
-    sourceCompatibility = javaVer
+    sourceCompatibility = "17"
     targetCompatibility = javaVer
     options.encoding = "UTF-8"
 }

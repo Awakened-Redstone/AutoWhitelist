@@ -4,7 +4,6 @@ import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.commands.api.Permission;
 import com.awakenedredstone.autowhitelist.debug.DebugFlags;
 import com.awakenedredstone.autowhitelist.discord.DiscordBot;
-import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
 import com.awakenedredstone.autowhitelist.util.LinedStringBuilder;
 import com.awakenedredstone.autowhitelist.util.ModData;
 import com.awakenedredstone.autowhitelist.util.TimeParser;
@@ -20,6 +19,7 @@ import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.PlayerManager;
+import net.minecraft.server.ServerConfigEntry;
 import net.minecraft.server.WhitelistEntry;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
@@ -162,9 +162,8 @@ public class AutoWhitelistCommand {
 
         Collection<? extends WhitelistEntry> entries = ((ExtendedWhitelist) source.getServer().getPlayerManager().getWhitelist()).getEntries();
 
-        @SuppressWarnings("unchecked")
         List<GameProfile> profiles = entries.stream()
-          .map(v -> ((ServerConfigEntryMixin<GameProfile>) v).getKey())
+          .map(ServerConfigEntry::getKey)
           .filter(profile -> !(profile instanceof ExtendedGameProfile))
           .toList();
 
@@ -174,9 +173,8 @@ public class AutoWhitelistCommand {
             profiles.forEach(player -> list.append("\n").append("    ").append(player.getName()));
         }
 
-        @SuppressWarnings("unchecked")
         List<ExtendedGameProfile> extendedProfiles = entries.stream()
-          .map(v -> ((ServerConfigEntryMixin<? extends GameProfile>) v).getKey() instanceof ExtendedGameProfile profile ? profile : null)
+          .map(entry -> entry.getKey() instanceof ExtendedGameProfile profile ? profile : null)
           .filter(Objects::nonNull)
           .toList();
 
@@ -204,7 +202,7 @@ public class AutoWhitelistCommand {
         }
 
         source.sendFeedback(() -> list, false);
-        return 1;
+        return extendedProfiles.size();
     }
 
     private static String getPlatformName() {

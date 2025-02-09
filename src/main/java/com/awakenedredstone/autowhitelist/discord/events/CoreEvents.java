@@ -1,11 +1,11 @@
 package com.awakenedredstone.autowhitelist.discord.events;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.awakenedredstone.autowhitelist.entry.BaseEntry;
+import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.discord.DiscordBot;
 import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
-import com.awakenedredstone.autowhitelist.discord.DiscordDataProcessor;
-import com.awakenedredstone.autowhitelist.mixin.ServerConfigEntryMixin;
+import com.awakenedredstone.autowhitelist.discord.TimedWhitelistChecker;
+import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
@@ -66,7 +66,7 @@ public class CoreEvents extends ListenerAdapter {
 
         AutoWhitelist.LOGGER.info("Parsing registered users.");
         try {
-            DiscordBot.scheduledUpdate = DiscordBot.EXECUTOR_SERVICE.scheduleWithFixedDelay(new DiscordDataProcessor(), 0, AutoWhitelist.CONFIG.updatePeriod, TimeUnit.SECONDS);
+            DiscordBot.scheduledUpdate = DiscordBot.EXECUTOR_SERVICE.scheduleWithFixedDelay(new TimedWhitelistChecker(), 0, AutoWhitelist.CONFIG.updatePeriod, TimeUnit.SECONDS);
             AutoWhitelist.LOGGER.info("Load complete.");
         } catch (Throwable e) {
             AutoWhitelist.LOGGER.error("Failed to schedule the discord data processor on an interval", e);
@@ -100,9 +100,9 @@ public class CoreEvents extends ListenerAdapter {
         ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
 
         List<ExtendedGameProfile> players = whitelist.getEntries().stream()
-            .filter(entry -> ((ServerConfigEntryMixin<?>) entry).getKey() instanceof ExtendedGameProfile)
-            .filter(entry -> user.getId().equals(((ExtendedGameProfile) ((ServerConfigEntryMixin<?>) entry).getKey()).getDiscordId()))
-            .map(v -> (ExtendedGameProfile) ((ServerConfigEntryMixin<?>) v).getKey())
+            .filter(entry -> entry.getKey() instanceof ExtendedGameProfile)
+            .filter(entry -> user.getId().equals(((ExtendedGameProfile) entry.getKey()).getDiscordId()))
+            .map(entry -> (ExtendedGameProfile) entry.getKey())
             .toList();
 
         if (players.size() > 1) {
@@ -130,7 +130,7 @@ public class CoreEvents extends ListenerAdapter {
 
     private void updateUser(Member member) {
         AutoWhitelist.LOGGER.debug("Updating entry for {}", member.getEffectiveName());
-        Optional<String> roleOptional = DiscordDataProcessor.getTopRole(DiscordBotHelper.getRolesForMember(member));
+        Optional<Role> role = DiscordBotHelper.getHighestEntryRole(DiscordBotHelper.getRolesForMember(member));
 
         ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
 
@@ -142,18 +142,26 @@ public class CoreEvents extends ListenerAdapter {
             return;
         }
 
-        if (roleOptional.isEmpty()) {
-            ExtendedGameProfile profile = profiles.get(0);
+        ExtendedGameProfile profile = profiles.get(0);
+        if (role.isEmpty()) {
             AutoWhitelist.removePlayer(profile);
             return;
         }
-        String role = roleOptional.get();
-        BaseEntry entry = AutoWhitelist.ENTRY_MAP_CACHE.get(role);
-        ExtendedGameProfile profile = profiles.get(0);
-        BaseEntry oldEntry = AutoWhitelist.ENTRY_MAP_CACHE.get(profile.getRole());
-        if (!profile.getRole().equals(role)) {
-            entry.assertValid();
-            whitelist.add(new ExtendedWhitelistEntry(profile.withRole(role)));
+
+        BaseEntryAction entry = RoleActionMap.get(role.get());
+        BaseEntryAction oldEntry = RoleActionMap.getNullable(profile.getRole());
+        if (!profile.getRole().equals(role.get().getId())) {
+            if (oldEntry != null && !oldEntry.isValid()) {
+                AutoWhitelist.LOGGER.error("Failed to validate old entry {}! Could not update user whitelist for {}", oldEntry, member.getEffectiveName());
+                return;
+            }
+
+            if (!entry.isValid()) {
+                AutoWhitelist.LOGGER.error("Failed to validate new entry {}! Could not update user whitelist for {}", entry, member.getEffectiveName());
+                return;
+            }
+
+            whitelist.add(new ExtendedWhitelistEntry(profile.withRole(role.get())));
             entry.updateUser(profile, oldEntry);
         }
 
