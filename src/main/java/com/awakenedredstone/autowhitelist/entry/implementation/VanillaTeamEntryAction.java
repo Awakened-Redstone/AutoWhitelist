@@ -1,8 +1,9 @@
-package com.awakenedredstone.autowhitelist.entry;
+package com.awakenedredstone.autowhitelist.entry.implementation;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
+import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
-import com.mojang.authlib.GameProfile;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.scoreboard.ServerScoreboard;
@@ -12,31 +13,33 @@ import net.minecraft.util.Identifier;
 import java.util.List;
 import java.util.Objects;
 
-public class TeamEntry extends BaseEntry {
+public class VanillaTeamEntryAction extends BaseEntryAction {
     public static final Identifier ID = AutoWhitelist.id("team");
-    public static final /*? if <1.20.5 {*//*Codec*//*?} else {*/MapCodec/*?}*/<TeamEntry> CODEC = Stonecutter.entryCodec(instance ->
+    public static final /*? if <1.20.5 {*//*Codec*//*?} else {*/MapCodec/*?}*/<VanillaTeamEntryAction> CODEC = Stonecutter.entryCodec(instance ->
       instance.group(
-        Codec.STRING.listOf().fieldOf("roles").forGetter(BaseEntry::getRoles),
-        Identifier.CODEC.fieldOf("type").forGetter(BaseEntry::getType),
+        Codec.STRING.listOf().fieldOf("roles").forGetter(BaseEntryAction::getRoles),
+        Identifier.CODEC.fieldOf("type").forGetter(BaseEntryAction::getType),
         Codec.STRING.fieldOf("associate_team").codec().fieldOf("execute").forGetter(team -> team.team)
-      ).apply(instance, TeamEntry::new)
+      ).apply(instance, VanillaTeamEntryAction::new)
     );
     private final String team;
 
-    public TeamEntry(List<String> roles, Identifier type, String team) {
+    public VanillaTeamEntryAction(List<String> roles, Identifier type, String team) {
         super(type, roles);
         this.team = team;
     }
 
     @Override
-    public void assertValid() {
+    public boolean isValid() {
         if (AutoWhitelist.getServer().getScoreboard().getTeam(team) == null) {
-            throw new AssertionError(String.format("The team \"%s\" does not exist!", team));
+            LOGGER.error("The team \"{}\" does not exist!", team);
+            return false;
         }
+        return true;
     }
 
     @Override
-    public <T extends GameProfile> void registerUser(T profile) {
+    public void registerUser(ExtendedGameProfile profile) {
         ServerScoreboard scoreboard = AutoWhitelist.getServer().getScoreboard();
         Team serverTeam = scoreboard.getTeam(team);
         /*? if >=1.20.3 {*/
@@ -47,7 +50,7 @@ public class TeamEntry extends BaseEntry {
     }
 
     @Override
-    public <T extends GameProfile> void removeUser(T profile) {
+    public void removeUser(ExtendedGameProfile profile) {
         /*? if >=1.20.3 {*/
         AutoWhitelist.getServer().getScoreboard().clearTeam(profile.getName());
         /*?} else {*/
@@ -63,8 +66,8 @@ public class TeamEntry extends BaseEntry {
     }
 
     @Override
-    public boolean equals(BaseEntry otherEntry) {
-        TeamEntry other = (TeamEntry) otherEntry;
+    public boolean equals(BaseEntryAction otherEntry) {
+        VanillaTeamEntryAction other = (VanillaTeamEntryAction) otherEntry;
         return Objects.equals(team, other.team);
     }
 }

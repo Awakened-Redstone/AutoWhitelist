@@ -1,7 +1,7 @@
-package com.awakenedredstone.autowhitelist.entry.luckperms;
+package com.awakenedredstone.autowhitelist.entry.implementation.luckperms;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.awakenedredstone.autowhitelist.entry.BaseEntry;
+import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -13,18 +13,18 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 import java.util.Objects;
 
-public class GroupEntry extends LuckpermsEntry {
+public class GroupEntryAction extends LuckpermsEntryAction {
     public static final Identifier ID = AutoWhitelist.id("luckperms/group");
-    public static final /*? if <1.20.5 {*//*Codec*//*?} else {*/MapCodec/*?}*/<GroupEntry> CODEC = Stonecutter.entryCodec(instance ->
+    public static final /*? if <1.20.5 {*//*Codec*//*?} else {*/MapCodec/*?}*/<GroupEntryAction> CODEC = Stonecutter.entryCodec(instance ->
       instance.group(
-        Codec.STRING.listOf().fieldOf("roles").forGetter(BaseEntry::getRoles),
-        Identifier.CODEC.fieldOf("type").forGetter(BaseEntry::getType),
+        Codec.STRING.listOf().fieldOf("roles").forGetter(BaseEntryAction::getRoles),
+        Identifier.CODEC.fieldOf("type").forGetter(BaseEntryAction::getType),
         Codec.STRING.fieldOf("group").codec().fieldOf("execute").forGetter(group -> group.group)
-      ).apply(instance, GroupEntry::new)
+      ).apply(instance, GroupEntryAction::new)
     );
     private final String group;
 
-    public GroupEntry(List<String> roles, Identifier type, String group) {
+    public GroupEntryAction(List<String> roles, Identifier type, String group) {
         super(type, roles);
         this.group = group;
     }
@@ -35,10 +35,13 @@ public class GroupEntry extends LuckpermsEntry {
     }
 
     @Override
-    public void assertValid() {
+    public boolean isValid() {
         if (StringUtils.isBlank(group)) {
-            throw new IllegalArgumentException("Group can not be blank!");
+            LOGGER.error("Group can not be blank!");
+            return false;
         }
+
+        return true;
     }
 
     @Override
@@ -49,8 +52,8 @@ public class GroupEntry extends LuckpermsEntry {
     }
 
     @Override
-    public boolean equals(BaseEntry otherEntry) {
-        GroupEntry other = (GroupEntry) otherEntry;
+    public boolean equals(BaseEntryAction otherEntry) {
+        GroupEntryAction other = (GroupEntryAction) otherEntry;
         return Objects.equals(group, other.group);
     }
 }

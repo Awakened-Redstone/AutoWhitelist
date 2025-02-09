@@ -1,7 +1,8 @@
-package com.awakenedredstone.autowhitelist.entry.luckperms;
+package com.awakenedredstone.autowhitelist.entry.implementation.luckperms;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.awakenedredstone.autowhitelist.entry.BaseEntry;
+import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.mojang.authlib.GameProfile;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
@@ -13,8 +14,8 @@ import net.minecraft.util.Identifier;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public abstract class LuckpermsEntry extends BaseEntry {
-    protected LuckpermsEntry(Identifier type, List<String> roles) {
+public abstract class LuckpermsEntryAction extends BaseEntryAction {
+    protected LuckpermsEntryAction(Identifier type, List<String> roles) {
         super(type, roles);
     }
 
@@ -29,7 +30,7 @@ public abstract class LuckpermsEntry extends BaseEntry {
     }
 
     @Override
-    public <T extends GameProfile> void registerUser(T profile) {
+    public void registerUser(ExtendedGameProfile profile) {
         getUser(profile).whenComplete((user, throwable) -> {
             // Add the LuckPerms group/permission to the user
             user.data().add(getNode());
@@ -40,7 +41,7 @@ public abstract class LuckpermsEntry extends BaseEntry {
     }
 
     @Override
-    public <T extends GameProfile> void removeUser(T profile) {
+    public void removeUser(ExtendedGameProfile profile) {
         getUser(profile).whenComplete((user, throwable) -> {
             // Remove the LuckPerms group/permission from the user
             user.data().remove(getNode());

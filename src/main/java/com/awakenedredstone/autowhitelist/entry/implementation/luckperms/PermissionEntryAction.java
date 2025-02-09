@@ -1,7 +1,7 @@
-package com.awakenedredstone.autowhitelist.entry.luckperms;
+package com.awakenedredstone.autowhitelist.entry.implementation.luckperms;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.awakenedredstone.autowhitelist.entry.BaseEntry;
+import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -13,18 +13,18 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 import java.util.Objects;
 
-public class PermissionEntry extends LuckpermsEntry {
+public class PermissionEntryAction extends LuckpermsEntryAction {
     public static final Identifier ID = AutoWhitelist.id("luckperms/permission");
-    public static final /*? if <1.20.5 {*//*Codec*//*?} else {*/MapCodec/*?}*/<PermissionEntry> CODEC = Stonecutter.entryCodec(instance ->
+    public static final /*? if <1.20.5 {*//*Codec*//*?} else {*/MapCodec/*?}*/<PermissionEntryAction> CODEC = Stonecutter.entryCodec(instance ->
       instance.group(
-        Codec.STRING.listOf().fieldOf("roles").forGetter(BaseEntry::getRoles),
-        Identifier.CODEC.fieldOf("type").forGetter(BaseEntry::getType),
+        Codec.STRING.listOf().fieldOf("roles").forGetter(BaseEntryAction::getRoles),
+        Identifier.CODEC.fieldOf("type").forGetter(BaseEntryAction::getType),
         Codec.STRING.fieldOf("permission").codec().fieldOf("execute").forGetter(permission -> permission.permission)
-      ).apply(instance, PermissionEntry::new)
+      ).apply(instance, PermissionEntryAction::new)
     );
     private final String permission;
 
-    public PermissionEntry(List<String> roles, Identifier type, String permission) {
+    public PermissionEntryAction(List<String> roles, Identifier type, String permission) {
         super(type, roles);
         this.permission = permission;
     }
@@ -35,10 +35,13 @@ public class PermissionEntry extends LuckpermsEntry {
     }
 
     @Override
-    public void assertValid() {
+    public boolean isValid() {
         if (StringUtils.isBlank(permission)) {
-            throw new IllegalArgumentException("PermissionEntry can not be blank!");
+            LOGGER.error("PermissionEntry can not be blank!");
+            return false;
         }
+
+        return true;
     }
 
     @Override
@@ -49,8 +52,8 @@ public class PermissionEntry extends LuckpermsEntry {
     }
 
     @Override
-    public boolean equals(BaseEntry otherEntry) {
-        PermissionEntry other = (PermissionEntry) otherEntry;
+    public boolean equals(BaseEntryAction otherEntry) {
+        PermissionEntryAction other = (PermissionEntryAction) otherEntry;
         return Objects.equals(permission, other.permission);
     }
 }
