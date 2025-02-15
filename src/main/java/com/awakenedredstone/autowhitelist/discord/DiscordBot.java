@@ -178,7 +178,7 @@ public class DiscordBot extends Thread {
 
         try {
             CommandClientBuilder commandBuilder = new CommandClientBuilder()
-              .setOwnerId(0) // Why is this required ._.
+              .setOwnerId(0) // Why is this required?
               .addSlashCommands(
                 new RegisterCommand(),
                 new InfoCommand(),
