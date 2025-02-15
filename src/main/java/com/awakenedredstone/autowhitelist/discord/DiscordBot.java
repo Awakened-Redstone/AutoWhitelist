@@ -179,8 +179,6 @@ public class DiscordBot extends Thread {
         try {
             CommandClientBuilder commandBuilder = new CommandClientBuilder()
               .setOwnerId(0) // Why is this required ._.
-              .setPrefix(AutoWhitelist.CONFIG.prefix)
-              .setHelpConsumer(helpConsumer())
               .addSlashCommands(
                 new RegisterCommand(),
                 new InfoCommand(),
@@ -217,52 +215,5 @@ public class DiscordBot extends Thread {
         instance = null;
         stopBot(true);
         super.interrupt();
-    }
-
-    private Consumer<CommandEvent> helpConsumer() {
-        return (event) -> {
-            EmbedBuilder builder = new EmbedBuilder().setAuthor(getJda().getSelfUser().getName(), "https://discord.com", getJda().getSelfUser().getAvatarUrl());
-            Command.Category category;
-            List<MessageEmbed.Field> fields = new ArrayList<>();
-            for (Command command : event.getClient().getCommands()) {
-                if ((!command.isHidden() && !command.isOwnerCommand()) || event.isOwner()) {
-
-                    String command_ = "\n`" +
-                      event.getClient().getPrefix() +
-                      (AutoWhitelist.CONFIG.prefix == null ? " " : "") +
-                      command.getName() +
-                      (command.getArguments() == null ? "" : " " + command.getArguments()) +
-                      "` __ __ | __ __ " + command.getHelp();
-
-                    category = command.getCategory();
-                    fields.add(new MessageEmbed.Field(category == null ? "No Category" : category.getName(), command_, false));
-                }
-            }
-
-            List<MessageEmbed.Field> mergedFields = new ArrayList<>();
-            String commands = "";
-            String lastName = "";
-            for (MessageEmbed.Field field : fields) {
-                if (Objects.equals(field.getName(), lastName)) {
-                    commands += "\n" + field.getValue();
-                    if (fields.get(fields.size() - 1) == field) {
-                        mergedFields.add(new MessageEmbed.Field(lastName, commands, false));
-                    }
-                } else if (!commands.isEmpty()) {
-                    mergedFields.add(new MessageEmbed.Field(lastName, commands, false));
-                    commands = "";
-                    commands += "\n" + field.getValue();
-                    lastName = field.getName();
-                } else if (fields.size() > 1) {
-                    commands += field.getValue();
-                    lastName = field.getName();
-                } else {
-                    mergedFields.add(new MessageEmbed.Field(field.getName(), field.getValue(), false));
-                }
-            }
-
-            mergedFields.forEach(builder::addField);
-            event.reply(builder.build());
-        };
     }
 }
