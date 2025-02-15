@@ -279,7 +279,7 @@ public class AutoWhitelistConfig extends ConfigHandler {
                 DATA_FIXER_LOGGER.info("Saving updated config");
                 this.save(newJson);
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             DATA_FIXER_LOGGER.error("The config updater crashed!", e);
         }
 
