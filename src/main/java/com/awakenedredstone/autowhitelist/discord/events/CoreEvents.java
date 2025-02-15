@@ -4,7 +4,7 @@ import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.discord.DiscordBot;
 import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
-import com.awakenedredstone.autowhitelist.discord.TimedWhitelistChecker;
+import com.awakenedredstone.autowhitelist.discord.PeriodicWhitelistChecker;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
@@ -66,10 +66,10 @@ public class CoreEvents extends ListenerAdapter {
 
         AutoWhitelist.LOGGER.info("Parsing registered users.");
         try {
-            DiscordBot.scheduledUpdate = DiscordBot.EXECUTOR_SERVICE.scheduleWithFixedDelay(new TimedWhitelistChecker(), 0, AutoWhitelist.CONFIG.updatePeriod, TimeUnit.SECONDS);
+            DiscordBot.scheduledUpdate = DiscordBot.EXECUTOR_SERVICE.scheduleWithFixedDelay(new PeriodicWhitelistChecker(), 0, AutoWhitelist.CONFIG.updatePeriod, TimeUnit.SECONDS);
             AutoWhitelist.LOGGER.info("Load complete.");
         } catch (Throwable e) {
-            AutoWhitelist.LOGGER.error("Failed to schedule the discord data processor on an interval", e);
+            AutoWhitelist.LOGGER.error("Failed to schedule the periodic whitelist checker", e);
         }
 
         DiscordBot.eventWaiter = new EventWaiter();

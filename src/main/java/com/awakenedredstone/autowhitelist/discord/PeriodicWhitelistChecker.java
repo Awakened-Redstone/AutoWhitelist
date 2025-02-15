@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-public class TimedWhitelistChecker implements Runnable {
+public class PeriodicWhitelistChecker implements Runnable {
     @Override
     public void run() {
         try {
