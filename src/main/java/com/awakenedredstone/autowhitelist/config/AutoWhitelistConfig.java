@@ -86,9 +86,7 @@ public class AutoWhitelistConfig extends ConfigHandler {
     @Comment("When enabled, all interactions and slash commands will be ephemeral, meaning only the user can see the response.")
     public boolean ephemeralReplies = true;
 
-    @Comment("""
-      When enabled, the bot will cache the data of the users on discord, this reduces response time, but may cause a higher time for the bot to update info about users.
-      Disabling the cache may improve RAM usage on big server, but remember that it will cause the bot to take more time to execute actions/tasks""")
+    @Comment("When enabled, the bot will cache the data of the users on discord, this reduces response time, but may cause higher memory usage on large discord servers.")
     public boolean cacheDiscordData = true;
 
     @RangeConstraint(min = 0, max = 4)
