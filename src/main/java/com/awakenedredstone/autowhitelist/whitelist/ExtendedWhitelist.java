@@ -49,8 +49,8 @@ public class ExtendedWhitelist extends Whitelist {
                 if (entryAction.isValid()) {
                     entryAction.removeUser(extendedProfile);
                 } else {
-                    AutoWhitelist.getCommandSource().sendFeedback(() -> Text.literal("Failed to remove player from whitelist. Check the server logs for more details."), true);
                     AutoWhitelist.LOGGER.error("Failed to remove {} from the whitelist due to the entry {} not being valid", profile.getName(), entryAction);
+                    AutoWhitelist.getCommandSource().sendFeedback(() -> Text.literal("Failed to remove player from whitelist. Check the server logs for more details."), true);
                     return;
                 }
             }
