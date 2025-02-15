@@ -76,10 +76,10 @@ dependencies {
     include(modImplementation("eu.pb4:placeholder-api:${property("placeholder_api_version")}") {
         exclude(group = "net.fabricmc", module = "fabric-api")
     })
-
     include(modImplementation("xyz.nucleoid:server-translations-api:${property("translation_api_version")}") {
         exclude(group = "net.fabricmc", module = "fabric-api")
     })
+    include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${property("mixinextras")}")!!)!!)
 
     // Libraries
     include(api("blue.endless:jankson:${property("jankson_version")}")!!)
