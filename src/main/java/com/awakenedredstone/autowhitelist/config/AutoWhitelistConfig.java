@@ -20,13 +20,13 @@ import com.awakenedredstone.autowhitelist.entry.implementation.luckperms.GroupEn
 import com.awakenedredstone.autowhitelist.entry.implementation.luckperms.PermissionEntryAction;
 import com.awakenedredstone.autowhitelist.entry.serialization.JanksonOps;
 import com.awakenedredstone.autowhitelist.util.JanksonBuilder;
+import com.awakenedredstone.autowhitelist.util.JsonUtil;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.awakenedredstone.autowhitelist.util.TimeParser;
 import com.google.common.base.CaseFormat;
 import net.dv8tion.jda.api.entities.Activity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -61,22 +61,23 @@ public class AutoWhitelistConfig extends ConfigHandler {
     @Comment("When enabled, it will keep a cache of previous registered users and will use it to automatically add the user back (if they have the proper role)")
     public boolean enableWhitelistCache = true;
 
-    @RangeConstraint(min = 10, max = 300)
-    @Comment("The period the mod looks for outdated and invalid entries, this is an extra action to guarantee everything is updated")
-    public short updatePeriod = 60;
+    @RangeConstraint(min = 10, max = 600)
+    @Comment("""
+      The delay (in seconds) for checking for invalid and outdated entries. This ensures everything is up to date in case the bot misses an event
+      [Min: 10, Max: 600]""")
+    public short periodicCheckDelay = 60;
 
-    @PredicateConstraint("nonEmptyConstraint")
-    @Comment("[DEPRECATED] The bot command prefix")
-    public String prefix = "np!";
-
-    @Comment("The activity type shown on the bot status")
+    @Comment("The activity type shown on the bot status, must be in UPPERCASE")
     public BotActivity botActivityType = BotActivity.PLAYING;
 
     @PredicateConstraint("timeConstraint")
-    @Comment("The time in seconds the bot will lock a whitelist entry after it is added or updated, use -1 to disable changing the linked username")
+    @Comment("""
+      The time the bot will lock a whitelist entry after it is added or updated, use -1 to lock all entries forever
+      Changes to this value will only apply to new entries, except for permanent lock which is immediate and global
+      Check the documentation for more details on how the format works""")
     public String lockTime = "1d";
 
-    @Comment("Your bot token. Never share it, anyone with it has full control of the bot")
+    @Comment("Your bot's token. Never share it, anyone with it has full control of the bot")
     public String token = "DO NOT SHARE THE BOT TOKEN";
 
     @RangeConstraint(min = 0, max = Long.MAX_VALUE)
@@ -100,24 +101,14 @@ public class AutoWhitelistConfig extends ConfigHandler {
     public List<BaseEntryAction> entries = new ArrayList<>();
 
     @SuppressWarnings("unused")
-    public static boolean idConstraint(List<Long> roles) {
-        return roles.stream().allMatch(v -> v >= 0);
-    }
-
-    @SuppressWarnings("unused")
     public static boolean timeConstraint(String timeString) {
         if (timeString.equals("-1")) return true;
         int time = TimeParser.parseTime(timeString);
         return time >= 0;
     }
 
-    @SuppressWarnings("unused")
-    public static boolean nonEmptyConstraint(String string) {
-        return StringUtils.isNotBlank(string);
-    }
-
     public long lockTime() {
-        if (lockTime.equals("-1")) return -1;
+        if (lockTime.trim().equals("-1")) return -1;
         int time = TimeParser.parseTime(lockTime);
         return System.currentTimeMillis() + (time * 1000L);
     }
@@ -255,13 +246,22 @@ public class AutoWhitelistConfig extends ConfigHandler {
                         config.put("bot_activity_type", new JsonPrimitive(activityType));
                     }
                 }
-                case 3: {
-                    if (!config.containsKey("cache_discord_data")) {
-                        config.put("cache_discord_data", new JsonPrimitive(cacheDiscordData));
-                    }
+            }
 
-                    config.put("command_permission_level", new JsonPrimitive(commandPermissionLevel));
+            if (configVersion < 3) {
+                if (!config.containsKey("cache_discord_data")) {
+                    config.put("cache_discord_data", new JsonPrimitive(cacheDiscordData), getComment("cacheDiscordData"));
                 }
+            }
+
+            if (configVersion < 5) {
+                config.put("command_permission_level", new JsonPrimitive(commandPermissionLevel), getComment("commandPermissionLevel"));
+            }
+
+            if (configVersion < 6) {
+                config.remove("admins");
+                config.remove("prefix");
+                JsonUtil.rename(config, "update_period", "periodic_check_delay", getComment("periodicCheckDelay"));
             }
 
             if (configVersion != Constants.CONFIG_VERSION) {

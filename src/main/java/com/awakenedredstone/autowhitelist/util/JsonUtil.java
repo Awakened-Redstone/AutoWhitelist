@@ -4,10 +4,10 @@ import blue.endless.jankson.JsonElement;
 import blue.endless.jankson.JsonObject;
 
 public class JsonUtil {
-    public static void rename(JsonObject json, String oldName, String newName) {
+    public static void rename(JsonObject json, String oldName, String newName, String comment) {
         JsonElement element = json.get(oldName);
         if (element != null) {
-            json.put(newName, element);
+            json.put(newName, element, comment);
             json.remove(oldName);
         }
     }
