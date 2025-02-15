@@ -27,6 +27,7 @@ public class ExtendedGameProfile extends GameProfile {
     }
 
     public long getLockedUntil() {
+        if (AutoWhitelist.CONFIG.lockTime() == -1) return -1;
         return AutoWhitelist.getServer().getPlayerManager().getUserBanList().contains(this) ? -1 : lockedUntil;
     }
 
@@ -43,6 +44,6 @@ public class ExtendedGameProfile extends GameProfile {
     }
 
     public boolean isLocked() {
-        return lockedUntil == -1 || lockedUntil > System.currentTimeMillis() || AutoWhitelist.getServer().getPlayerManager().getUserBanList().contains(this);
+        return AutoWhitelist.CONFIG.lockTime() == -1 || lockedUntil == -1 || lockedUntil > System.currentTimeMillis() || AutoWhitelist.getServer().getPlayerManager().getUserBanList().contains(this);
     }
 }
