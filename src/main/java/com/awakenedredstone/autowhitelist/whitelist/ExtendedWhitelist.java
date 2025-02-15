@@ -23,6 +23,14 @@ public class ExtendedWhitelist extends Whitelist {
         super(file);
     }
 
+    public WhitelistEntry getEntry(GameProfile profile) {
+        if (this.isAllowed(profile)) {
+            return getEntryFromProfile(profile);
+        }
+
+        return new WhitelistEntry(profile);
+    }
+
     @Override
     public void remove(GameProfile key) {
         super.remove(key);
@@ -36,13 +44,15 @@ public class ExtendedWhitelist extends Whitelist {
     public void remove(ServerConfigEntry<GameProfile> entry) {
         GameProfile profile = entry.getKey();
         if (profile instanceof ExtendedGameProfile extendedProfile) {
-            BaseEntryAction entryAction = RoleActionMap.get(extendedProfile.getRole());
-            if (entryAction.isValid()) {
-                entryAction.removeUser(extendedProfile);
-                return;
-            } else {
-                AutoWhitelist.getCommandSource().sendFeedback(() -> Text.literal("Failed to remove player from whitelist, check the logs"), true);
-                AutoWhitelist.LOGGER.error("Failed to remove {} from the whitelist due to the entry {} not being valid", profile.getName(), entry);
+            BaseEntryAction entryAction = RoleActionMap.getNullable(extendedProfile.getRole());
+            if (entryAction != null) {
+                if (entryAction.isValid()) {
+                    entryAction.removeUser(extendedProfile);
+                } else {
+                    AutoWhitelist.getCommandSource().sendFeedback(() -> Text.literal("Failed to remove player from whitelist. Check the server logs for more details."), true);
+                    AutoWhitelist.LOGGER.error("Failed to remove {} from the whitelist due to the entry {} not being valid", profile.getName(), entryAction);
+                    return;
+                }
             }
         }
 
@@ -105,19 +115,33 @@ public class ExtendedWhitelist extends Whitelist {
 
     public List<ExtendedWhitelistEntry> getFromDiscordId(String id) {
         return values().stream()
-            .filter(entry -> entry instanceof ExtendedWhitelistEntry)
-            .filter(entry -> entry.getKey() instanceof ExtendedGameProfile profile && profile.getDiscordId().equals(id))
-            .map(v -> (ExtendedWhitelistEntry) v)
-            .toList();
+          .filter(entry -> entry instanceof ExtendedWhitelistEntry)
+          .filter(entry -> entry.getKey() instanceof ExtendedGameProfile profile && profile.getDiscordId().equals(id))
+          .map(v -> (ExtendedWhitelistEntry) v)
+          .toList();
     }
 
     @Nullable
-    public GameProfile getFromUsername(String username) {
+    public GameProfile getProfileFromUsername(String username) {
         return values().stream()
-            .filter(entry -> entry.getKey() != null)
-            .filter(entry -> entry.getKey().getName().equals(username))
-            .map(whitelistEntry -> (GameProfile) whitelistEntry.getKey())
-            .findFirst().orElse(null);
+          .filter(entry -> entry.getKey() != null)
+          .filter(entry -> entry.getKey().getName().equals(username))
+          .map(ServerConfigEntry::getKey)
+          .findFirst().orElse(null);
+    }
+
+    @Nullable
+    public WhitelistEntry getEntryFromProfile(GameProfile profile) {
+        return values().stream()
+          .filter(entry -> entry.getKey() != null)
+          .filter(entry ->
+            entry.getKey().equals(profile) ||
+            (
+              entry.getKey().getName().equals(profile.getName()) &&
+              entry.getKey().getId().equals(profile.getId())
+            )
+          )
+          .findFirst().orElse(null);
     }
 
     @Override

@@ -1,5 +1,5 @@
 {
-  "commands.autowhitelist.whitelist.remove.failed": "Could not remove %s from the whitelist. Failed to validate entry",
+  "commands.autowhitelist.remove.failed": "Failed to remove player(s) from the whitelist. An error occurred or they weren't whitelisted.",
 
   "discord.command.description.register": "Adds the informed Minecraft account to the server whitelist",
   "discord.command.description.register.argument": "Your Minecraft username",

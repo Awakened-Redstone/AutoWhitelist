@@ -3,6 +3,9 @@
   "minVersion": "0.8",
   "package": "com.awakenedredstone.autowhitelist.mixin",
   "compatibilityLevel": "JAVA_16",
+  "mixinextras": {
+    "minVersion": "0.5.0-beta.1"
+  },
   "mixins": [
     "PlayerManagerMixin",
     "ServerLoginNetworkHandlerAccessor",
