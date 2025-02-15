@@ -42,7 +42,7 @@ public class CoreEvents extends ListenerAdapter {
         }
 
         if (AutoWhitelist.getServer() == null) {
-            AutoWhitelist.LOGGER.error("The bot was ready while the server was null, refusing to proceed");
+            AutoWhitelist.LOGGER.error("The bot was ready while the server was non existent, refusing to proceed");
             if (DiscordBot.getInstance() != null) {
                 DiscordBot.getInstance().interrupt();
             }
@@ -56,15 +56,12 @@ public class CoreEvents extends ListenerAdapter {
             } catch (Throwable ignored) {/**/}
         }
 
-        AutoWhitelist.LOGGER.info("Bot is in {} guilds", DiscordBot.getJda().getGuilds().size());
-
         DiscordBot.setGuild(DiscordBot.getJda().getGuildById(AutoWhitelist.CONFIG.discordServerId));
         if (DiscordBot.getGuild() == null) {
             AutoWhitelist.LOGGER.error("Could not find the guild with id {}", AutoWhitelist.CONFIG.discordServerId);
             return;
         }
 
-        AutoWhitelist.LOGGER.info("Parsing registered users.");
         try {
             DiscordBot.scheduledUpdate = DiscordBot.EXECUTOR_SERVICE.scheduleWithFixedDelay(new PeriodicWhitelistChecker(), 0, AutoWhitelist.CONFIG.updatePeriod, TimeUnit.SECONDS);
             AutoWhitelist.LOGGER.info("Load complete.");
