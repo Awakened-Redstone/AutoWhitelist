@@ -4,7 +4,7 @@ public class TimeParser {
     public static int parseTime(String timeString) {
         int time = 0;
         StringBuilder number = new StringBuilder();
-        for (char c : timeString.toCharArray()) {
+        for (char c : timeString.trim().toCharArray()) {
             if (Character.isDigit(c)) {
                 number.append(c);
             } else {
