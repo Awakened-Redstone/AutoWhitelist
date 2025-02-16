@@ -64,7 +64,6 @@ public class CoreEvents extends ListenerAdapter {
 
         try {
             DiscordBot.scheduledUpdate = DiscordBot.EXECUTOR_SERVICE.scheduleWithFixedDelay(new PeriodicWhitelistChecker(), 0, AutoWhitelist.CONFIG.periodicCheckDelay, TimeUnit.SECONDS);
-            AutoWhitelist.LOGGER.info("Load complete.");
         } catch (Throwable e) {
             AutoWhitelist.LOGGER.error("Failed to schedule the periodic whitelist checker", e);
         }
@@ -72,6 +71,7 @@ public class CoreEvents extends ListenerAdapter {
         DiscordBot.eventWaiter = new EventWaiter();
 
         AutoWhitelist.updateEntryMap(AutoWhitelist.CONFIG.entries);
+        AutoWhitelist.LOGGER.info("Discord bot successfully initialized");
     }
 
     @Override
