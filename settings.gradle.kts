@@ -20,7 +20,7 @@ plugins {
 extensions.configure<StonecutterSettings> {
     centralScript = "build.gradle.kts"
     shared {
-        versions("1.20", "1.20.2", "1.20.3", "1.20.5", "1.21", "1.21.2")
+        versions("1.20", "1.21", "1.21.2")
     }
     kotlinController = true
     create(rootProject)
