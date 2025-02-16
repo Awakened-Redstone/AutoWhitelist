@@ -36,6 +36,6 @@ To reload a specific part of the mod run `/autowhitelist reload [bot|cache|confi
   </div>
 </a-->
 
-This mod is compatible with [Sinytra Connector](https://modrinth.com/mod/connector)
+[//]: # (This mod is compatible with [Sinytra Connector]&#40;https://modrinth.com/mod/connector&#41;)
 
 ![No froge](https://i.ibb.co/yphNcXz/fabric-only-banner.png)
