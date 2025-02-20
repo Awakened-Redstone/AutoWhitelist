@@ -68,7 +68,7 @@ public class AutoWhitelistCommand {
                             dump.appendLine("  Config:");
                             dump.appendLine("    Total entries: ", AutoWhitelist.CONFIG.entries.size());
                             dump.appendLine("    Config exists: ", AutoWhitelist.CONFIG.configExists());
-                            dump.appendLine("    Is config valid: ", canConfigLoad = AutoWhitelist.CONFIG.canLoad());
+                            dump.appendLine("    Config loads: ", canConfigLoad = AutoWhitelist.CONFIG.canLoad());
                             if (!canConfigLoad) {
                                 dump.append(" <-- BAD CONFIG! Check the logs for the error cause");
                             }
