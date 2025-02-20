@@ -2,8 +2,8 @@ name: Bug report
 title: "[Bug]: "
 description: "Use this template if you're running into bugs or other issues"
 labels:
-  - T-bug
-  - S-needs-triage
+  - Bug
+  - Needs triage
 body:
   - type: markdown
     attributes:

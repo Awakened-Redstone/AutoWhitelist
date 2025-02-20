@@ -2,8 +2,8 @@ name: Crash report
 title: "[Crash]: "
 description: Use this template if your game is crashing or failing to start correctly
 labels:
-  - T-crash
-  - S-needs-triage
+  - Crash
+  - Needs triage
 body:
   - type: markdown
     attributes:
