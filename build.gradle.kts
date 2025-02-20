@@ -242,7 +242,6 @@ modrinth {
 }
 
 publishMods {
-    dryRun = true
     file = (tasks.getByName("remapJar") as AbstractArchiveTask).archiveFile
     changelog = changelogText
     type = projectVersionType
