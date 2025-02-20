@@ -41,50 +41,53 @@ public class AutoWhitelistCommand {
             .requires(Permission.require("autowhitelist.command", 3))
             .then(
               literal("dump")
-                .executes(context -> {
-                    context.getSource().sendFeedback(() -> Text.literal("Generating data dump..."), false);
-                    PlayerManager playerManager = AutoWhitelist.getServer().getPlayerManager();
+                .then(
+                  literal("stats")
+                    .executes(context -> {
+                        context.getSource().sendFeedback(() -> Text.literal("Generating data dump..."), false);
+                        PlayerManager playerManager = AutoWhitelist.getServer().getPlayerManager();
 
-                    CompletableFuture.runAsync(() -> {
-                        boolean canConfigLoad;
-                        LinedStringBuilder dump = new LinedStringBuilder().append(" ");
-                        dump.appendLine("==== AutoWhitelist data dump ====");
-                        dump.appendLine("Minecraft:");
-                        dump.appendLine("  Minecraft version: ", SharedConstants.getGameVersion().getName());
-                        dump.appendLine("  Java version: ", Runtime.version());
-                        dump.appendLine("  Mod loader: ", getPlatformName());
-                        if (FabricLoader.getInstance().isModLoaded("connectormod")) {
-                            dump.appendLine("  Connector version: ", ModData.getVersion("connectormod"));
-                        }
-                        dump.appendLine("  Loader version: ", getLoaderVersion());
-                        dump.appendLine("  Mod version: ", ModData.getVersion("autowhitelist"));
-                        dump.appendLine("  Total whitelisted players: ", playerManager.getWhitelistedNames().length);
-                        dump.appendLine("  Luckperms version: ", ModData.getVersion("luckperms"));
+                        CompletableFuture.runAsync(() -> {
+                            boolean canConfigLoad;
+                            LinedStringBuilder dump = new LinedStringBuilder().append(" ");
+                            dump.appendLine("==== AutoWhitelist data dump ====");
+                            dump.appendLine("Minecraft:");
+                            dump.appendLine("  Minecraft version: ", SharedConstants.getGameVersion().getName());
+                            dump.appendLine("  Java version: ", Runtime.version());
+                            dump.appendLine("  Mod loader: ", getPlatformName());
+                            if (FabricLoader.getInstance().isModLoaded("connectormod")) {
+                                dump.appendLine("  Connector version: ", ModData.getVersion("connectormod"));
+                            }
+                            dump.appendLine("  Loader version: ", getLoaderVersion());
+                            dump.appendLine("  Mod version: ", ModData.getVersion("autowhitelist"));
+                            dump.appendLine("  Total whitelisted players: ", playerManager.getWhitelistedNames().length);
+                            dump.appendLine("  Luckperms version: ", ModData.getVersion("luckperms"));
 
-                        dump.appendLine();
-                        dump.appendLine("AutoWhitelist:");
-                        dump.appendLine("  Config:");
-                        dump.appendLine("    Total entries: ", AutoWhitelist.CONFIG.entries.size());
-                        dump.appendLine("    Config exists: ", AutoWhitelist.CONFIG.configExists());
-                        dump.appendLine("    Is config valid: ", canConfigLoad = AutoWhitelist.CONFIG.canLoad());
-                        if (!canConfigLoad) {
-                            dump.append(" <-- BAD CONFIG! Check the logs for the error cause");
-                        }
-                        dump.appendLine("    Lock time: ", TimeParser.parseTime(AutoWhitelist.CONFIG.lockTime));
-                        dump.appendLine("  Bot:");
-                        dump.appendLine("    JDA version: ", JDAInfo.VERSION);
-                        dump.appendLine("    Chewtils version: ", JDAUtilitiesInfo.VERSION);
-                        dump.appendLine("    Bot status: ", DiscordBot.botExists() ? "online" : "offline");
-                        if (DiscordBot.botExists()) {
-                            dump.appendLine("    Gateway ping: ", DiscordBot.getJda().getGatewayPing());
-                            dump.appendLine("    Rest ping: ", DiscordBot.getJda().getRestPing().complete());
-                        }
+                            dump.appendLine();
+                            dump.appendLine("AutoWhitelist:");
+                            dump.appendLine("  Config:");
+                            dump.appendLine("    Total entries: ", AutoWhitelist.CONFIG.entries.size());
+                            dump.appendLine("    Config exists: ", AutoWhitelist.CONFIG.configExists());
+                            dump.appendLine("    Is config valid: ", canConfigLoad = AutoWhitelist.CONFIG.canLoad());
+                            if (!canConfigLoad) {
+                                dump.append(" <-- BAD CONFIG! Check the logs for the error cause");
+                            }
+                            dump.appendLine("    Lock time: ", TimeParser.parseTime(AutoWhitelist.CONFIG.lockTime));
+                            dump.appendLine("  Bot:");
+                            dump.appendLine("    JDA version: ", JDAInfo.VERSION);
+                            dump.appendLine("    Chewtils version: ", JDAUtilitiesInfo.VERSION);
+                            dump.appendLine("    Bot status: ", DiscordBot.botExists() ? "online" : "offline");
+                            if (DiscordBot.botExists()) {
+                                dump.appendLine("    Gateway ping: ", DiscordBot.getJda().getGatewayPing());
+                                dump.appendLine("    Rest ping: ", DiscordBot.getJda().getRestPing().complete());
+                            }
 
-                        context.getSource().sendFeedback(() -> Text.literal(dump.toString()), false);
-                    });
+                            context.getSource().sendFeedback(() -> Text.literal(dump.toString()), false);
+                        });
 
-                    return 0;
-                }).then(
+                        return 0;
+                    })
+                ).then(
                   literal("config")
                     .executes(context -> {
                         context.getSource().sendFeedback(() -> Text.literal(AutoWhitelist.CONFIG.toString()), false);
