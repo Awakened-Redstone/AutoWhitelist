@@ -9,6 +9,7 @@ import com.awakenedredstone.autowhitelist.util.ModData;
 import com.awakenedredstone.autowhitelist.util.TimeParser;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
+import com.jagrosh.jdautilities.commons.JDAUtilitiesInfo;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
@@ -72,6 +73,7 @@ public class AutoWhitelistCommand {
                         dump.appendLine("    Lock time: ", TimeParser.parseTime(AutoWhitelist.CONFIG.lockTime));
                         dump.appendLine("  Bot:");
                         dump.appendLine("    JDA version: ", JDAInfo.VERSION);
+                        dump.appendLine("    Chewtils version: ", JDAUtilitiesInfo.VERSION);
                         dump.appendLine("    Bot status: ", DiscordBot.botExists() ? "online" : "offline");
                         if (DiscordBot.botExists()) {
                             dump.appendLine("    Gateway ping: ", DiscordBot.getJda().getGatewayPing());
