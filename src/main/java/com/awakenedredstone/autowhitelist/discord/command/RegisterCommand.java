@@ -19,6 +19,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.ProfileLookupCallback;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -35,7 +36,7 @@ public class RegisterCommand extends SlashCommand {
     public RegisterCommand() {
         this.name = "register";
         this.help = Text.translatable("discord.command.description.register").getString();
-        this.guildOnly = true;
+        this.contexts = new InteractionContextType[]{InteractionContextType.GUILD};
 
         this.options.add(new OptionData(OptionType.STRING, "username", Text.translatable("command.description.register.argument").getString()).setRequired(true));
     }

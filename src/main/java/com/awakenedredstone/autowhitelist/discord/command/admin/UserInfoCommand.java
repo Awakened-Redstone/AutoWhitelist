@@ -15,6 +15,7 @@ import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -30,7 +31,7 @@ public class UserInfoCommand extends SlashCommand {
         this.name = "userinfo";
         this.help = Text.translatable("discord.command.description.userinfo").getString();
 
-        this.guildOnly = true;
+        this.contexts = new InteractionContextType[]{InteractionContextType.GUILD};
         this.userPermissions = new Permission[]{Permission.MANAGE_ROLES};
 
         this.options.add(new OptionData(OptionType.USER, "user", Text.translatable("discord.command.description.userinfo.argument").getString()).setRequired(false));

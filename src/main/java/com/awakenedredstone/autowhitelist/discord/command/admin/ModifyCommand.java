@@ -20,6 +20,7 @@ import com.mojang.authlib.ProfileLookupCallback;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -36,7 +37,7 @@ public class ModifyCommand extends SlashCommand {
         this.name = "modify";
         this.help = Text.translatable("discord.command.description.admin/modify").getString();
 
-        this.guildOnly = true;
+        this.contexts = new InteractionContextType[]{InteractionContextType.GUILD};
         this.userPermissions = new Permission[]{Permission.MANAGE_ROLES};
 
         this.options.add(new OptionData(OptionType.USER, "user", Text.translatable("discord.command.description.admin/modify.argument/user").getString()).setRequired(true));
