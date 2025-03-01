@@ -175,7 +175,9 @@ tasks.register<Jar>("sourcesJar") {
 }
 
 tasks.jar {
-    from("LICENSE")
+    from("LICENSE") {
+        rename { "${it}_${archivesBaseName}" }
+    }
 }
 
 tasks.register<net.fabricmc.loom.task.RemapJarTask>("remapMavenJar") {
@@ -280,7 +282,7 @@ publishMods {
             content = """
                 # AutoWhitelist | $projectVersionName
                 
-                ${changelogText}
+                $changelogText
             """.trimIndent()
 
             avatarUrl = "https://cdn.discordapp.com/avatars/1268055578073108574/73106a33f497ea5f2c676bcfb4816917.webp"
