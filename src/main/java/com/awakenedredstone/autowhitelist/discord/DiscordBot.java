@@ -39,6 +39,7 @@ public class DiscordBot extends Thread {
     public static EventWaiter eventWaiter;
     public static ScheduledFuture<?> scheduledUpdate;
     @Nullable private static JDA jda = null;
+    @Nullable private static CommandClient commandClient = null;
     @Nullable private static Guild guild = null;
     @Nullable private static DiscordBot instance;
 
@@ -95,6 +96,15 @@ public class DiscordBot extends Thread {
         }
 
         return jda;
+    }
+
+    @NotNull
+    public static CommandClient getCommandClient() {
+        if (commandClient == null) {
+            throw new NullPointerException("Bot is null, expected bot to exist, please open a bug report!");
+        }
+
+        return commandClient;
     }
 
     public static void setJda(@Nullable JDA jda) {
@@ -166,22 +176,25 @@ public class DiscordBot extends Thread {
         }
 
         jda = null;
+        commandClient = null;
         setGuild(null);
 
         try {
             CommandClientBuilder commandBuilder = new CommandClientBuilder()
               .setOwnerId(0) // Why is this required?
+              .setActivity(null)
+              .setManualUpsert(true)
               .addSlashCommands(
                 new RegisterCommand(),
                 new InfoCommand(),
                 new UserInfoCommand(),
                 new ModifyCommand()
-              ).setActivity(null);
+              );
 
-            CommandClient commands = commandBuilder.build();
+            commandClient = commandBuilder.build();
 
             JDABuilder builder = JDABuilder.createDefault(AutoWhitelist.CONFIG.token)
-              .addEventListeners(new CoreEvents(), commands)
+              .addEventListeners(new CoreEvents(), commandClient)
               .enableIntents(GatewayIntents.BASIC);
 
             if (AutoWhitelist.CONFIG.cacheDiscordData) {

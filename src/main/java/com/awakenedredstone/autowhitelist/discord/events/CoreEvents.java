@@ -53,7 +53,7 @@ public class CoreEvents extends ListenerAdapter {
             DiscordBot.scheduledUpdate.cancel(false);
             try {
                 DiscordBot.scheduledUpdate.get();
-            } catch (Throwable ignored) {/**/}
+            } catch (Exception ignored) {/**/}
         }
 
         DiscordBot.setGuild(DiscordBot.getJda().getGuildById(AutoWhitelist.CONFIG.discordServerId));
@@ -62,9 +62,16 @@ public class CoreEvents extends ListenerAdapter {
             return;
         }
 
+        AutoWhitelist.LOGGER.debug("Registering commands");
+        try {
+            DiscordBot.getCommandClient().upsertInteractions(DiscordBot.getJda(), DiscordBot.getGuild().getId());
+        } catch (Exception e) {
+            AutoWhitelist.LOGGER.error("Failed to register slash commands", e);
+        }
+
         try {
             DiscordBot.scheduledUpdate = DiscordBot.EXECUTOR_SERVICE.scheduleWithFixedDelay(new PeriodicWhitelistChecker(), 0, AutoWhitelist.CONFIG.periodicCheckDelay, TimeUnit.SECONDS);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             AutoWhitelist.LOGGER.error("Failed to schedule the periodic whitelist checker", e);
         }
 
