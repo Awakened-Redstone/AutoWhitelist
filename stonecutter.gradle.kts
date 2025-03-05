@@ -16,4 +16,5 @@ stonecutter registerChiseled tasks.register("chiseledClean", stonecutter.chisele
 stonecutter registerChiseled tasks.register("chiseledPublishMods", stonecutter.chiseled) {
     group = "publishing"
     ofTask("publishMods")
+    dependsOn(tasks.getByName("chiseledBuild"))
 }
