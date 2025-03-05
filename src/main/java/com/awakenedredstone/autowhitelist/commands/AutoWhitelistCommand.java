@@ -14,7 +14,9 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import net.dv8tion.jda.api.JDAInfo;
+import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModMetadata;
@@ -143,12 +145,12 @@ public class AutoWhitelistCommand {
             ).then(
               literal("debug")
                 .then(
-                  literal("trackEntryError")
+                  literal("testMojangApiOnRegister")
                     .then(
                       argument("enable", BoolArgumentType.bool())
                         .executes(context -> {
                             ServerCommandSource source = context.getSource();
-                            DebugFlags.trackEntryError = BoolArgumentType.getBool(context, "enable");
+                            DebugFlags.testMojangApiOnRegister = BoolArgumentType.getBool(context, "enable");
 
                             source.sendFeedback(() -> Text.literal("Updated debug flag"), true);
 
@@ -156,6 +158,24 @@ public class AutoWhitelistCommand {
                         })
                     )
                 )
+            ).then(
+              literal("fix-duplicate-commands")
+                .executes(context -> {
+                    ServerCommandSource source = context.getSource();
+                    source.sendFeedback(() -> Text.literal("Fixing commands..."), false);
+                    CompletableFuture.runAsync(() -> {
+                        List<Command> commands = DiscordBot.getJda().retrieveCommands().complete();
+                        List<String> toRemove = List.of("register", "info", "userinfo", "modify");
+                        commands.stream().filter(command -> toRemove.contains(command.getName())).map(ISnowflake::getId)
+                          .forEach(id -> {
+                              AutoWhitelist.LOGGER.debug("Removing command with id {}", id);
+                              //noinspection ResultOfMethodCallIgnored
+                              DiscordBot.getJda().deleteCommandById(id).submit();
+                          });
+                    });
+
+                    return 0;
+                })
             )
         );
     }

@@ -101,7 +101,7 @@ public class DiscordBot extends Thread {
     @NotNull
     public static CommandClient getCommandClient() {
         if (commandClient == null) {
-            throw new NullPointerException("Bot is null, expected bot to exist, please open a bug report!");
+            throw new NullPointerException("Command client is null, expected command client to exist, please open a bug report!");
         }
 
         return commandClient;
@@ -180,18 +180,16 @@ public class DiscordBot extends Thread {
         setGuild(null);
 
         try {
-            CommandClientBuilder commandBuilder = new CommandClientBuilder()
+            commandClient = new CommandClientBuilder()
               .setOwnerId(0) // Why is this required?
               .setActivity(null)
-              .setManualUpsert(true)
+              .forceGuildOnly(AutoWhitelist.CONFIG.discordServerId)
               .addSlashCommands(
                 new RegisterCommand(),
                 new InfoCommand(),
                 new UserInfoCommand(),
                 new ModifyCommand()
-              );
-
-            commandClient = commandBuilder.build();
+              ).build();
 
             JDABuilder builder = JDABuilder.createDefault(AutoWhitelist.CONFIG.token)
               .addEventListeners(new CoreEvents(), commandClient)

@@ -1,26 +1,29 @@
 package com.awakenedredstone.autowhitelist.discord.command.admin;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
+import com.awakenedredstone.autowhitelist.LazyConstants;
 import com.awakenedredstone.autowhitelist.debug.DebugFlags;
 import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
 import com.awakenedredstone.autowhitelist.discord.api.ReplyCallback;
 import com.awakenedredstone.autowhitelist.discord.command.RegisterCommand;
+import com.awakenedredstone.autowhitelist.discord.command.SimpleSlashCommand;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
 import com.awakenedredstone.autowhitelist.mixin.UserCacheAccessor;
+import com.awakenedredstone.autowhitelist.networking.GeyserProfileRepository;
 import com.awakenedredstone.autowhitelist.util.Validation;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
-import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 /*? if <1.20.2 {*//*import com.mojang.authlib.Agent;*//*?}*/
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.ProfileLookupCallback;
+import com.mojang.authlib.yggdrasil.ProfileNotFoundException;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.interactions.InteractionContextType;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -31,28 +34,31 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
-public class ModifyCommand extends SlashCommand {
+public class ModifyCommand extends SimpleSlashCommand {
     public ModifyCommand() {
-        this.name = "modify";
-        this.help = Text.translatable("discord.command.description.admin/modify").getString();
+        super("modify", "admin");
 
-        this.contexts = new InteractionContextType[]{InteractionContextType.GUILD};
         this.userPermissions = new Permission[]{Permission.MANAGE_ROLES};
 
-        this.options.add(new OptionData(OptionType.USER, "user", Text.translatable("discord.command.description.admin/modify.argument/user").getString()).setRequired(true));
-        this.options.add(new OptionData(OptionType.STRING, "username", Text.translatable("discord.command.description.admin/modify.argument/username").getString()).setRequired(true));
+        this.options.add(new OptionData(OptionType.USER, "user", argumentText("user")).setRequired(true));
+        this.options.add(new OptionData(OptionType.STRING, "username", argumentText("username")).setRequired(true));
+        if (LazyConstants.isUsingGeyser()) {
+            this.options.add(
+              new OptionData(OptionType.STRING, "account_type", argumentText("geyser"))
+                .addChoices(
+                  new Command.Choice(choice("geyser", "java"), "java"),
+                  new Command.Choice(choice("geyser", "bedrock"), "bedrock")
+                ).setRequired(false)
+            );
+        }
     }
 
     @Override
     protected void execute(SlashCommandEvent event) {
-        ReplyCallback replyCallback = new ReplyCallback.InteractionReplyCallback() {
-
-            @Override
-            public void acknowledge() {
-                lastTask = event.deferReply(AutoWhitelist.CONFIG.ephemeralReplies).submit();
-            }
-        };
+        var replyCallback = new ReplyCallback.DefaultInteractionReplyCallback(event);
 
         MessageCreateData initialReply = DiscordBotHelper.buildEmbedMessage(
           false,
@@ -67,6 +73,15 @@ public class ModifyCommand extends SlashCommand {
 
         @NotNull Member member = Objects.requireNonNull(event.getOption("user", OptionMapping::getAsMember));
         @NotNull String username = Objects.requireNonNull(event.getOption("username", OptionMapping::getAsString));
+        boolean geyser = event.getOption("account_type", "java", OptionMapping::getAsString).equalsIgnoreCase("bedrock");
+
+        UUID uuid;
+
+        try {
+            uuid = UUID.fromString(username);
+        } catch (IllegalArgumentException e) {
+            uuid = null;
+        }
 
         String id = member.getId();
 
@@ -91,7 +106,14 @@ public class ModifyCommand extends SlashCommand {
 
         Optional<ExtendedWhitelistEntry> whitelistedAccount = RegisterCommand.getWhitelistedAccount(id, whitelist);
         if (whitelistedAccount.isPresent()) {
-            if (whitelistedAccount.get().getProfile().getName().equalsIgnoreCase(username)) {
+            boolean sameAccount;
+            if (uuid != null) {
+                sameAccount = whitelistedAccount.get().getProfile().getId().equals(uuid);
+            } else {
+                sameAccount = whitelistedAccount.get().getProfile().getName().equalsIgnoreCase(username);
+            }
+
+            if (sameAccount) {
                 replyCallback.editMessage(
                   DiscordBotHelper.buildEmbedMessage(true,
                     DiscordBotHelper.Feedback.buildEmbed(
@@ -120,7 +142,7 @@ public class ModifyCommand extends SlashCommand {
             return;
         }
 
-        if (!Validation.isValidMinecraftUsername(username)) {
+        if (uuid == null && !geyser && !Validation.isValidMinecraftUsername(username)) {
             replyCallback.editMessage(
               DiscordBotHelper.buildEmbedMessage(true,
                 DiscordBotHelper.Feedback.buildEmbed(
@@ -139,7 +161,7 @@ public class ModifyCommand extends SlashCommand {
               DiscordBotHelper.buildEmbedMessage(true,
                 DiscordBotHelper.Feedback.buildEmbed(
                   Text.translatable("discord.command.fail.title"),
-                  Text.translatable("discord.command.register.fatal", "Failed to whitelist user %s, server user cache is null".formatted(username)),
+                  Text.translatable("discord.command.modify.fatal", "Failed to whitelist user %s, server user cache is null".formatted(username)),
                   DiscordBotHelper.MessageType.ERROR
                 )
               )
@@ -148,7 +170,7 @@ public class ModifyCommand extends SlashCommand {
         }
 
         //noinspection DuplicatedCode
-        if (DebugFlags.trackEntryError) {
+        if (DebugFlags.testMojangApiOnRegister && uuid != null && !geyser) {
             ProfileLookupCallback profileLookupCallback = new ProfileLookupCallback(){
 
                 @Override
@@ -165,7 +187,77 @@ public class ModifyCommand extends SlashCommand {
             ((UserCacheAccessor) server.getUserCache()).getProfileRepository().findProfilesByNames(new String[]{username}/*? if <1.20.2 {*//*, Agent.MINECRAFT*//*?}*/, profileLookupCallback);
         }
 
-        GameProfile profile = server.getUserCache().findByName(username).orElse(null);
+        GameProfile profile;
+
+        if (uuid != null) {
+            if (LazyConstants.isUsingGeyser()) {
+                if (uuid.getMostSignificantBits() == 0 || geyser) {
+
+                    profile = new GameProfile(uuid, "Bedrock Player");
+                } else {
+                    profile = server.getUserCache().getByUuid(uuid).orElse(null);
+                }
+            } else {
+                profile = server.getUserCache().getByUuid(uuid).orElse(null);
+            }
+        } else {
+            if (LazyConstants.isUsingGeyser() && geyser) {
+                final AtomicReference<GameProfile> atomicProfile = new AtomicReference<>();
+                final AtomicReference<Exception> atomicException = new AtomicReference<>();
+                ProfileLookupCallback profileLookupCallback = new ProfileLookupCallback() {
+
+                    @Override
+                    public void onProfileLookupSucceeded(GameProfile profile) {
+                        atomicProfile.set(profile);
+                    }
+
+                    @Override
+                    public void onProfileLookupFailed(/*? if >=1.20.2 {*/String/*?} else {*//*GameProfile*//*?}*/ name, Exception exception) {
+                        if (!(exception instanceof ProfileNotFoundException)) {
+                            atomicException.set(exception);
+                        }
+                        atomicProfile.set(null);
+                    }
+                };
+
+                GeyserProfileRepository repository = LazyConstants.getGeyserProfileRepository();
+
+                repository.findProfilesByNames(new String[]{username}/*? if <1.20.2 {*//*, Agent.MINECRAFT*//*?}*/, profileLookupCallback);
+
+                if (atomicException.get() != null) {
+                    Exception exception = atomicException.get();
+                    AutoWhitelist.LOGGER.error("Failed to get Bedrock profile due to an exception", exception);
+                    replyCallback.editMessage(
+                      DiscordBotHelper.buildEmbedMessage(true,
+                        DiscordBotHelper.Feedback.buildEmbed(
+                          Text.translatable("discord.command.fail.title"),
+                          Text.translatable("discord.command.fatal.exception", exception),
+                          DiscordBotHelper.MessageType.FATAL
+                        )
+                      )
+                    );
+                    return;
+                }
+
+                if (atomicProfile.get() == null) {
+                    replyCallback.editMessage(
+                      DiscordBotHelper.buildEmbedMessage(true,
+                        DiscordBotHelper.Feedback.buildEmbed(
+                          Text.translatable("discord.command.modify.unknown_bedrock_profile.title"),
+                          Text.translatable("discord.command.modify.unknown_bedrock_profile.message"),
+                          DiscordBotHelper.MessageType.WARNING
+                        )
+                      )
+                    );
+                    return;
+                } else {
+                    profile = atomicProfile.get();
+                }
+            } else {
+                profile = server.getUserCache().findByName(username).orElse(null);
+            }
+        }
+
         if (profile == null) {
             replyCallback.editMessage(
               DiscordBotHelper.buildEmbedMessage(true,
@@ -178,8 +270,8 @@ public class ModifyCommand extends SlashCommand {
             );
             return;
         }
-        ExtendedGameProfile extendedProfile = new ExtendedGameProfile(profile.getId(), profile.getName(), highestRole.get().getId(), id, AutoWhitelist.CONFIG.lockTime());
-        if (AutoWhitelist.getServer().getPlayerManager().getUserBanList().contains(extendedProfile)) {
+
+        if (AutoWhitelist.getServer().getPlayerManager().getUserBanList().contains(profile)) {
             replyCallback.editMessage(
               DiscordBotHelper.buildEmbedMessage(true,
                 DiscordBotHelper.Feedback.buildEmbed(
@@ -191,6 +283,9 @@ public class ModifyCommand extends SlashCommand {
             );
             return;
         }
+
+        ExtendedGameProfile extendedProfile = new ExtendedGameProfile(profile.getId(), profile.getName(), highestRole.get().getId(), id, AutoWhitelist.CONFIG.lockTime());
+
         boolean whitelisted = whitelist.isAllowed(extendedProfile);
         if (whitelisted) {
             replyCallback.editMessage(

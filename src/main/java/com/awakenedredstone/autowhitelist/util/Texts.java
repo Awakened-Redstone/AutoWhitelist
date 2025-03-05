@@ -10,4 +10,8 @@ public class Texts {
     public static Text playerPlaceholder(String input, String player) {
         return DynamicPlaceholders.parseText(input, MapBuilder.single("player", Text.literal(player)));
     }
+
+    public static String translated(String translation, Object... args) {
+        return Text.translatable(translation, args).getString();
+    }
 }

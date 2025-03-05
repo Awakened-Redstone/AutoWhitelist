@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 public class ExtendedWhitelist extends Whitelist {
     private boolean dirty = false;
@@ -33,16 +34,20 @@ public class ExtendedWhitelist extends Whitelist {
 
     @Override
     public void remove(GameProfile key) {
-        super.remove(key);
-
-        if (AutoWhitelist.getServer().getPlayerManager().isWhitelistEnabled()) {
-            AutoWhitelist.getServer().kickNonWhitelistedPlayers(AutoWhitelist.getServer().getCommandSource());
+        GameProfile profile;
+        if (key instanceof ExtendedGameProfile extendedGameProfile) {
+            profile = extendedGameProfile;
+        } else if (key.getId().getMostSignificantBits() == 0) {
+            GameProfile storedProfile = getProfileFromUUID(key.getId());
+            if (storedProfile instanceof ExtendedGameProfile extendedGameProfile) {
+                profile = extendedGameProfile;
+            } else {
+                profile = key;
+            }
+        } else {
+            profile = key;
         }
-    }
 
-    @Override
-    public void remove(ServerConfigEntry<GameProfile> entry) {
-        GameProfile profile = entry.getKey();
         if (profile instanceof ExtendedGameProfile extendedProfile) {
             BaseEntryAction entryAction = RoleActionMap.getNullable(extendedProfile.getRole());
             if (entryAction != null) {
@@ -56,7 +61,11 @@ public class ExtendedWhitelist extends Whitelist {
             }
         }
 
-        super.remove(entry);
+        super.remove(profile);
+
+        if (AutoWhitelist.getServer().getPlayerManager().isWhitelistEnabled()) {
+            AutoWhitelist.getServer().kickNonWhitelistedPlayers(AutoWhitelist.getServer().getCommandSource());
+        }
     }
 
     protected ServerConfigEntry<GameProfile> fromJson(JsonObject json) {
@@ -126,6 +135,15 @@ public class ExtendedWhitelist extends Whitelist {
         return values().stream()
           .filter(entry -> entry.getKey() != null)
           .filter(entry -> entry.getKey().getName().equals(username))
+          .map(ServerConfigEntry::getKey)
+          .findFirst().orElse(null);
+    }
+
+    @Nullable
+    public GameProfile getProfileFromUUID(UUID uuid) {
+        return values().stream()
+          .filter(entry -> entry.getKey() != null)
+          .filter(entry -> entry.getKey().getId().equals(uuid))
           .map(ServerConfigEntry::getKey)
           .findFirst().orElse(null);
     }

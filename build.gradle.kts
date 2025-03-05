@@ -80,6 +80,8 @@ dependencies {
         exclude(group = "net.fabricmc", module = "fabric-api")
     })
     include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${property("mixinextras")}")!!)!!)
+    include(implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")!!)
+    include(implementation("com.fasterxml.jackson.core:jackson-core:2.17.2")!!)
 
     // Libraries
     include(api("blue.endless:jankson:${property("jankson_version")}")!!)

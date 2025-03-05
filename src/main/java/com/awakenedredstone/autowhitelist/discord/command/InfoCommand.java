@@ -1,25 +1,26 @@
 package com.awakenedredstone.autowhitelist.discord.command;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
+import com.awakenedredstone.autowhitelist.LazyConstants;
 import com.awakenedredstone.autowhitelist.discord.DiscordBot;
 import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
 import com.awakenedredstone.autowhitelist.discord.api.ReplyCallback;
+import com.awakenedredstone.autowhitelist.util.Texts;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
-import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
@@ -29,30 +30,20 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-public class InfoCommand extends SlashCommand {
+public class InfoCommand extends SimpleSlashCommand {
     public InfoCommand() {
-        this.name = "info";
-        this.help = Text.translatable("discord.command.description.info").getString();
-
-        this.contexts = new InteractionContextType[]{InteractionContextType.GUILD};
+        super("info");
     }
 
     @Override
     @SuppressWarnings("DuplicatedCode")
     protected void execute(SlashCommandEvent event) {
-        ReplyCallback.InteractionReplyCallback replyCallback = new ReplyCallback.InteractionReplyCallback() {
-
-            @Override
-            public void acknowledge() {
-                lastTask = event.deferReply(AutoWhitelist.CONFIG.ephemeralReplies).submit();
-            }
-        };
+        var replyCallback = new ReplyCallback.DefaultInteractionReplyCallback(event);
 
         replyCallback.sendMessage(null);
 
@@ -65,7 +56,7 @@ public class InfoCommand extends SlashCommand {
               DiscordBotHelper.MessageType.FATAL
             );
 
-            replyCallback.editMessage((InteractionHook interactionHook) -> interactionHook
+            replyCallback.submitEdit((InteractionHook interactionHook) -> interactionHook
               .editOriginal(DiscordBotHelper.<MessageEditData>buildEmbedMessage(true, embed))
             );
 
@@ -92,13 +83,13 @@ public class InfoCommand extends SlashCommand {
             //noinspection DuplicatedCode
             String[] fields = new String[]{"username", "role", "lock"};
             for (String field : fields) {
-                Text title = Text.translatable("discord.command.info.field.%s.title".formatted(field));
-                if (title.getString().isEmpty()) continue;
+                String title = Texts.translated("discord.command.info.field.%s.title".formatted(field));
+                if (title.isEmpty()) continue;
 
                 String descriptionKey = "discord.command.info.field.%s.description".formatted(field);
-                Text description = switch (field) {
-                    case "username" -> Text.translatable(descriptionKey, profile.getName());
-                    case "role" -> Text.translatable(descriptionKey, "<@&" + profile.getRole() + ">");
+                String description = switch (field) {
+                    case "username" -> Texts.translated(descriptionKey, profile.getName());
+                    case "role" -> Texts.translated(descriptionKey, "<@&" + profile.getRole() + ">");
                     case "lock" -> {
                         String time = "future";
                         if (profile.getLockedUntil() == -1) {
@@ -107,18 +98,18 @@ public class InfoCommand extends SlashCommand {
                             time = "past";
                         }
                         String timeKey = "." + time;
-                        yield Text.translatable(descriptionKey + timeKey, DiscordBotHelper.formatDiscordTimestamp(profile.getLockedUntil()));
+                        yield Texts.translated(descriptionKey + timeKey, DiscordBotHelper.formatDiscordTimestamp(profile.getLockedUntil()));
                     }
-                    default -> Text.of("");
+                    default -> "";
                 };
-                if (description.getString().isEmpty()) continue;
+                if (description.isEmpty()) continue;
 
-                embed.addField(title.getString(), description.getString(), true);
+                embed.addField(title, description, true);
             }
 
             Button removeButton = Button.danger(btnId(eventId, "delete"), "Remove");
 
-            replyCallback.editMessage((InteractionHook interactionHook) -> interactionHook
+            replyCallback.submitEdit((InteractionHook interactionHook) -> interactionHook
               .editOriginal(DiscordBotHelper.<MessageEditData>buildEmbedMessage(true, embed.build()))
               .setComponents(ActionRow.of(removeButton.withDisabled(profile.isLocked())))
             );
@@ -167,25 +158,41 @@ public class InfoCommand extends SlashCommand {
             Optional<Role> highestRole = DiscordBotHelper.getHighestEntryRole(member);
             Button button = Button.success(btnId(eventId, "register"), "Register").withDisabled(highestRole.isEmpty());
 
-            replyCallback.editMessage((InteractionHook interactionHook) -> interactionHook
+            replyCallback.submitEdit((InteractionHook interactionHook) -> interactionHook
               .editOriginal(
                 DiscordBotHelper.<MessageEditData>buildEmbedMessage(true, embed)
               ).setComponents(ActionRow.of(button))
             );
+
+            ArrayList<ItemComponent> components = new ArrayList<>();
+            components.add(
+              TextInput.create(
+                "username",
+                Texts.translated("discord.modal.register.input.label"),
+                TextInputStyle.SHORT
+              ).setPlaceholder(
+                Texts.translated("discord.modal.register.input.placeholder")
+              ).setRequired(true).build()
+            );
+
+            if (LazyConstants.isUsingGeyser()) {
+                components.add(
+                  StringSelectMenu.create("type")
+                    .addOption(Texts.translated("discord.command.option.register.geyser/java"), "java")
+                    .addOption(Texts.translated("discord.command.option.register.geyser/bedrock"), "bedrock")
+                    .setRequiredRange(1, 1)
+                    .setDefaultValues("username")
+                    .build()
+                );
+            }
+
+
             ButtonEventHandler buttonEventHandler = new ButtonEventHandler().addConsumer(btnId(eventId, "register"), buttonEvent -> {
                 Modal.Builder builder = Modal.create(
                   btnId(eventId, "register"),
-                  Text.translatable("discord.modal.register.title").getString()
+                  Texts.translated("discord.modal.register.title")
                 ).addComponents(
-                  ActionRow.of(
-                    TextInput.create(
-                      "username",
-                      Text.translatable("discord.modal.register.input.label").getString(),
-                      TextInputStyle.SHORT
-                    ).setPlaceholder(
-                      Text.translatable("discord.modal.register.input.placeholder").getString()
-                    ).setRequired(true).build()
-                  )
+                  ActionRow.of(components)
                 );
 
                 buttonEvent.replyModal(builder.build()).queue();
@@ -195,17 +202,19 @@ public class InfoCommand extends SlashCommand {
                   modalEvent -> {
                       ModalMapping usernameMapping = modalEvent.getValue("username");
                       if (usernameMapping == null) return;
+                      ModalMapping typeMapping = modalEvent.getValue("type");
 
                       String username = usernameMapping.getAsString();
+                      boolean isBedrock = typeMapping != null && typeMapping.getAsString().equalsIgnoreCase("bedrock");
                       ReplyCallback.InteractionReplyCallback replyCallback1 = new ReplyCallback.InteractionReplyCallback() {
 
                           @Override
-                          public void acknowledge() {
-                              lastTask = modalEvent.editComponents().submit();
+                          protected CompletableFuture<InteractionHook> acknowledge() {
+                              return modalEvent.editComponents().submit();
                           }
                       };
 
-                      RegisterCommand.execute(member, username, replyCallback1);
+                      RegisterCommand.execute(member, username, isBedrock, replyCallback1);
                   }
                 );
             });
@@ -220,15 +229,7 @@ public class InfoCommand extends SlashCommand {
           buttonEvent -> buttonEvent.getComponentId().startsWith(idBase),
           buttonEventHandler::handleEvent,
           1, TimeUnit.MINUTES,
-          () -> replyCallback.editMessage((Object v) -> {
-              if (v instanceof InteractionHook interactionHook) {
-                  return interactionHook.editOriginalComponents();
-              } else if (v instanceof Message editAction) {
-                  return editAction.editMessageComponents();
-              } else {
-                  return null;
-              }
-          })
+          () -> replyCallback.submitEdit(InteractionHook::editOriginalComponents)
         );
     }
 

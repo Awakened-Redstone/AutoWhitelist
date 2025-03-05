@@ -3,6 +3,7 @@ package com.awakenedredstone.autowhitelist.whitelist;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.mojang.authlib.GameProfile;
 import net.dv8tion.jda.api.entities.Role;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.UUID;
 
@@ -45,5 +46,17 @@ public class ExtendedGameProfile extends GameProfile {
 
     public boolean isLocked() {
         return AutoWhitelist.CONFIG.lockTime() == -1 || lockedUntil == -1 || lockedUntil > System.currentTimeMillis() || AutoWhitelist.getServer().getPlayerManager().getUserBanList().contains(this);
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+          .append("id", getId())
+          .append("name", getName())
+          .append("properties", getProperties())
+          .append("role", role)
+          .append("discordId", discordId)
+          .append("lockedUntil", lockedUntil)
+          .toString();
     }
 }
