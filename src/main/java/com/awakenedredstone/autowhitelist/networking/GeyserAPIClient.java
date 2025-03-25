@@ -1,6 +1,6 @@
 package com.awakenedredstone.autowhitelist.networking;
 
-import com.awakenedredstone.autowhitelist.mixin.MinecraftClientAccessor;
+import com.awakenedredstone.autowhitelist.mixin.authlib.MinecraftClientAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mojang.authlib.exceptions.MinecraftClientException;
 import com.mojang.authlib.exceptions.MinecraftClientHttpException;

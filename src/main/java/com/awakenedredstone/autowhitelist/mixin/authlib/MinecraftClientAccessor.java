@@ -1,4 +1,4 @@
-package com.awakenedredstone.autowhitelist.mixin;
+package com.awakenedredstone.autowhitelist.mixin.authlib;
 
 import com.mojang.authlib.minecraft.client.MinecraftClient;
 import org.spongepowered.asm.mixin.Mixin;
