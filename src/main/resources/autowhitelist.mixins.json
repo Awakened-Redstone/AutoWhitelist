@@ -12,9 +12,9 @@
     "ServerLoginNetworkHandlerAccessor",
     "UserCacheAccessor",
     "WhitelistCommandMixin",
-    "jackson.JanksonAccessor",
-    "jackson.POJODeserializerAccessor",
-    "jackson.POJODeserializerMixin"
+    "jankson.JanksonAccessor",
+    "jankson.POJODeserializerAccessor",
+    "jankson.POJODeserializerMixin"
   ],
   "client": [
   ],

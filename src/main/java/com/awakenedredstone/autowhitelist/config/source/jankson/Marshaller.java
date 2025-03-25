@@ -16,7 +16,7 @@ import blue.endless.jankson.magic.TypeMagic;
 import com.awakenedredstone.autowhitelist.config.source.AnnotationParserException;
 import com.awakenedredstone.autowhitelist.config.source.annotation.NameFormat;
 import com.awakenedredstone.autowhitelist.config.source.annotation.SkipNameFormat;
-import com.awakenedredstone.autowhitelist.mixin.jackson.POJODeserializerAccessor;
+import com.awakenedredstone.autowhitelist.mixin.jankson.POJODeserializerAccessor;
 import com.google.common.base.CaseFormat;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;

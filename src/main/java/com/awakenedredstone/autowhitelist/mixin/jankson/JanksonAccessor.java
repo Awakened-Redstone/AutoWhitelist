@@ -1,4 +1,4 @@
-package com.awakenedredstone.autowhitelist.mixin.jackson;
+package com.awakenedredstone.autowhitelist.mixin.jankson;
 
 import blue.endless.jankson.Jankson;
 import blue.endless.jankson.api.Marshaller;

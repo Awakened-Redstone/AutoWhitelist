@@ -10,7 +10,7 @@ import com.awakenedredstone.autowhitelist.config.source.annotation.PredicateCons
 import com.awakenedredstone.autowhitelist.config.source.annotation.RangeConstraint;
 import com.awakenedredstone.autowhitelist.config.source.annotation.RegexConstraint;
 import com.awakenedredstone.autowhitelist.config.source.jankson.Marshaller;
-import com.awakenedredstone.autowhitelist.mixin.jackson.JanksonAccessor;
+import com.awakenedredstone.autowhitelist.mixin.jankson.JanksonAccessor;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
