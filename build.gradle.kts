@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import com.modrinth.minotaur.dependencies.ModDependency
 import groovy.json.JsonSlurper
 import me.modmuss50.mpp.ReleaseType
@@ -8,6 +9,7 @@ plugins {
     id("maven-publish")
     id("com.modrinth.minotaur") version "2.+"
     id("me.modmuss50.mod-publish-plugin") version "0.8.4"
+    id("com.gradleup.shadow") version "8.3.6"
 }
 
 repositories {
@@ -66,6 +68,8 @@ fun file(path: String): File {
     return rootProject.file(path)
 }
 
+val shade: Configuration by configurations.creating
+
 dependencies {
     minecraft("com.mojang:minecraft:$minecraftVersion")
     mappings("net.fabricmc:yarn:$minecraftVersion+build.${property("yarn_mappings")}:v2")
@@ -88,12 +92,20 @@ dependencies {
     api("pw.chew:jda-chewtils:${property("chewtils_version")}") {
         exclude(module = "log4j-core")
     }
-    include(api("net.dv8tion:JDA:${property("jda_version")}") {
+    api("net.dv8tion:JDA:${property("jda_version")}") {
         exclude(module = "opus-java")
         exclude(module = "log4j-core")
         exclude(module = "log4j-api")
         exclude(module = "slf4j-api")
-    })
+    }
+
+    shade("net.dv8tion:JDA:${property("jda_version")}") {
+        isTransitive = false
+        exclude(module = "opus-java")
+        exclude(module = "log4j-core")
+        exclude(module = "log4j-api")
+        exclude(module = "slf4j-api")
+    }
 
     // JDA dependencies
     include("com.fasterxml.jackson.core:jackson-annotations:2.17.2")
@@ -109,8 +121,12 @@ dependencies {
     include("org.json:json:20241224")
 
     // Chewtils
-    include("pw.chew:jda-chewtils-command:${property("chewtils_version")}")
-    include("pw.chew:jda-chewtils-commons:${property("chewtils_version")}")
+    shade("pw.chew:jda-chewtils-command:${property("chewtils_version")}") {
+        isTransitive = false
+    }
+    shade("pw.chew:jda-chewtils-commons:${property("chewtils_version")}") {
+        isTransitive = false
+    }
 
     // Runtime only
     modRuntimeOnly("net.fabricmc:fabric-language-kotlin:${property("kotlin_version")}")
@@ -177,9 +193,31 @@ tasks.register<Jar>("sourcesJar") {
 }
 
 tasks.jar {
+    destinationDirectory = file("${layout.buildDirectory}/tmp/thinJar")
+    /*from("LICENSE") {
+        rename { "${it}_${archivesBaseName}" }
+    }*/
+}
+
+tasks.named<ShadowJar>("shadowJar") {
+    configurations = listOf(shade)
+    destinationDirectory = file("${layout.buildDirectory}/tmp/shadowJar")
+    relocate("net.dv8tion.jda", "com.awakenedredstone.autowhitelist.lib.jda")
+    relocate("com.jagrosh.jdautilities", "com.awakenedredstone.autowhitelist.lib.jdautils")
+    relocate("pw.chew.jdachewtils", "com.awakenedredstone.autowhitelist.lib.chewtils")
+    exclude("META-INF/maven/**/*", "META-INF/*.txt", "META-INF/proguard/*", "META-INF/LICENSE")
     from("LICENSE") {
         rename { "${it}_${archivesBaseName}" }
     }
+}
+
+tasks.register("prepareRemapJar") {
+    dependsOn(tasks.named("shadowJar"))
+}
+
+tasks.named<net.fabricmc.loom.task.RemapJarTask>("remapJar") {
+    dependsOn(tasks.named("prepareRemapJar"))
+    inputFile.set(tasks.named<ShadowJar>("shadowJar").get().archiveFile.get().asFile)
 }
 
 tasks.register<net.fabricmc.loom.task.RemapJarTask>("remapMavenJar") {
