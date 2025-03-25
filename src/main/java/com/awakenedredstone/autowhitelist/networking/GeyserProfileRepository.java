@@ -79,6 +79,22 @@ public class GeyserProfileRepository implements GameProfileRepository {
         }
     }
 
+    public Optional<GameProfile> findProfileByName(String name) {
+        final String normalizedRequest = normalizeName(name);
+
+        try {
+            final ProfileSearchResultsResponse response = client.get(searchPageUrl.newBuilder().addPathSegment(normalizedRequest).build().url(), ProfileSearchResultsResponse.class);
+
+            if (response != null) {
+                return Optional.of(new GameProfile(new UUID(0, response.xuid()), normalizedRequest));
+            }
+        } catch (final MinecraftClientException e) {
+            LOGGER.warn("Couldn't find profile with name: {}", name, e);
+        }
+
+        return Optional.empty();
+    }
+
     private static String normalizeName(final String name) {
         return name.toLowerCase(Locale.ROOT);
     }
@@ -94,12 +110,5 @@ public class GeyserProfileRepository implements GameProfileRepository {
         }
     }
 
-    public record ProfileSearchResultsResponse(long xuid) {
-        /*public static class Serializer implements JsonDeserializer<ProfileSearchResultsResponse> {
-            @Override
-            public ProfileSearchResultsResponse deserialize(final JsonElement json, final Type typeOfT, final JsonDeserializationContext context) throws JsonParseException {
-                return new ProfileSearchResultsResponse(context.deserialize(json, String.class));
-            }
-        }*/
-    }
+    public record ProfileSearchResultsResponse(long xuid) {}
 }

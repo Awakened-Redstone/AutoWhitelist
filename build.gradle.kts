@@ -5,7 +5,7 @@ import me.modmuss50.mpp.ReleaseType
 import java.io.File
 
 plugins {
-    id("fabric-loom") version "1.9+"
+    id("fabric-loom") version "1.10+"
     id("maven-publish")
     id("com.modrinth.minotaur") version "2.+"
     id("me.modmuss50.mod-publish-plugin") version "0.8.4"
