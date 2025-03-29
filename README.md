@@ -2,8 +2,8 @@
 
 ## ⚙️ Features
 - **Discord link** - allow users to add their Minecraft accounts to the whitelist with access filtered by role
-- **Whitelist actions** - execute actions when whitelist/removing a player, execute commands, give them LuckPerms permissions or just whitelist
-- **Whitelist cache** - keep memory of the usernames, and whitelist the players when they log in if they gained the required role back
+- **Whitelist actions** - execute actions when whitelisting/removing a player, execute commands, give them LuckPerms permissions or just whitelist
+- **Whitelist cache** - keep memory of the usernames, and automatically whitelist the players when they log in if they gained the required role back
 - **Rich documentation** - quickly setup the mod and start using within minutes
 - **Custom messages** - easily customize the mod messages
 - **Extendable** - the mod offers an API for mods to add more whitelist actions
