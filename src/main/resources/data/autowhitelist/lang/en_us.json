@@ -36,7 +36,7 @@
   "discord.command.register.unknown_bedrock_profile.title": "Unknown profile",
   "discord.command.register.unknown_bedrock_profile.message": "The username you inserted is not in Geyser's cache. Please provide a Floodgate UUID instead.\nYou can use [mcprofile.io](<https://mcprofile.io/>) to get the UUID",
   "discord.command.register.fail.not_allowed.title": "Sorry, but I couldn't accept your request",
-  "discord.command.register.fail.not_allowed.message": "It seems that you don't have the required subscription/member level or don't have your Twitch/Youtube account linked to your Discord account.\nPlease note that it may take up to an hour for Discord to give you the role",
+  "discord.command.register.fail.not_allowed.message": "It seems that you don't have a required role to be whitelisted.",
   "discord.command.register.fail.account_data": "I couldn't get the public account data of `%s`. Is it a valid **Minecraft Java Edition** username?",
 
   "discord.command.modify.success.title": "Modified %s's entry",

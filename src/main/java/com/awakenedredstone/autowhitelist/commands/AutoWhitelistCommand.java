@@ -2,6 +2,7 @@ package com.awakenedredstone.autowhitelist.commands;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.commands.api.Permission;
+import com.awakenedredstone.autowhitelist.data.DefaultTranslationsDataProvider;
 import com.awakenedredstone.autowhitelist.debug.DebugFlags;
 import com.awakenedredstone.autowhitelist.discord.DiscordBot;
 import com.awakenedredstone.autowhitelist.util.LinedStringBuilder;
@@ -17,10 +18,13 @@ import net.dv8tion.jda.api.JDAInfo;
 import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.interactions.commands.Command;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.minecraft.SharedConstants;
+import net.minecraft.data.DataProvider;
+import net.minecraft.data.DataWriter;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.ServerConfigEntry;
 import net.minecraft.server.WhitelistEntry;
@@ -28,7 +32,12 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.WorldSavePath;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -36,6 +45,7 @@ import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class AutoWhitelistCommand {
+    public static final Logger LOGGER = LoggerFactory.getLogger(AutoWhitelistCommand.class);
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(
@@ -174,6 +184,33 @@ public class AutoWhitelistCommand {
                           });
                     });
 
+                    return 0;
+                })
+            ).then(
+              literal("create-translations-datapack")
+                .executes(context -> {
+                    try {
+                        boolean cat = AutoWhitelist.CONFIG.discordServerId == 1016206797389975612L;
+
+                        ServerCommandSource source = context.getSource();
+                        source.sendFeedback(() -> Text.literal("Creating datapack"), false);
+                        long time = source.getWorld().getTime();
+
+                        Path path = source.getServer().getSavePath(WorldSavePath.DATAPACKS).resolve(cat ? "meow" : "autowhitelist_translations");
+                        FabricDataOutput output = new FabricDataOutput(FabricLoader.getInstance().getModContainer(AutoWhitelist.MOD_ID).get(), path, true);
+                        DataProvider provider = new DefaultTranslationsDataProvider(output);
+                        provider.run(DataWriter.UNCACHED).whenComplete((o, throwable) -> {
+                            try {
+                                Files.writeString(path.resolve("pack.mcmeta"), "{\"pack\": {\"pack_format\": 34,\"description\": \"%s\"}}".formatted(cat ? "smh lazy cat" :  ""));
+                            } catch (Throwable e) {
+                                LOGGER.error("Failed to create pack.mcmeta for \"{}\"", "test" + time, e);
+                            }
+
+                            source.sendFeedback(() -> Text.translatable("Created datapack test" + time), false);
+                        });
+                    } catch (Exception e) {
+                        LOGGER.error("oops", e);
+                    }
                     return 0;
                 })
             )
