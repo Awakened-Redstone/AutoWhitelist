@@ -36,6 +36,7 @@ import net.minecraft.util.WorldSavePath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -188,29 +189,24 @@ public class AutoWhitelistCommand {
                 })
             ).then(
               literal("create-translations-datapack")
-                .executes(context -> {
-                    try {
-                        boolean cat = AutoWhitelist.CONFIG.discordServerId == 1016206797389975612L;
+                .executes(context -> {ServerCommandSource source = context.getSource();
+                    source.sendFeedback(() -> Text.literal("Creating datapack"), false);
 
-                        ServerCommandSource source = context.getSource();
-                        source.sendFeedback(() -> Text.literal("Creating datapack"), false);
-                        long time = source.getWorld().getTime();
+                    Path path = source.getServer().getSavePath(WorldSavePath.DATAPACKS).resolve("autowhitelist_translations");
+                    FabricDataOutput output = new FabricDataOutput(FabricLoader.getInstance().getModContainer(AutoWhitelist.MOD_ID).get(), path, true);
+                    DataProvider provider = new DefaultTranslationsDataProvider(output);
+                    provider.run(DataWriter.UNCACHED).whenComplete((o, throwable) -> {
+                        try {
+                            Files.writeString(path.resolve("pack.mcmeta"), "{\"pack\": {\"pack_format\": 34,\"description\": \"\"}}");
+                        } catch (IOException e) {
+                            source.sendError(Text.literal("Failed to create pack.mcmeta for \"autowhitelist_translations\""));
+                            LOGGER.error("Failed to create pack.mcmeta for \"autowhitelist_translations\"", e);
+                            return;
+                        }
 
-                        Path path = source.getServer().getSavePath(WorldSavePath.DATAPACKS).resolve(cat ? "meow" : "autowhitelist_translations");
-                        FabricDataOutput output = new FabricDataOutput(FabricLoader.getInstance().getModContainer(AutoWhitelist.MOD_ID).get(), path, true);
-                        DataProvider provider = new DefaultTranslationsDataProvider(output);
-                        provider.run(DataWriter.UNCACHED).whenComplete((o, throwable) -> {
-                            try {
-                                Files.writeString(path.resolve("pack.mcmeta"), "{\"pack\": {\"pack_format\": 34,\"description\": \"%s\"}}".formatted(cat ? "smh lazy cat" :  ""));
-                            } catch (Throwable e) {
-                                LOGGER.error("Failed to create pack.mcmeta for \"{}\"", "test" + time, e);
-                            }
+                        source.sendFeedback(() -> Text.literal("Created datapack autowhitelist_translations"), false);
+                    });
 
-                            source.sendFeedback(() -> Text.translatable("Created datapack test" + time), false);
-                        });
-                    } catch (Exception e) {
-                        LOGGER.error("oops", e);
-                    }
                     return 0;
                 })
             )
