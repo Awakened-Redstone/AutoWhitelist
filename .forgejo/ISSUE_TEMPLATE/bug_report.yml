@@ -1,0 +1,127 @@
+name: Bug report
+title: "[Bug]: "
+description: "Use this template if you're running into bugs or other issues"
+labels:
+  - Bug
+  - Needs triage
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        ## Instructions
+
+        This is a template for the issue you are about to open! It will help you
+        provide the information necessary to complete your **bug report**.
+        Before you open an issue, ensure you've completed every step on the
+        checklist below.
+
+        - Have you used the GitHub Issues search tool to find similar issues? 
+        If you find one that looks like what you are getting, consider contributing 
+        additional information to it instead. Make sure you are not opening a duplicate.
+
+        - Are you using the latest version of the mod? If not, try updating to
+        see if it resolves your issue.
+
+        All good? Then continue to fill the issue by providing the following
+        information about it:
+  - type: input
+    id: mod_version
+    attributes:
+      label: Mod version
+      description: >-
+        Please provide the exact version of the mod you are using. Every part of
+        the version is important! If you do not know what version you are using,
+        look at the file name in your `mods` folder.
+      placeholder: 'Example: 1.0.0-beta.8'
+    validations:
+      required: true
+  - type: input
+    id: mc_version
+    attributes:
+      label: Minecraft version
+      description: >-
+        Please provide the exact version of Minecraft you are using. 
+        Every part of the version is important!.
+      placeholder: '1.21.4'
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: 'Example: The Piston should extend.'
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What did actually happen?
+      placeholder: 'Example: The Piston does not extend.'
+    validations:
+      required: true
+  - type: textarea
+    id: repro-steps
+    attributes:
+      label: Reproduction Steps
+      description: >-
+        Provide information on how to reproduce this bug. You can either
+        fill this section in like the example below or do something else just
+        make sure your instructions are minimal and clear, as other people will
+        need to be able to replicate your issue.
+      placeholder: |
+        Example:
+        1. Place a Redstone Lamp in front of a Redstone Repeater
+        2. Use a Lever to activate the Redstone Repeater
+        3. Nothing happens
+    validations:
+      required: true
+  - type: input
+    id: java
+    attributes:
+      label: Java version
+      placeholder: 'Example: Java 21'
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional information
+      description: >-
+        Provide a list of any other mods you are using, along with their
+        respective versions. If you have any screenshots, videos, or other
+        information that you feel is necessary to explain the issue, feel free
+        to attach them here.
+  - type: textarea
+    id: status-dump
+    attributes:
+      label: Mod data
+      description: >-
+        Please provide the output of `/autowhitelist dump stats`
+      placeholder: |
+        Example:
+        
+        ==== AutoWhitelist data dump ====
+        Minecraft:
+          Minecraft version: 1.21.1
+          Java version: 21.0.7+6-LTS
+          Mod loader: Fabric
+          Loader version: 0.16.14
+          Mod version: 1.2.2+1.21
+          Total whitelisted players: 12
+          Luckperms version: 5.4.156
+        AutoWhitelist:
+          Config:
+            Total entries: 5
+            Config exists: true
+            Config loads: true
+            Lock time: 86400
+          Bot:
+            JDA version: 5.3.0_4d372fd
+            Chewtils version: 2.0-DEV.@VERSION_REVISION@
+            Bot status: online
+            Gateway ping: 121
+            Rest ping: 261
+    validations:
+      required: true
