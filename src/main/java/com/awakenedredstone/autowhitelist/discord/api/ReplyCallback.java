@@ -48,7 +48,7 @@ public interface ReplyCallback {
             // Wait for the acknowledgement to complete before editing
             if (!acknowledgment.get().isDone()) {
                 // Set the task to execute once the interaction is acknowledged
-                pendingTask.set(hook -> executingTask.set(messageFunction.apply(originalMessage.get()).submit()));
+                pendingTask.set(hook -> executingTask.set(CompletableFuture.completedFuture(messageFunction.apply(originalMessage.get()).complete())));
             } else {
                 // Cancel any executing task to avoid spamming Discord's API
                 if (executingTask.get() != null) {
@@ -56,7 +56,7 @@ public interface ReplyCallback {
                 }
 
                 // The interaction was already acknowledged, so execute the task now
-                executingTask.set(messageFunction.apply(originalMessage.get()).submit());
+                executingTask.set(CompletableFuture.completedFuture(messageFunction.apply(originalMessage.get()).complete()));
             }
         }
     }
@@ -72,7 +72,7 @@ public interface ReplyCallback {
             if (messageData == null) {
                 acknowledgment.set(acknowledge());
             } else {
-                acknowledgment.set(event.reply(messageData).setEphemeral(AutoWhitelist.CONFIG.ephemeralReplies).submit());
+                acknowledgment.set(CompletableFuture.completedFuture(event.reply(messageData).setEphemeral(AutoWhitelist.CONFIG.ephemeralReplies).complete()));
             }
 
             // Execute the pending task after the acknowledgment
@@ -88,7 +88,7 @@ public interface ReplyCallback {
 
         @Override
         public CompletableFuture<InteractionHook> acknowledge() {
-            return event.deferReply(AutoWhitelist.CONFIG.ephemeralReplies).submit();
+            return CompletableFuture.completedFuture(event.deferReply(AutoWhitelist.CONFIG.ephemeralReplies).complete());
         }
     }
 }
