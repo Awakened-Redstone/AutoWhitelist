@@ -1,78 +1,29 @@
 package com.awakenedredstone.autowhitelist.whitelist;
 
-import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.google.gson.JsonObject;
 import net.minecraft.server.WhitelistEntry;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.UUID;
 
 public class ExtendedWhitelistEntry extends WhitelistEntry {
 
-    public ExtendedWhitelistEntry(ExtendedGameProfile profile) {
+    public ExtendedWhitelistEntry(ExtendedPlayerProfile profile) {
         super(profile);
     }
 
-    public ExtendedWhitelistEntry(JsonObject json, ExtendedWhitelist extendedWhitelist) {
-        super(profileFromJson(json, extendedWhitelist));
+    public ExtendedWhitelistEntry(JsonObject json) {
+        super(ExtendedPlayerProfile.read(json));
     }
 
-    @Nullable
-    private static ExtendedGameProfile profileFromJson(JsonObject json, @Nullable ExtendedWhitelist extendedWhitelist) {
-        if (jsonHasAllKeys(json, "uuid", "name", "discordId", "role")) {
-            String uuidString = json.get("uuid").getAsString();
-
-            UUID uuid;
-            try {
-                uuid = UUID.fromString(uuidString);
-            } catch (Throwable e) {
-                return null;
-            }
-
-            long lockedUntil;
-            if (json.has("lockedUntil")) {
-                lockedUntil = json.get("lockedUntil").getAsLong();
-            } else {
-                lockedUntil = AutoWhitelist.CONFIG.lockTime();
-                if (extendedWhitelist != null) {
-                    extendedWhitelist.setDirty(true);
-                }
-            }
-
-            return new ExtendedGameProfile(
-              uuid,
-              json.get("name").getAsString(),
-              json.get("role").getAsString(),
-              json.get("discordId").getAsString(),
-              lockedUntil
-            );
-        } else {
-            return null;
-        }
+    public ExtendedPlayerProfile getProfile() {
+        return (ExtendedPlayerProfile) getKey();
     }
 
-    private static boolean jsonHasAllKeys(JsonObject json, String... keys) {
-        for (String key : keys) {
-            if (!json.has(key)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public ExtendedGameProfile getProfile() {
-        return (ExtendedGameProfile) getKey();
-    }
-
+    /*? if <1.21.9 {*//*
     @Override
     protected void write(JsonObject json) {
-        ExtendedGameProfile profile = (ExtendedGameProfile) getKey();
-        if (profile != null && profile.getId() != null) {
-            json.addProperty("uuid", profile.getId().toString());
-            json.addProperty("name", profile.getName());
-            json.addProperty("role", profile.getRole());
-            json.addProperty("discordId", profile.getDiscordId());
-            json.addProperty("lockedUntil", profile.getLockedUntil());
+        ExtendedPlayerProfile profile = (ExtendedPlayerProfile) getKey();
+        if (profile != null) {
+            profile.write(json);
         }
     }
+    *//*?}*/
 }

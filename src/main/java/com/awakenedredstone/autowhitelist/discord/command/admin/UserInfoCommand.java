@@ -5,8 +5,9 @@ import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
 import com.awakenedredstone.autowhitelist.discord.api.ReplyCallback;
 import com.awakenedredstone.autowhitelist.discord.command.RegisterCommand;
 import com.awakenedredstone.autowhitelist.discord.command.SimpleSlashCommand;
+import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.awakenedredstone.autowhitelist.util.Texts;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
@@ -80,7 +81,7 @@ public class UserInfoCommand extends SimpleSlashCommand {
 
         if (whitelistedAccount.isPresent()) {
             ExtendedWhitelistEntry entry = whitelistedAccount.get();
-            ExtendedGameProfile profile = entry.getProfile();
+            ExtendedPlayerProfile profile = entry.getProfile();
 
             //noinspection DuplicatedCode
             String[] fields = new String[]{"username", "role", "lock"};
@@ -90,7 +91,7 @@ public class UserInfoCommand extends SimpleSlashCommand {
 
                 String descriptionKey = "discord.command.info.field.%s.description".formatted(field);
                 String description = switch (field) {
-                    case "username" -> Texts.translated(descriptionKey, profile.getName());
+                    case "username" -> Texts.translated(descriptionKey, Stonecutter.profileName(profile));
                     case "role" -> Texts.translated(descriptionKey, "<@&" + profile.getRole() + ">");
                     case "lock" -> {
                         String time = "future";

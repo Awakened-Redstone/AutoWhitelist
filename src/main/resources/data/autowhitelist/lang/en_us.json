@@ -95,7 +95,5 @@
   "discord.modal.register.input.label": "Minecraft username",
   "discord.modal.register.input.placeholder": "Username",
   "discord.modal.register.type.username": "Username",
-  "discord.modal.register.type.uuid": "UUID",
-
-  "discord.bot.activity.message": "on the Member Server"
+  "discord.modal.register.type.uuid": "UUID"
 }

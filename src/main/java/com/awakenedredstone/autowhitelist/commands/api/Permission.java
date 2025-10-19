@@ -9,21 +9,21 @@ import java.util.function.Predicate;
 
 public class Permission {
 
-    private static Predicate<ServerCommandSource> getSafe(Predicate<ServerCommandSource> predicate, boolean defaultValue) {
+    private static Predicate<ServerCommandSource> tryPermissionApi(Predicate<ServerCommandSource> predicate, boolean defaultValue) {
         return FabricLoader.getInstance().isModLoaded("fabric-permissions-api-v0") ? predicate : v -> defaultValue;
     }
 
-    private static Predicate<ServerCommandSource> getSafe(Predicate<ServerCommandSource> predicate, int defaultRequiredLevel) {
+    private static Predicate<ServerCommandSource> tryPermissionApi(Predicate<ServerCommandSource> predicate, int defaultRequiredLevel) {
         return FabricLoader.getInstance().isModLoaded("fabric-permissions-api-v0") ? predicate : source -> source.hasPermissionLevel(defaultRequiredLevel);
     }
 
     public static @NotNull Predicate<ServerCommandSource> require(@NotNull String permission, boolean defaultValue) {
         Objects.requireNonNull(permission, "permission");
-        return getSafe(source -> SafePermissionApi.check(source, permission, defaultValue), defaultValue);
+        return tryPermissionApi(source -> PermissionApiWrapper.check(source, permission, defaultValue), defaultValue);
     }
 
     public static @NotNull Predicate<ServerCommandSource> require(@NotNull String permission, int defaultRequiredLevel) {
         Objects.requireNonNull(permission, "permission");
-        return getSafe(source -> SafePermissionApi.check(source, permission, defaultRequiredLevel), defaultRequiredLevel);
+        return tryPermissionApi(source -> PermissionApiWrapper.check(source, permission, defaultRequiredLevel), defaultRequiredLevel);
     }
 }

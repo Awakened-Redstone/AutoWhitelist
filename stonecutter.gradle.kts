@@ -1,20 +1,17 @@
+@file:OptIn(StonecutterExperimentalFilesAPI::class)
+
+import dev.kikugie.stonecutter.controller.file.Presets
+import dev.kikugie.stonecutter.controller.file.StonecutterExperimentalFilesAPI
+
 plugins {
     id("dev.kikugie.stonecutter")
 }
-stonecutter active "1.21.6" /* [SC] DO NOT EDIT */
 
-stonecutter registerChiseled tasks.register("chiseledBuild", stonecutter.chiseled) {
-    group = "build"
-    ofTask("build")
-}
+stonecutter active "1.21.9" /* [SC] DO NOT EDIT */
 
-stonecutter registerChiseled tasks.register("chiseledClean", stonecutter.chiseled) {
-    group = "build"
-    ofTask("clean")
-}
-
-stonecutter registerChiseled tasks.register("chiseledPublishMods", stonecutter.chiseled) {
-    group = "publishing"
-    ofTask("publishMods")
-    dependsOn(tasks.getByName("chiseledBuild"))
+stonecutter handlers {
+    configure("accesswidener") {
+        scanner { from(Presets.Scanner.Hash) }
+        comment(Presets.Commenter.Hash)
+    }
 }

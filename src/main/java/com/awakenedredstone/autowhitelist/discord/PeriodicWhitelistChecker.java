@@ -3,7 +3,8 @@ package com.awakenedredstone.autowhitelist.discord;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
+import com.awakenedredstone.autowhitelist.util.Stonecutter;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import net.dv8tion.jda.api.entities.ISnowflake;
@@ -39,7 +40,7 @@ public class PeriodicWhitelistChecker implements Runnable {
         List<String> memberIds = members.stream().map(ISnowflake::getId).toList();
 
         // Get a list of players that has no valid role to stay whitelisted
-        List<ExtendedGameProfile> playersToRemove = whitelist.getEntries().stream()
+        List<ExtendedPlayerProfile> playersToRemove = whitelist.getEntries().stream()
           .filter(entry -> entry instanceof ExtendedWhitelistEntry)
           .map(entry -> ((ExtendedWhitelistEntry) entry).getProfile())
           .filter(profile -> !memberIds.contains(profile.getDiscordId()))
@@ -48,14 +49,14 @@ public class PeriodicWhitelistChecker implements Runnable {
         // Remove players that shouldn't be whitelisted anymore
         if (!playersToRemove.isEmpty()) {
             AutoWhitelist.LOGGER.debug("Removing {} players that don't qualify", playersToRemove.size());
-            for (ExtendedGameProfile profile : playersToRemove) {
-                AutoWhitelist.LOGGER.debug("Removing entry for {}", profile.getName());
+            for (ExtendedPlayerProfile profile : playersToRemove) {
+                AutoWhitelist.LOGGER.debug("Removing entry for {}", Stonecutter.profileName(profile));
                 AutoWhitelist.removePlayer(profile);
             }
         }
 
         for (Member member : members) {
-            List<ExtendedGameProfile> profiles = whitelist.getProfilesFromDiscordId(member.getId());
+            List<ExtendedPlayerProfile> profiles = whitelist.getProfilesFromDiscordId(member.getId());
 
             Optional<Role> highestRole = DiscordBotHelper.getHighestEntryRole(DiscordBotHelper.getRolesForMember(member));
             // Handle race condition, since a user can have the role changed between the list creation and this point
@@ -73,9 +74,9 @@ public class PeriodicWhitelistChecker implements Runnable {
             }
 
             // Update profile to a new entry if needed
-            ExtendedGameProfile profile = profiles.get(0);
+            ExtendedPlayerProfile profile = profiles.get(0);
             if (!profile.getRole().equals(highestRole.get().getId())) {
-                AutoWhitelist.LOGGER.debug("Updating entry for {}", profile.getName());
+                AutoWhitelist.LOGGER.debug("Updating entry for {}", Stonecutter.profileName(profile));
                 BaseEntryAction entry = RoleActionMap.get(highestRole.get());
                 @Nullable BaseEntryAction oldEntry = RoleActionMap.getNullable(profile.getRole());
                 if (oldEntry != null && !oldEntry.isValid()) {
@@ -92,7 +93,7 @@ public class PeriodicWhitelistChecker implements Runnable {
         }
 
         if (AutoWhitelist.getServer().getPlayerManager().isWhitelistEnabled()) {
-            AutoWhitelist.getServer().kickNonWhitelistedPlayers(AutoWhitelist.getServer().getCommandSource());
+            AutoWhitelist.getServer().kickNonWhitelistedPlayers(/*? if <1.21.9 {*//*AutoWhitelist.getServer().getCommandSource()*//*?}*/);
         }
     }
 }

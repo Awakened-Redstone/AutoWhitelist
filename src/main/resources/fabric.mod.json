@@ -15,7 +15,7 @@
       "com.awakenedredstone.autowhitelist.AutoWhitelist"
     ]
   },
-  "accessWidener": "autowhitelist.accesswidener",
+  "accessWidener": "accesswideners/${accesswidener}",
   "mixins": [
     "autowhitelist.mixins.json"
   ],

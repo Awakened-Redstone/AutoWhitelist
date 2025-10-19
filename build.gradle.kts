@@ -1,15 +1,16 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import com.modrinth.minotaur.dependencies.ModDependency
+import dev.kikugie.semver.data.Version
 import groovy.json.JsonSlurper
 import me.modmuss50.mpp.ReleaseType
 import java.io.File
 
 plugins {
-    id("fabric-loom") version "1.10+"
+    id("fabric-loom") version "1.12+"
     id("maven-publish")
     id("com.modrinth.minotaur") version "2.+"
     id("me.modmuss50.mod-publish-plugin") version "0.8.4"
-    id("com.gradleup.shadow") version "8.3.6"
+    id("com.gradleup.shadow") version "8.+"
 }
 
 repositories {
@@ -30,7 +31,7 @@ val minecraftVersion: String = stonecutter.current.version
 val latestVersion: String = stonecutter.versions.last().version
 
 var javaVer = "17"
-if (isOrNewer("1.20.5")) {
+if (sc.eval(sc.current.version, ">=1.20.5")) {
     javaVer = "21"
 }
 
@@ -52,20 +53,55 @@ configurations.configureEach {
     }
 }
 
-fun compareVer(ver1: String, ver2: String): Int {
-    return VersionNumber.parse(ver1).compareTo(VersionNumber.parse(ver2))
-}
-
-fun isOrNewer(version: String): Boolean {
-    return compareVer(stonecutter.current.version, version) >= 0
-}
-
-fun isOrOlder(version: String): Boolean {
-    return compareVer(stonecutter.current.version, version) <= 0
-}
-
+@Override
 fun file(path: String): File {
     return rootProject.file(path)
+}
+
+@Override
+fun fileTree(path: String): ConfigurableFileTree {
+    return rootProject.fileTree(path)
+}
+
+val accessWidener = findAccessWidener()
+
+fun findAccessWidenerFile(): File {
+    return file("src/main/resources/accesswideners/${accessWidener.second}")
+}
+
+fun findAccessWidener(): Pair<String, String> {
+    val wideners = fileTree("src/main/resources/accesswideners")
+    val versions: MutableSet<Version> = sortedSetOf();
+    val sampleFileName = wideners.first().name
+    val filePrefix = sampleFileName.substringBefore('.')
+    val fileSuffix = sampleFileName.substringAfterLast('.')
+
+    wideners.visit {
+        val version = file.name.substringAfter('.').substringBeforeLast('.')
+        versions += sc.parse(version)
+    }
+
+    var returnValue: Pair<String, String>? = null;
+    for (version in versions.reversed()) {
+        if (sc.eval(sc.current.version, ">=${version.value}")) {
+            returnValue = Pair(version.value, "$filePrefix.${version.value}.$fileSuffix")
+            break
+        }
+    }
+
+    if (returnValue == null) {
+        throw MissingResourceException("No valid access widener for ${sc.current.version} found!")
+    }
+
+    logger.info("Excluding for $minecraftVersion")
+    for (version in versions) {
+        if (version.value != returnValue.first) {
+            logger.info("Excluding: ${version.value}")
+            tasks.processResources.get().exclude("**/$filePrefix.${version.value}.$fileSuffix")
+        }
+    }
+
+    return returnValue
 }
 
 val shade: Configuration by configurations.creating
@@ -137,7 +173,7 @@ dependencies {
 }
 
 loom {
-    accessWidenerPath.set(rootProject.file("src/main/resources/$archivesBaseName.accesswidener"))
+    accessWidenerPath = findAccessWidenerFile()
 
     runConfigs.getByName("server") {
         ideConfigGenerated(true)
@@ -148,6 +184,20 @@ loom {
         runDir("../../run")
     }
 }
+
+stonecutter {
+    fun registerMacro(name: String, predicate: String, then: String, `else`: String) {
+        swaps[name] = when {
+            eval(current.version, predicate) -> then
+            else -> `else`
+        }
+    }
+
+    registerMacro("WhitelistProfile", ">=1.21.9", "net.minecraft.server.PlayerConfigEntry", "com.mojang.authlib.GameProfile")
+    registerMacro("entryPatchReturn", ">=1.21.9", "boolean", "void")
+}
+
+
 
 if (stonecutter.current.isActive) {
     rootProject.tasks.register("buildActive") {
@@ -166,7 +216,8 @@ tasks.processResources {
     val versions = JsonSlurper().parse(file("versions/versions.json")) as Map<*, *>
     val map = mapOf(
         "version" to version,
-        "minecraft" to versions[minecraftVersion]
+        "minecraft" to versions[minecraftVersion],
+        "accesswidener" to accessWidener.second
     )
 
     inputs.properties(map)
@@ -201,7 +252,7 @@ tasks.jar {
 
 tasks.named<ShadowJar>("shadowJar") {
     configurations = listOf(shade)
-    destinationDirectory = file("${layout.buildDirectory}/tmp/shadowJar")
+    destinationDirectory = file("${layout.buildDirectory.file("tmp/shadowJar").get().asFile.absolutePath}")
     relocate("net.dv8tion.jda", "com.awakenedredstone.autowhitelist.lib.jda")
     relocate("com.jagrosh.jdautilities", "com.awakenedredstone.autowhitelist.lib.jdautils")
     relocate("pw.chew.jdachewtils", "com.awakenedredstone.autowhitelist.lib.chewtils")

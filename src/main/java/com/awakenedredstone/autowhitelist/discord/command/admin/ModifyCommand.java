@@ -2,17 +2,16 @@ package com.awakenedredstone.autowhitelist.discord.command.admin;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.LazyConstants;
-import com.awakenedredstone.autowhitelist.debug.DebugFlags;
 import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
 import com.awakenedredstone.autowhitelist.discord.api.ReplyCallback;
 import com.awakenedredstone.autowhitelist.discord.command.RegisterCommand;
 import com.awakenedredstone.autowhitelist.discord.command.SimpleSlashCommand;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
-import com.awakenedredstone.autowhitelist.mixin.UserCacheAccessor;
 import com.awakenedredstone.autowhitelist.networking.GeyserProfileRepository;
+import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.awakenedredstone.autowhitelist.util.Validation;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
@@ -108,9 +107,9 @@ public class ModifyCommand extends SimpleSlashCommand {
         if (whitelistedAccount.isPresent()) {
             boolean sameAccount;
             if (uuid != null) {
-                sameAccount = whitelistedAccount.get().getProfile().getId().equals(uuid);
+                sameAccount = Stonecutter.profileId(whitelistedAccount.get().getProfile()).equals(uuid);
             } else {
-                sameAccount = whitelistedAccount.get().getProfile().getName().equalsIgnoreCase(username);
+                sameAccount = Stonecutter.profileName(whitelistedAccount.get().getProfile()).equalsIgnoreCase(username);
             }
 
             if (sameAccount) {
@@ -155,7 +154,7 @@ public class ModifyCommand extends SimpleSlashCommand {
             return;
         }
 
-        if (server.getUserCache() == null) {
+        if (Stonecutter.getUserCache(server) == null) {
             AutoWhitelist.LOGGER.error("Failed to whitelist user {}, server user cache is null", username);
             replyCallback.editMessage(
               DiscordBotHelper.buildEmbedMessage(true,
@@ -169,47 +168,36 @@ public class ModifyCommand extends SimpleSlashCommand {
             return;
         }
 
-        //noinspection DuplicatedCode
-        if (DebugFlags.testMojangApiOnRegister && uuid != null && !geyser) {
-            ProfileLookupCallback profileLookupCallback = new ProfileLookupCallback(){
-
-                @Override
-                public void onProfileLookupSucceeded(GameProfile profile) {
-                    AutoWhitelist.LOGGER.info("Successfully got user profile {}" ,profile);
-                }
-
-                @Override
-                public void onProfileLookupFailed(/*? if >=1.20.2 {*/String/*?} else {*//*GameProfile*//*?}*/ name, Exception exception) {
-                    AutoWhitelist.LOGGER.error("Failed to get user profile for {}", name, exception);
-                }
-            };
-
-            ((UserCacheAccessor) server.getUserCache()).getProfileRepository().findProfilesByNames(new String[]{username}/*? if <1.20.2 {*//*, Agent.MINECRAFT*//*?}*/, profileLookupCallback);
-        }
-
-        GameProfile profile;
+        /*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry profile;
 
         if (uuid != null) {
             if (LazyConstants.isUsingGeyser()) {
                 if (uuid.getMostSignificantBits() == 0 || geyser) {
 
-                    profile = new GameProfile(uuid, "Bedrock Player");
+                    profile = new /*$ WhitelistProfile {*/net.minecraft.server.PlayerConfigEntry/*$}*/(uuid, "Bedrock Player");
                 } else {
-                    profile = server.getUserCache().getByUuid(uuid).orElse(null);
+                    profile = Stonecutter.getUserCache(server).getByUuid(uuid).orElse(null);
                 }
             } else {
-                profile = server.getUserCache().getByUuid(uuid).orElse(null);
+                profile = Stonecutter.getUserCache(server).getByUuid(uuid).orElse(null);
             }
         } else {
             if (LazyConstants.isUsingGeyser() && geyser) {
-                final AtomicReference<GameProfile> atomicProfile = new AtomicReference<>();
+                final AtomicReference</*$ WhitelistProfile {*/net.minecraft.server.PlayerConfigEntry/*$}*/> atomicProfile = new AtomicReference<>();
                 final AtomicReference<Exception> atomicException = new AtomicReference<>();
                 ProfileLookupCallback profileLookupCallback = new ProfileLookupCallback() {
 
-                    @Override
+                    //? if <1.21.9 {
+                    /*@Override
                     public void onProfileLookupSucceeded(GameProfile profile) {
                         atomicProfile.set(profile);
                     }
+                    *///?} else {
+                    @Override
+                    public void onProfileLookupSucceeded(String name, UUID uuid) {
+                        atomicProfile.set(new net.minecraft.server.PlayerConfigEntry(uuid, name));
+                    }
+                    //?}
 
                     @Override
                     public void onProfileLookupFailed(/*? if >=1.20.2 {*/String/*?} else {*//*GameProfile*//*?}*/ name, Exception exception) {
@@ -254,7 +242,7 @@ public class ModifyCommand extends SimpleSlashCommand {
                     profile = atomicProfile.get();
                 }
             } else {
-                profile = server.getUserCache().findByName(username).orElse(null);
+                profile = Stonecutter.getUserCache(server).findByName(username).orElse(null);
             }
         }
 
@@ -284,7 +272,7 @@ public class ModifyCommand extends SimpleSlashCommand {
             return;
         }
 
-        ExtendedGameProfile extendedProfile = new ExtendedGameProfile(profile.getId(), profile.getName(), highestRole.get().getId(), id, AutoWhitelist.CONFIG.lockTime());
+        ExtendedPlayerProfile extendedProfile = new ExtendedPlayerProfile(Stonecutter.profileId(profile), Stonecutter.profileName(profile), highestRole.get().getId(), id, AutoWhitelist.CONFIG.lockTime());
 
         boolean whitelisted = whitelist.isAllowed(extendedProfile);
         if (whitelisted) {

@@ -4,6 +4,7 @@ import blue.endless.jankson.JsonObject;
 import com.awakenedredstone.autowhitelist.commands.AutoWhitelistCommand;
 import com.awakenedredstone.autowhitelist.config.AutoWhitelistConfig;
 import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
+import com.awakenedredstone.autowhitelist.duck.WhitelistCacheHolder;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
 import com.awakenedredstone.autowhitelist.entry.implementation.CommandEntryAction;
 import com.awakenedredstone.autowhitelist.entry.implementation.VanillaTeamEntryAction;
@@ -15,7 +16,8 @@ import com.awakenedredstone.autowhitelist.entry.implementation.luckperms.Permiss
 import com.awakenedredstone.autowhitelist.mixin.ServerLoginNetworkHandlerAccessor;
 import com.awakenedredstone.autowhitelist.util.JsonUtil;
 import com.awakenedredstone.autowhitelist.util.ModData;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
+import com.awakenedredstone.autowhitelist.util.Stonecutter;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import com.awakenedredstone.autowhitelist.whitelist.WhitelistCache;
@@ -52,30 +54,46 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
     public static final Logger DATA_FIXER_LOGGER = LoggerFactory.getLogger("AutoWhitelist Data Fixer");
     public static final AutoWhitelistConfig CONFIG = new AutoWhitelistConfig();
     public static final File WHITELIST_CACHE_FILE = new File("whitelist-cache.json");
-    public static final WhitelistCache WHITELIST_CACHE = new WhitelistCache(WHITELIST_CACHE_FILE);
     private static MinecraftServer server;
 
-    public static void removePlayer(ExtendedGameProfile profile) {
+    public static void removePlayer(ExtendedPlayerProfile profile) {
         if (server.getPlayerManager().getWhitelist().isAllowed(profile)) {
             server.getPlayerManager().getWhitelist().remove(new ExtendedWhitelistEntry(profile));
         }
 
         if (AutoWhitelist.getServer().getPlayerManager().isWhitelistEnabled()) {
-            AutoWhitelist.getServer().kickNonWhitelistedPlayers(AutoWhitelist.getServer().getCommandSource());
+            AutoWhitelist.getServer().kickNonWhitelistedPlayers(/*? if <1.21.9 {*//*AutoWhitelist.getServer().getCommandSource()*//*?}*/);
         }
     }
 
     public static ServerCommandSource getCommandSource() {
-        ServerWorld serverWorld = server.getOverworld();
+        ServerWorld serverWorld = /*? if <1.21.9 {*/ /*server.getOverworld(); *//*?} else {*/ server.getSpawnWorld() /*?}*/;
         return new ServerCommandSource(
-          server, serverWorld == null ? Vec3d.ZERO : Vec3d.of(serverWorld.getSpawnPos()), Vec2f.ZERO,
+          server,
+          serverWorld == null ? Vec3d.ZERO :
+            //? if <1.21.9 {
+            /*Vec3d.of(serverWorld.getSpawnPos()),
+            *///?} else {
+            Vec3d.of(serverWorld.getSpawnPoint().getPos()),
+            //?}
+            Vec2f.ZERO,
           serverWorld, CONFIG.commandPermissionLevel, "AutoWhitelist", Text.literal("AutoWhitelist"), server, null
         );
     }
 
     public static void loadWhitelistCache() {
+        if (!CONFIG.enableWhitelistCache) return;
+
+        if (!WHITELIST_CACHE_FILE.exists()) {
+            try {
+                getWhitelistCache().save();
+            } catch (IOException e) {
+                LOGGER.error("Failed to create whitelist cache!", e);
+            }
+        }
+
         try {
-            WHITELIST_CACHE.load();
+            getWhitelistCache().load();
         } catch (Throwable exception) {
             LOGGER.error("Failed to load whitelist cache: ", exception);
         }
@@ -101,14 +119,6 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
     public void onInitializeServer() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> DiscordBot.stopBot(true), "JDA shutdown"));
 
-        if (!WHITELIST_CACHE_FILE.exists()) {
-            try {
-                WHITELIST_CACHE.save();
-            } catch (IOException e) {
-                LOGGER.error("Failed to save whitelist cache: ", e);
-            }
-        }
-
         CONFIG.registerListener("entries", (List<BaseEntryAction> entries) -> {
             for (BaseEntryAction entry : entries) {
                 if (!entry.isValid()) {
@@ -119,14 +129,15 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             updateEntryMap(entries);
         });
 
-        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
-            AutoWhitelist.server = server;
-            loadWhitelistCache();
-        });
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> AutoWhitelist.server = server);
+
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> AutoWhitelistCommand.register(dispatcher));
         ServerLifecycleEvents.SERVER_STOPPING.register((server -> DiscordBot.stopBot(false)));
         ServerLifecycleEvents.SERVER_STARTED.register((server -> {
             CONFIG.load();
+
+            loadWhitelistCache();
+
             if (!(server.getPlayerManager().getWhitelist() instanceof ExtendedWhitelist)) {
                 AutoWhitelist.LOGGER.error("Failed to replace whitelist, the mod can not work without the custom system!");
             }
@@ -140,8 +151,6 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             }
         }));
 
-        //Placeholders.register(AutoWhitelist.id("whitelisted_players"), (ctx, arg) -> PlaceholderResult.value(Text.literal()));
-
         ServerLoginConnectionEvents.QUERY_START.register((handler, server, sender, synchronizer) -> {
             if (!AutoWhitelist.CONFIG.enableWhitelistCache) return;
             if (!AutoWhitelist.getServer().isOnlineMode()) return;
@@ -150,15 +159,19 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             ServerLoginNetworkHandlerAccessor accessor = (ServerLoginNetworkHandlerAccessor) handler;
             GameProfile profile = accessor.getProfile();
             if (handler.getConnectionInfo() == null) return;
-            Text canJoin = AutoWhitelist.getServer().getPlayerManager().checkCanJoin(accessor.getConnection().getAddress(), profile);
+            //? if <1.21.9 {
+            /*Text canJoin = AutoWhitelist.getServer().getPlayerManager().checkCanJoin(accessor.getConnection().getAddress(), profile);
+            *///?} else {
+            Text canJoin = AutoWhitelist.getServer().getPlayerManager().checkCanJoin(accessor.getConnection().getAddress(), new net.minecraft.server.PlayerConfigEntry(profile));
+            //?}
             if (canJoin != null && !canJoin.equals(Text.translatable("multiplayer.disconnect.not_whitelisted"))) return;
 
-            WhitelistCacheEntry cachedEntry = AutoWhitelist.WHITELIST_CACHE.get(profile);
+            WhitelistCacheEntry cachedEntry = getWhitelistCache().get(profile);
             if (cachedEntry == null) return;
             String discordId = cachedEntry.getProfile().getDiscordId();
             Member member = DiscordBot.getGuild().getMemberById(discordId);
             if (member == null) {
-                AutoWhitelist.WHITELIST_CACHE.remove(profile);
+                getWhitelistCache().remove(profile);
                 return;
             }
 
@@ -172,7 +185,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             }
 
             Whitelist whitelist = server.getPlayerManager().getWhitelist();
-            ExtendedGameProfile extendedProfile = new ExtendedGameProfile(profile.getId(), profile.getName(), role.get().getId(), discordId, CONFIG.lockTime());
+            ExtendedPlayerProfile extendedProfile = new ExtendedPlayerProfile(Stonecutter.profileId(profile), Stonecutter.profileName(profile), role.get().getId(), discordId, CONFIG.lockTime());
             whitelist.add(new ExtendedWhitelistEntry(extendedProfile));
             entry.registerUser(extendedProfile);
         });
@@ -180,6 +193,10 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
 
     public static MinecraftServer getServer() {
         return server;
+    }
+
+    public static WhitelistCache getWhitelistCache() {
+        return ((WhitelistCacheHolder) getServer().getPlayerManager()).autoWhitelist$getWhitelistCache();
     }
 
     public static Identifier id(String path) {

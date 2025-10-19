@@ -2,8 +2,8 @@ package com.awakenedredstone.autowhitelist.entry.implementation.luckperms;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
-import com.mojang.authlib.GameProfile;
+import com.awakenedredstone.autowhitelist.util.Stonecutter;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
@@ -30,7 +30,7 @@ public abstract class LuckpermsEntryAction extends BaseEntryAction {
     }
 
     @Override
-    public void registerUser(ExtendedGameProfile profile) {
+    public void registerUser(ExtendedPlayerProfile profile) {
         getUser(profile).whenComplete((user, throwable) -> {
             // Add the LuckPerms group/permission to the user
             user.data().add(getNode());
@@ -41,7 +41,7 @@ public abstract class LuckpermsEntryAction extends BaseEntryAction {
     }
 
     @Override
-    public void removeUser(ExtendedGameProfile profile) {
+    public void removeUser(ExtendedPlayerProfile profile) {
         getUser(profile).whenComplete((user, throwable) -> {
             // Remove the LuckPerms group/permission from the user
             user.data().remove(getNode());
@@ -51,13 +51,13 @@ public abstract class LuckpermsEntryAction extends BaseEntryAction {
         });
     }
 
-    protected CompletableFuture<User> getUser(GameProfile profile) {
+    protected CompletableFuture<User> getUser(/*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry profile) {
         UserManager userManager = getUserManager();
         CompletableFuture<User> future;
-        if (AutoWhitelist.getServer().getPlayerManager().getPlayer(profile.getId()) == null) {
-            future = userManager.loadUser(profile.getId());
+        if (AutoWhitelist.getServer().getPlayerManager().getPlayer(Stonecutter.profileId(profile)) == null) {
+            future = userManager.loadUser(Stonecutter.profileId(profile));
         } else {
-            future = CompletableFuture.completedFuture(userManager.getUser(profile.getId()));
+            future = CompletableFuture.completedFuture(userManager.getUser(Stonecutter.profileId(profile)));
         }
         return future;
     }

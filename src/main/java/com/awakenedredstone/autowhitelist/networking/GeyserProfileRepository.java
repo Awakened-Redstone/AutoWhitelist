@@ -3,6 +3,7 @@ package com.awakenedredstone.autowhitelist.networking;
 import com.mojang.authlib.*;
 import com.mojang.authlib.exceptions.MinecraftClientException;
 import com.mojang.authlib.yggdrasil.ProfileNotFoundException;
+/*? if >=1.21.9 {*/ import com.mojang.authlib.yggdrasil.response.NameAndId; /*?}*/
 import okhttp3.HttpUrl;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -53,7 +54,11 @@ public class GeyserProfileRepository implements GameProfileRepository {
                     }
 
                     LOGGER.debug("Successfully looked up profile {}", normalizedRequest);
-                    callback.onProfileLookupSucceeded(new GameProfile(new UUID(0, response.xuid()), normalizedRequest));
+                    //? if <1.21.9 {
+                    /*callback.onProfileLookupSucceeded(new GameProfile(new UUID(0, response.xuid()), normalizedRequest));
+                    *///?} else {
+                    callback.onProfileLookupSucceeded(normalizedRequest, new UUID(0, response.xuid()));
+                    //?}
 
                     sleep(DELAY_BETWEEN_USERS);
                 } catch (final MinecraftClientException e) {
@@ -79,14 +84,14 @@ public class GeyserProfileRepository implements GameProfileRepository {
         }
     }
 
-    public Optional<GameProfile> findProfileByName(String name) {
+    public Optional</*? if <1.21.9 {*//*GameProfile*//*?} else {*/NameAndId/*?}*/> findProfileByName(String name) {
         final String normalizedRequest = normalizeName(name);
 
         try {
             final ProfileSearchResultsResponse response = client.get(searchPageUrl.newBuilder().addPathSegment(normalizedRequest).build().url(), ProfileSearchResultsResponse.class);
 
             if (response != null) {
-                return Optional.of(new GameProfile(new UUID(0, response.xuid()), normalizedRequest));
+                return Optional.of(new /*? if <1.21.9 {*//*GameProfile*//*?} else {*/NameAndId/*?}*/(new UUID(0, response.xuid()), normalizedRequest));
             }
         } catch (final MinecraftClientException e) {
             LOGGER.warn("Couldn't find profile with name: {}", name, e);

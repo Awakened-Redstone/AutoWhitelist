@@ -3,7 +3,7 @@ package com.awakenedredstone.autowhitelist.entry.implementation;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.util.Identifier;
@@ -24,12 +24,12 @@ public class WhitelistEntryAction extends BaseEntryAction {
     }
 
     @Override
-    public void registerUser(ExtendedGameProfile profile) {
+    public void registerUser(ExtendedPlayerProfile profile) {
         // Nothing to do here
     }
 
     @Override
-    public void removeUser(ExtendedGameProfile profile) {
+    public void removeUser(ExtendedPlayerProfile profile) {
         // Nothing to do here
     }
 

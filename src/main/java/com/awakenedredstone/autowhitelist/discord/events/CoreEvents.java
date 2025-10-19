@@ -6,7 +6,7 @@ import com.awakenedredstone.autowhitelist.discord.DiscordBot;
 import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
 import com.awakenedredstone.autowhitelist.discord.PeriodicWhitelistChecker;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
@@ -96,17 +96,17 @@ public class CoreEvents extends ListenerAdapter {
         User user = e.getUser();
         ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
 
-        List<ExtendedGameProfile> players = whitelist.getEntries().stream()
-            .filter(entry -> entry.getKey() instanceof ExtendedGameProfile)
-            .filter(entry -> user.getId().equals(((ExtendedGameProfile) entry.getKey()).getDiscordId()))
-            .map(entry -> (ExtendedGameProfile) entry.getKey())
+        List<ExtendedPlayerProfile> players = whitelist.getEntries().stream()
+            .filter(entry -> entry.getKey() instanceof ExtendedPlayerProfile)
+            .filter(entry -> user.getId().equals(((ExtendedPlayerProfile) entry.getKey()).getDiscordId()))
+            .map(entry -> (ExtendedPlayerProfile) entry.getKey())
             .toList();
 
         if (players.size() > 1) {
             AutoWhitelist.LOGGER.error("Found more than one registered user with same discord id: {}", user.getId(), new IllegalStateException("Could not update the whitelist, found more than one entry with the same discord id."));
             return;
         } else if (players.isEmpty()) return;
-        ExtendedGameProfile player = players.get(0);
+        ExtendedPlayerProfile player = players.get(0);
 
         if (!AutoWhitelist.getServer().getPlayerManager().isOperator(player)) {
             AutoWhitelist.removePlayer(player);
@@ -131,7 +131,7 @@ public class CoreEvents extends ListenerAdapter {
 
         ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
 
-        List<ExtendedGameProfile> profiles = whitelist.getProfilesFromDiscordId(member.getId());
+        List<ExtendedPlayerProfile> profiles = whitelist.getProfilesFromDiscordId(member.getId());
         if (profiles.isEmpty()) return;
         if (profiles.size() > 1) {
             AutoWhitelist.LOGGER.warn("Duplicate entries of Discord user with id {}. All of them will be removed.", member.getId());
@@ -139,7 +139,7 @@ public class CoreEvents extends ListenerAdapter {
             return;
         }
 
-        ExtendedGameProfile profile = profiles.get(0);
+        ExtendedPlayerProfile profile = profiles.get(0);
         if (role.isEmpty()) {
             AutoWhitelist.removePlayer(profile);
             return;
@@ -163,7 +163,7 @@ public class CoreEvents extends ListenerAdapter {
         }
 
         if (AutoWhitelist.getServer().getPlayerManager().isWhitelistEnabled()) {
-            AutoWhitelist.getServer().kickNonWhitelistedPlayers(AutoWhitelist.getServer().getCommandSource());
+            AutoWhitelist.getServer().kickNonWhitelistedPlayers(/*? if <1.21.9 {*//*AutoWhitelist.getServer().getCommandSource()*//*?}*/);
         }
     }
 }

@@ -70,6 +70,9 @@ public class AutoWhitelistConfig extends ConfigHandler {
     @Comment("The activity type shown on the bot status, must be in UPPERCASE")
     public BotActivity botActivityType = BotActivity.PLAYING;
 
+    @Comment("The text shown on the bot activity status")
+    public String botActivityText = "on the Member Server";
+
     @PredicateConstraint("timeConstraint")
     @Comment("""
       The time the bot will lock a whitelist entry after it is added or updated, use -1 to lock all entries forever
@@ -322,7 +325,7 @@ public class AutoWhitelistConfig extends ConfigHandler {
         }
 
         public Activity getActivity() {
-            return activityType == null ? null : Activity.of(getActivityType(), Text.translatable("discord.bot.activity.message").getString());
+            return activityType == null ? null : Activity.of(getActivityType(), AutoWhitelist.CONFIG.botActivityText);
         }
     }
 }

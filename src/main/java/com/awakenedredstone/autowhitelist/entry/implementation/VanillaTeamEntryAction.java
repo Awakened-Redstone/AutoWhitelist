@@ -3,7 +3,7 @@ package com.awakenedredstone.autowhitelist.entry.implementation;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.scoreboard.ServerScoreboard;
@@ -39,22 +39,22 @@ public class VanillaTeamEntryAction extends BaseEntryAction {
     }
 
     @Override
-    public void registerUser(ExtendedGameProfile profile) {
+    public void registerUser(ExtendedPlayerProfile profile) {
         ServerScoreboard scoreboard = AutoWhitelist.getServer().getScoreboard();
         Team serverTeam = scoreboard.getTeam(team);
         /*? if >=1.20.3 {*/
-        scoreboard.addScoreHolderToTeam(profile.getName(), serverTeam);
+        scoreboard.addScoreHolderToTeam(Stonecutter.profileName(profile), serverTeam);
         /*?} else {*/
-        /*scoreboard.addPlayerToTeam(profile.getName(), serverTeam);
+        /*scoreboard.addPlayerToTeam(Stonecutter.profileName(profile), serverTeam);
         *//*?}*/
     }
 
     @Override
-    public void removeUser(ExtendedGameProfile profile) {
+    public void removeUser(ExtendedPlayerProfile profile) {
         /*? if >=1.20.3 {*/
-        AutoWhitelist.getServer().getScoreboard().clearTeam(profile.getName());
+        AutoWhitelist.getServer().getScoreboard().clearTeam(Stonecutter.profileName(profile));
         /*?} else {*/
-        /*AutoWhitelist.getServer().getScoreboard().clearPlayerTeam(profile.getName());
+        /*AutoWhitelist.getServer().getScoreboard().clearPlayerTeam(Stonecutter.profileName(profile));
         *//*?}*/
     }
 

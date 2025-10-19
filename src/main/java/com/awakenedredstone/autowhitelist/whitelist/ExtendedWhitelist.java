@@ -3,11 +3,12 @@ package com.awakenedredstone.autowhitelist.whitelist;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
+import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.google.gson.JsonObject;
-import com.mojang.authlib.GameProfile;
 import net.minecraft.server.ServerConfigEntry;
 import net.minecraft.server.Whitelist;
 import net.minecraft.server.WhitelistEntry;
+/*? if >=1.21.9 {*/ import net.minecraft.server.dedicated.management.listener.ManagementListener; /*?}*/
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,11 +21,11 @@ import java.util.UUID;
 public class ExtendedWhitelist extends Whitelist {
     private boolean dirty = false;
 
-    public ExtendedWhitelist(File file) {
-        super(file);
+    public ExtendedWhitelist(File file/*? if >=1.21.9 {*/, ManagementListener managementListener /*?}*/) {
+        super(file/*? if >=1.21.9 {*/, managementListener /*?}*/);
     }
 
-    public WhitelistEntry getEntry(GameProfile profile) {
+    public WhitelistEntry getEntry(/*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry profile) {
         if (this.isAllowed(profile)) {
             return getEntryFromProfile(profile);
         }
@@ -33,14 +34,14 @@ public class ExtendedWhitelist extends Whitelist {
     }
 
     @Override
-    public void remove(GameProfile key) {
-        GameProfile profile;
-        if (key instanceof ExtendedGameProfile extendedGameProfile) {
-            profile = extendedGameProfile;
-        } else if (key.getId().getMostSignificantBits() == 0) {
-            GameProfile storedProfile = getProfileFromUUID(key.getId());
-            if (storedProfile instanceof ExtendedGameProfile extendedGameProfile) {
-                profile = extendedGameProfile;
+    public /*$ entryPatchReturn >>*/boolean remove(/*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry key) {
+        /*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry profile;
+        if (key instanceof ExtendedPlayerProfile extendedPlayerProfile) {
+            profile = extendedPlayerProfile;
+        } else if (Stonecutter.profileId(key).getMostSignificantBits() == 0) {
+            /*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry storedProfile = getProfileFromUUID(Stonecutter.profileId(key));
+            if (storedProfile instanceof ExtendedPlayerProfile extendedPlayerProfile) {
+                profile = extendedPlayerProfile;
             } else {
                 profile = key;
             }
@@ -48,48 +49,51 @@ public class ExtendedWhitelist extends Whitelist {
             profile = key;
         }
 
-        if (profile instanceof ExtendedGameProfile extendedProfile) {
+        if (profile instanceof ExtendedPlayerProfile extendedProfile) {
             BaseEntryAction entryAction = RoleActionMap.getNullable(extendedProfile.getRole());
             if (entryAction != null) {
                 if (entryAction.isValid()) {
                     entryAction.removeUser(extendedProfile);
                 } else {
-                    AutoWhitelist.LOGGER.error("Failed to remove {} from the whitelist due to the entry {} not being valid", profile.getName(), entryAction);
+                    AutoWhitelist.LOGGER.error("Failed to remove {} from the whitelist due to the entry {} not being valid", Stonecutter.profileName(profile), entryAction);
                     AutoWhitelist.getCommandSource().sendFeedback(() -> Text.literal("Failed to remove player from whitelist. Check the server logs for more details."), true);
-                    return;
+                    return /*? if >=1.21.9 {*/false/*?}*/;
                 }
             }
         }
 
-        super.remove(profile);
+        //? if <1.21.9 {
+        /*super.remove(profile);
+        *///?} else {
+        boolean result = super.remove(profile);
+        //?}
 
         if (AutoWhitelist.getServer().getPlayerManager().isWhitelistEnabled()) {
-            AutoWhitelist.getServer().kickNonWhitelistedPlayers(AutoWhitelist.getServer().getCommandSource());
+            AutoWhitelist.getServer().kickNonWhitelistedPlayers(/*? if <1.21.9 {*//*AutoWhitelist.getServer().getCommandSource()*//*?}*/);
         }
+
+        //? if >=1.21.9 {
+        return result;
+        //?}
     }
 
-    protected ServerConfigEntry<GameProfile> fromJson(JsonObject json) {
-        ExtendedWhitelistEntry entry = new ExtendedWhitelistEntry(json, this);
+    @Override
+    protected ServerConfigEntry</*$ WhitelistProfile {*/net.minecraft.server.PlayerConfigEntry/*$}*/> fromJson(JsonObject json) {
+        ExtendedWhitelistEntry entry = new ExtendedWhitelistEntry(json);
         try {
             if (entry.getKey() != null) return entry;
-            else return new WhitelistEntry(json);
+            else return new ExtendedWhitelistEntry(json);
         } catch (ClassCastException e) {
-            return new WhitelistEntry(json);
+            return new ExtendedWhitelistEntry(json);
         }
     }
 
-    public boolean isAllowed(ExtendedGameProfile profile) {
+    public boolean isAllowed(ExtendedPlayerProfile profile) {
         return this.contains(profile);
     }
 
-    protected String toString(ExtendedGameProfile gameProfile) {
-        return gameProfile.getId().toString();
-    }
-
-    public JsonObject fromProfile(ExtendedWhitelistEntry entry) {
-        JsonObject json = new JsonObject();
-        entry.write(json);
-        return json;
+    protected String toString(ExtendedPlayerProfile gameProfile) {
+        return Stonecutter.profileId(gameProfile).toString();
     }
 
     public Collection<? extends WhitelistEntry> getEntries() {
@@ -107,56 +111,56 @@ public class ExtendedWhitelist extends Whitelist {
     public void remove(String key, Type type) {
         switch (type) {
             case DISCORD_ID -> values().stream()
-              .filter(entry -> entry.getKey() instanceof ExtendedGameProfile extendedProfile && extendedProfile.getDiscordId().equals(key))
+              .filter(entry -> entry.getKey() instanceof ExtendedPlayerProfile extendedProfile && extendedProfile.getDiscordId().equals(key))
               .forEach(whitelistEntry -> remove(whitelistEntry.getKey()));
             case USERNAME -> values().stream()
               .filter(entry -> entry.getKey() != null)
-              .filter(entry -> entry.getKey().getName().equals(key))
+              .filter(entry -> Stonecutter.profileName(entry.getKey()).equals(key))
               .forEach(whitelistEntry -> remove(whitelistEntry.getKey()));
         }
     }
 
-    public List<ExtendedGameProfile> getProfilesFromDiscordId(String id) {
+    public List<ExtendedPlayerProfile> getProfilesFromDiscordId(String id) {
         return values().stream()
-          .filter(entry -> entry.getKey() instanceof ExtendedGameProfile extendedProfile && extendedProfile.getDiscordId().equals(id))
-          .map(whitelistEntry -> (ExtendedGameProfile) whitelistEntry.getKey()).toList();
+          .filter(entry -> entry.getKey() instanceof ExtendedPlayerProfile extendedProfile && extendedProfile.getDiscordId().equals(id))
+          .map(whitelistEntry -> (ExtendedPlayerProfile) whitelistEntry.getKey()).toList();
     }
 
     public List<ExtendedWhitelistEntry> getFromDiscordId(String id) {
         return values().stream()
           .filter(entry -> entry instanceof ExtendedWhitelistEntry)
-          .filter(entry -> entry.getKey() instanceof ExtendedGameProfile profile && profile.getDiscordId().equals(id))
+          .filter(entry -> entry.getKey() instanceof ExtendedPlayerProfile profile && profile.getDiscordId().equals(id))
           .map(v -> (ExtendedWhitelistEntry) v)
           .toList();
     }
 
     @Nullable
-    public GameProfile getProfileFromUsername(String username) {
+    public /*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry getProfileFromUsername(String username) {
         return values().stream()
           .filter(entry -> entry.getKey() != null)
-          .filter(entry -> entry.getKey().getName().equals(username))
+          .filter(entry -> Stonecutter.profileName(entry.getKey()).equals(username))
           .map(ServerConfigEntry::getKey)
           .findFirst().orElse(null);
     }
 
     @Nullable
-    public GameProfile getProfileFromUUID(UUID uuid) {
+    public /*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry getProfileFromUUID(UUID uuid) {
         return values().stream()
           .filter(entry -> entry.getKey() != null)
-          .filter(entry -> entry.getKey().getId().equals(uuid))
+          .filter(entry -> Stonecutter.profileId(entry.getKey()).equals(uuid))
           .map(ServerConfigEntry::getKey)
           .findFirst().orElse(null);
     }
 
     @Nullable
-    public WhitelistEntry getEntryFromProfile(GameProfile profile) {
+    public WhitelistEntry getEntryFromProfile(/*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry profile) {
         return values().stream()
           .filter(entry -> entry.getKey() != null)
           .filter(entry ->
             entry.getKey().equals(profile) ||
             (
-              entry.getKey().getName().equals(profile.getName()) &&
-              entry.getKey().getId().equals(profile.getId())
+              Stonecutter.profileName(entry.getKey()).equals(Stonecutter.profileName(profile)) &&
+              Stonecutter.profileId(entry.getKey()).equals(Stonecutter.profileId(entry.getKey()))
             )
           )
           .findFirst().orElse(null);

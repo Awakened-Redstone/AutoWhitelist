@@ -3,20 +3,20 @@ package com.awakenedredstone.autowhitelist.commands;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.commands.api.Permission;
 import com.awakenedredstone.autowhitelist.data.DefaultTranslationsDataProvider;
-import com.awakenedredstone.autowhitelist.debug.DebugFlags;
 import com.awakenedredstone.autowhitelist.discord.DiscordBot;
 import com.awakenedredstone.autowhitelist.util.LinedStringBuilder;
 import com.awakenedredstone.autowhitelist.util.ModData;
+import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.awakenedredstone.autowhitelist.util.TimeParser;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.jagrosh.jdautilities.commons.JDAUtilitiesInfo;
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.dv8tion.jda.api.JDAInfo;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.ISnowflake;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
@@ -43,7 +43,6 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class AutoWhitelistCommand {
@@ -120,22 +119,6 @@ public class AutoWhitelistCommand {
               literal("list")
                 .executes(context -> executeList(context.getSource()))
             ).then(
-              literal("debug")
-                .then(
-                  literal("testMojangApiOnRegister")
-                    .then(
-                      argument("enable", BoolArgumentType.bool())
-                        .executes(context -> {
-                            ServerCommandSource source = context.getSource();
-                            DebugFlags.testMojangApiOnRegister = BoolArgumentType.getBool(context, "enable");
-
-                            source.sendFeedback(() -> Text.literal("Updated debug flag"), true);
-
-                            return 0;
-                        })
-                    )
-                )
-            ).then(
               literal("fix-duplicate-commands")
                 .executes(context -> {
                     ServerCommandSource source = context.getSource();
@@ -155,7 +138,8 @@ public class AutoWhitelistCommand {
                 })
             ).then(
               literal("create-translations-datapack")
-                .executes(context -> {ServerCommandSource source = context.getSource();
+                .executes(context -> {
+                    ServerCommandSource source = context.getSource();
                     source.sendFeedback(() -> Text.literal("Creating datapack"), false);
 
                     Path path = source.getServer().getSavePath(WorldSavePath.DATAPACKS).resolve("autowhitelist_translations");
@@ -186,39 +170,50 @@ public class AutoWhitelistCommand {
 
         Collection<? extends WhitelistEntry> entries = ((ExtendedWhitelist) source.getServer().getPlayerManager().getWhitelist()).getEntries();
 
-        List<GameProfile> profiles = entries.stream()
+        List</*$ WhitelistProfile {*/net.minecraft.server.PlayerConfigEntry/*$}*/> profiles = entries.stream()
           .map(ServerConfigEntry::getKey)
-          .filter(profile -> !(profile instanceof ExtendedGameProfile))
+          .filter(profile -> !(profile instanceof ExtendedPlayerProfile))
           .toList();
 
         MutableText list = Text.literal("");
         if (!profiles.isEmpty()) {
             list.append("Vanilla whitelist:");
-            profiles.forEach(player -> list.append("\n").append("    ").append(player.getName()));
+            profiles.forEach(player -> list.append("\n").append("    ").append(Stonecutter.profileName(player)));
         }
 
-        List<ExtendedGameProfile> extendedProfiles = entries.stream()
-          .map(entry -> entry.getKey() instanceof ExtendedGameProfile profile ? profile : null)
+        List<ExtendedPlayerProfile> extendedProfiles = entries.stream()
+          .map(entry -> entry.getKey() instanceof ExtendedPlayerProfile profile ? profile : null)
           .filter(Objects::nonNull)
           .toList();
 
         if (!extendedProfiles.isEmpty()) {
             if (!list.getString().isEmpty()) list.append("\n");
             list.append("Automated whitelist:");
-            extendedProfiles.forEach(player -> {
-                list.append("\n").append("    ").append(player.getName()).append(Text.literal(" - ").formatted(Formatting.DARK_GRAY));
-                if (DiscordBot.getGuild() != null) {
-                    Role role = DiscordBot.getGuild().getRoleById(player.getRole());
+            Guild guild = DiscordBot.getGuild();
+            if (guild != null) {
+                for (ExtendedPlayerProfile profile : extendedProfiles) {
+                    list.append("\n").append("    ").append(Stonecutter.profileName(profile));
+                    list.append(Text.literal(" - ").formatted(Formatting.DARK_GRAY));
+
+                    Member member = guild.getMemberById(profile.getDiscordId());
+                    if (member == null) {
+                        list.append(Text.literal("Invalid member").formatted(Formatting.RED));
+                    } else {
+                        list.append(Text.literal(member.getUser().getName()).formatted(Formatting.GRAY));
+                    }
+
+                    list.append(Text.literal(" (").formatted(Formatting.DARK_GRAY));
+                    Role role = guild.getRoleById(profile.getRole());
                     if (role == null) {
                         list.append(Text.literal("Invalid role").formatted(Formatting.RED));
                     } else {
                         list.append(Text.literal("@" + role.getName()).formatted(Formatting.GRAY));
                     }
-                } else {
-                    list.append(Text.literal("Guild is missing").formatted(Formatting.RED));
+                    list.append(Text.literal(")").formatted(Formatting.DARK_GRAY));
                 }
-              }
-            );
+            } else {
+                list.append("\n").append("    ").append(Text.literal("Failed to get guild!").formatted(Formatting.RED));
+            }
         }
 
         if (source.getPlayer() != null) {

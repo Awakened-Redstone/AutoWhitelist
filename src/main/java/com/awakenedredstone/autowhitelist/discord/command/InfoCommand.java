@@ -5,8 +5,9 @@ import com.awakenedredstone.autowhitelist.LazyConstants;
 import com.awakenedredstone.autowhitelist.discord.DiscordBot;
 import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
 import com.awakenedredstone.autowhitelist.discord.api.ReplyCallback;
+import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.awakenedredstone.autowhitelist.util.Texts;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
@@ -73,7 +74,7 @@ public class InfoCommand extends SimpleSlashCommand {
 
         if (whitelistedAccount.isPresent()) {
             ExtendedWhitelistEntry entry = whitelistedAccount.get();
-            ExtendedGameProfile profile = entry.getProfile();
+            ExtendedPlayerProfile profile = entry.getProfile();
 
             EmbedBuilder embed = DiscordBotHelper.Feedback.defaultEmbed(
               Text.translatable("discord.command.info.title"),
@@ -88,7 +89,7 @@ public class InfoCommand extends SimpleSlashCommand {
 
                 String descriptionKey = "discord.command.info.field.%s.description".formatted(field);
                 String description = switch (field) {
-                    case "username" -> Texts.translated(descriptionKey, profile.getName());
+                    case "username" -> Texts.translated(descriptionKey, Stonecutter.profileName(profile));
                     case "role" -> Texts.translated(descriptionKey, "<@&" + profile.getRole() + ">");
                     case "lock" -> {
                         String time = "future";
@@ -129,7 +130,7 @@ public class InfoCommand extends SimpleSlashCommand {
                     ).queue();
 
                     ButtonEventHandler confirmEventHandler = new ButtonEventHandler().addConsumer(btnId(eventId, "confirmDelete"), confirmEvent -> {
-                        AutoWhitelist.WHITELIST_CACHE.remove(whitelistedAccount.get().getProfile());
+                        AutoWhitelist.getWhitelistCache().remove(whitelistedAccount.get().getProfile());
                         AutoWhitelist.removePlayer(whitelistedAccount.get().getProfile());
 
                         MessageEditBuilder builder = new MessageEditBuilder();

@@ -4,7 +4,7 @@ import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.awakenedredstone.autowhitelist.util.Texts;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedGameProfile;
+import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -32,15 +32,15 @@ public class CommandEntryAction extends BaseEntryAction {
     }
 
     @Override
-    public void registerUser(ExtendedGameProfile profile) {
+    public void registerUser(ExtendedPlayerProfile profile) {
         if (StringUtils.isBlank(addCommand)) return;
-        AutoWhitelist.getServer().getCommandManager().executeWithPrefix(AutoWhitelist.getCommandSource(), Texts.playerPlaceholder(addCommand, profile.getName()).getString());
+        AutoWhitelist.getServer().getCommandManager().executeWithPrefix(AutoWhitelist.getCommandSource(), Texts.playerPlaceholder(addCommand, Stonecutter.profileName(profile)).getString());
     }
 
     @Override
-    public void removeUser(ExtendedGameProfile profile) {
+    public void removeUser(ExtendedPlayerProfile profile) {
         if (StringUtils.isBlank(removeCommand)) return;
-        AutoWhitelist.getServer().getCommandManager().executeWithPrefix(AutoWhitelist.getCommandSource(), Texts.playerPlaceholder(removeCommand, profile.getName()).getString());
+        AutoWhitelist.getServer().getCommandManager().executeWithPrefix(AutoWhitelist.getCommandSource(), Texts.playerPlaceholder(removeCommand, Stonecutter.profileName(profile)).getString());
     }
 
     @Override

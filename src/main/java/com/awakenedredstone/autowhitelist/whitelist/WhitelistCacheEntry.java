@@ -1,13 +1,14 @@
 package com.awakenedredstone.autowhitelist.whitelist;
 
+import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.google.gson.JsonObject;
 import net.minecraft.server.ServerConfigEntry;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class WhitelistCacheEntry extends ServerConfigEntry<ExtendedGameProfile> {
-    public WhitelistCacheEntry(@Nullable ExtendedGameProfile key) {
+public class WhitelistCacheEntry extends ServerConfigEntry<ExtendedPlayerProfile> {
+    public WhitelistCacheEntry(@Nullable ExtendedPlayerProfile key) {
         super(key);
     }
 
@@ -15,7 +16,7 @@ public class WhitelistCacheEntry extends ServerConfigEntry<ExtendedGameProfile> 
         this(profileFromJson(json));
     }
 
-    private static ExtendedGameProfile profileFromJson(JsonObject json) {
+    private static ExtendedPlayerProfile profileFromJson(JsonObject json) {
         String string = json.get("uuid").getAsString();
 
         UUID uuid;
@@ -25,17 +26,19 @@ public class WhitelistCacheEntry extends ServerConfigEntry<ExtendedGameProfile> 
             return null;
         }
 
-        return new ExtendedGameProfile(uuid, json.get("name").getAsString(), null, json.get("discordId").getAsString(), -1);
+        return new ExtendedPlayerProfile(uuid, json.get("name").getAsString(), null, json.get("discordId").getAsString(), -1);
     }
 
-    public ExtendedGameProfile getProfile() {
+    public ExtendedPlayerProfile getProfile() {
         return this.getKey();
     }
 
     @Override
     protected void write(JsonObject json) {
-        json.addProperty("uuid", this.getKey().getId().toString());
-        json.addProperty("name", this.getKey().getName());
-        json.addProperty("discordId", this.getKey().getDiscordId());
+        if (this.getKey() != null) {
+            json.addProperty("uuid", Stonecutter.profileId(this.getKey()).toString());
+            json.addProperty("name", Stonecutter.profileName(this.getKey()));
+            json.addProperty("discordId", this.getKey().getDiscordId());
+        }
     }
 }

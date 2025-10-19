@@ -31,27 +31,35 @@ public class WhitelistCommandMixin {
         return "commands.autowhitelist.remove.failed";
     }
 
-    @WrapOperation(method = "executeRemove", at = @At(value = "NEW", target = "(Lcom/mojang/authlib/GameProfile;)Lnet/minecraft/server/WhitelistEntry;"))
-    private static WhitelistEntry useExtendedWhitelist(GameProfile profile, Operation<WhitelistEntry> original, @Local Whitelist whitelist) {
+    //? if <1.21.9 {
+    /*@WrapOperation(method = "executeRemove", at = @At(value = "NEW", target = "(Lcom/mojang/authlib/GameProfile;)Lnet/minecraft/server/WhitelistEntry;"))
+    *///?} else {
+    @WrapOperation(method = "executeRemove", at = @At(value = "NEW", target = "(Lnet/minecraft/server/PlayerConfigEntry;)Lnet/minecraft/server/WhitelistEntry;"))
+    //?}
+    private static WhitelistEntry useExtendedWhitelist(/*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry profile, Operation<WhitelistEntry> original, @Local Whitelist whitelist) {
         return ((ExtendedWhitelist) whitelist).getEntry(profile);
     }
 
     @WrapWithCondition(method = "executeRemove", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/command/ServerCommandSource;sendFeedback(Ljava/util/function/Supplier;Z)V"))
-    private static boolean failMessageOnBadEntry(ServerCommandSource source, Supplier<Text> feedbackSupplier, boolean broadcastToOps, @Local Whitelist whitelist, @Local GameProfile gameProfile) {
+    private static boolean failMessageOnBadEntry(ServerCommandSource source, Supplier<Text> feedbackSupplier, boolean broadcastToOps, @Local Whitelist whitelist, @Local /*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry gameProfile) {
         return !whitelist.isAllowed(gameProfile);
     }
 
-    @Inject(method = "executeRemove", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/Whitelist;remove(Lnet/minecraft/server/ServerConfigEntry;)V", shift = At.Shift.AFTER))
-    private static void removeWhitelistCache(CallbackInfoReturnable<Integer> cir, @Local Whitelist whitelist, @Local GameProfile gameProfile) {
+    //? if <1.21.9 {
+    /*@Inject(method = "executeRemove", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/Whitelist;remove(Lnet/minecraft/server/ServerConfigEntry;)V", shift = At.Shift.AFTER))
+    *///?} else {
+    @Inject(method = "executeRemove", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/Whitelist;remove(Lnet/minecraft/server/ServerConfigEntry;)Z", shift = At.Shift.AFTER))
+    //?}
+    private static void removeWhitelistCache(CallbackInfoReturnable<Integer> cir, @Local Whitelist whitelist, @Local /*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry gameProfile) {
         if (!whitelist.isAllowed(gameProfile)) {
-            AutoWhitelist.WHITELIST_CACHE.remove(gameProfile);
+            AutoWhitelist.getWhitelistCache().remove(gameProfile);
         }
     }
 
     @Definition(id = "i", local = @Local(type = int.class))
     @Expression("i = i + @(1)")
     @ModifyExpressionValue(method = "executeRemove", at = @At("MIXINEXTRAS:EXPRESSION"))
-    private static int stopIncrementOnBadEntry(int original, @Local(argsOnly = true) ServerCommandSource source, @Local Whitelist whitelist, @Local GameProfile gameProfile) {
+    private static int stopIncrementOnBadEntry(int original, @Local(argsOnly = true) ServerCommandSource source, @Local Whitelist whitelist, @Local /*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry gameProfile) {
         if (whitelist.isAllowed(gameProfile)) {
             return 0;
         }
