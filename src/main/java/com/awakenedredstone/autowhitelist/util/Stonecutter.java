@@ -34,7 +34,7 @@ public class Stonecutter {
     }
 
     public static String profileName(GameProfile profile) {
-        return /*? if <1.21.9 {*/ /*Stonecutter.profileName(profile) *//*?} else {*/ profile.name() /*?}*/;
+        return /*? if <1.21.9 {*/ /*profile.getName() *//*?} else {*/ profile.name() /*?}*/;
     }
 
     public static UUID profileId(GameProfile profile) {
