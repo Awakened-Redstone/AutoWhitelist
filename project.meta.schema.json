@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "$id": "awakened-project-meta",
+  "title": "Project meta",
+  "description": "The JSON schema for project meta",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "project.meta.schema.json"
+    },
+    "versions": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:\\.(0|[1-9]\\d*))?(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "predicate": {
+              "type": "string",
+              "pattern": "^(([><]?=?|!=|[~^])((0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:\\.(0|[1-9]\\d*))?(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?)(?:[^\\S\\n]*)?)+$|^auto$"
+            },
+            "properties": {
+              "type": "object"
+            }
+          },
+          "required": [
+            "predicate"
+          ]
+        }
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": false,
+      "propertyNames": true,
+      "patternProperties": {
+        "([\\w.]+):([\\w\\-]+)": {
+          "type": [
+            "string"
+          ]
+        }
+      }
+    },
+    "properties": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "[a-z]+[a-z0-9_]+": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "required": [
+    "$schema",
+    "versions"
+  ]
+}

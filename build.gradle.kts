@@ -1,7 +1,9 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import com.modrinth.minotaur.dependencies.ModDependency
 import dev.kikugie.semver.data.Version
+import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import kotlinx.serialization.json.Json
 import me.modmuss50.mpp.ReleaseType
 import java.io.File
 
@@ -11,6 +13,7 @@ plugins {
     id("com.modrinth.minotaur") version "2.+"
     id("me.modmuss50.mod-publish-plugin") version "0.8.4"
     id("com.gradleup.shadow") version "8.+"
+    id("common")
 }
 
 repositories {
@@ -44,7 +47,7 @@ base {
 }
 
 var archivesBaseName: String = property("archives_base_name").toString()
-version = "${property("mod_version")}+$minecraftVersion"
+version = "$modVersion+$minecraftVersion"
 group = property("maven_group") as String
 
 configurations.configureEach {
@@ -110,21 +113,20 @@ dependencies {
     minecraft("com.mojang:minecraft:$minecraftVersion")
     mappings("net.fabricmc:yarn:$minecraftVersion+build.${property("yarn_mappings")}:v2")
     modImplementation("net.fabricmc:fabric-loader:${property("loader_version")}")
-    modImplementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_version")}")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version")}")
 
     // Mod dependencies
-    include(modImplementation("eu.pb4:placeholder-api:${property("placeholder_api_version")}") {
-        exclude(group = "net.fabricmc", module = "fabric-api")
-    })
-    include(modImplementation("xyz.nucleoid:server-translations-api:${property("translation_api_version")}") {
-        exclude(group = "net.fabricmc", module = "fabric-api")
-    })
+    include(modImplementation("eu.pb4:placeholder-api:${property("placeholder_api_version")}")!!)
+    include(modImplementation("xyz.nucleoid:server-translations-api:${property("translation_api_version")}")!!)
     include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${property("mixinextras")}")!!)!!)
+
+    // Upgrade jackson on older MC versions
     include(implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")!!)
     include(implementation("com.fasterxml.jackson.core:jackson-core:2.17.2")!!)
 
     // Libraries
     include(api("blue.endless:jankson:${property("jankson_version")}")!!)
+
     api("pw.chew:jda-chewtils:${property("chewtils_version")}") {
         exclude(module = "log4j-core")
     }
@@ -244,7 +246,7 @@ tasks.register<Jar>("sourcesJar") {
 }
 
 tasks.jar {
-    destinationDirectory = file("${layout.buildDirectory}/tmp/thinJar")
+    destinationDirectory = file("${layout.buildDirectory.asFile.get().absolutePath}/tmp/thinJar")
     /*from("LICENSE") {
         rename { "${it}_${archivesBaseName}" }
     }*/
