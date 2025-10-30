@@ -1,4 +1,4 @@
-package com.awakenedredstone.multiversion.game
+package com.awakenedredstone.multiversion.fetch.fabricmeta.game
 
 import kotlinx.serialization.Serializable
 

@@ -1,88 +1,38 @@
 package com.awakenedredstone.multiversion.meta
 
-import com.awakenedredstone.multiversion.game.GameVersion
+import com.awakenedredstone.multiversion.fetch.fabricmeta.game.GameVersion
+import com.awakenedredstone.multiversion.fetch.fabricmeta.yarn.YarnVersion
+import com.awakenedredstone.multiversion.fetch.modrinth.ProjectVersion
+import com.awakenedredstone.multiversion.meta.Macros.MacroHandlerUtil
+import com.awakenedredstone.multiversion.putIfAbsentAndGet
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.databind.node.TextNode
 import dev.kikugie.semver.data.SemanticVersion
 import dev.kikugie.stonecutter.build.StonecutterBuildExtension
-import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
-import org.apache.groovy.json.internal.LazyMap
 import org.gradle.api.Project
 import org.gradle.api.internal.provider.MissingValueException
 import org.gradle.problems.internal.impl.logger
 import java.net.URI
-import java.util.LinkedList
-import kotlin.collections.get
-import kotlin.collections.iterator
+import java.util.*
+
 
 @OptIn(ExperimentalSerializationApi::class)
-open class ProjectMeta(
-    private val project: Project,
-) {
+open class ProjectMeta(private val project: Project) {
     private val stonecutter: StonecutterBuildExtension = project.extensions.getByName("stonecutter") as StonecutterBuildExtension
     private val meta = Json.decodeFromString<Meta>(project.rootProject.file("project.meta.json").readText())
+    private val json = ObjectMapper()
     val properties: MutableMap<String, Any> = HashMap<String, Any>()
     val propertyMacros: Macros = Macros()
     val propertyTemplates: Macros = Macros()
 
     init {
-        propertyMacros.register("modrinth") { params ->
-            if (params.isEmpty()) throw MissingValueException("No modrinth slug or id was provided")
-            if (params.size == 1) throw MissingValueException("No loader was provided")
-            if (params.size == 2) throw MissingValueException("No game version was provided")
-            if (params.size > 3) logger.warn("Too many arguments provided to the macro, ignoring extra arguments")
-
-            val slug = params[0]
-            val loader = params[1]
-            val gameVersion = params[2]
-
-            logger.debug("Processing modrinth macro (id:$slug,loader:$loader,game_version:$gameVersion)")
-
-            val slurper = JsonSlurper()
-
-            logger.debug("Reading generated version meta file")
-            val generatedMeta = project.rootProject.file("project.meta.generated.json")
-            if (!generatedMeta.exists()) generatedMeta.writeText("{}")
-
-            val generatedJson = slurper.parse(generatedMeta) as LazyMap
-            val versionProperties = generatedJson.get("version_properties") as LazyMap?
-            if (versionProperties != null) {
-                val props = versionProperties.get("macro:modrinth/$loader/$gameVersion") as LazyMap?
-                if (props != null) {
-                    logger.debug("Version found in cache, using it")
-                    val version = props.get(slug) as String?
-                    if (version != null) return@register version
-                }
-            }
-
-            logger.debug("Getting mod data from modrinth")
-            val modrinthResponse = slurper.parse(URI("https://api.modrinth.com/v2/project/$slug/version?loaders=%5B%22$loader%22%5D&game_versions=%5B%22$gameVersion%22%5D").toURL()) as List<*>
-            val version = (modrinthResponse.first() as Map<*, *>)["version_number"] as String
-
-            generatedJson.compute("version_properties") { key, versionProps ->
-                val map = versionProps as LazyMap? ?: LazyMap()
-                map.compute("macro:modrinth/$loader/$gameVersion") { _, macroVals ->
-                    val map = macroVals as LazyMap? ?: LazyMap()
-                    map.put(slug, version)
-                    return@compute map
-                }
-
-                return@compute map
-            }
-
-            logger.debug("Writing generated version meta file")
-            generatedMeta.writeText(JsonOutput.toJson(generatedJson))
-
-            return@register version
-        }
-
-        propertyTemplates.register("version") { stonecutter.current.version }
-        propertyTemplates.register("property") { params ->
-            if (params.isEmpty()) throw MissingValueException("No property was provided!")
-            project.property(params.joinToString("/")).toString()
-        }
+        registerDefaultMacros()
+        registerDefaultTemplates()
 
         logger.debug("Applying project meta properties")
         if (meta.properties != null) {
@@ -120,7 +70,7 @@ open class ProjectMeta(
                 repeat(versionIndex + 1) { versions.pop() }
 
                 val gameVersionIndex = gameVersions.indexOf(stonecutter.current.version) + 1
-                var gameVersionEndIndex: Int = 0
+                var gameVersionEndIndex = 0
 
                 val peek = versions.peek()
                 if (peek == null) {
@@ -148,6 +98,7 @@ open class ProjectMeta(
         }
     }
 
+    @Suppress("unused")
     inline fun <reified T> property(property: String): T {
         return properties[property] as T
     }
@@ -159,11 +110,14 @@ open class ProjectMeta(
     fun replaceTemplates(property: String): String {
         val openIndex = property.indexOf($$"${")
         if (openIndex == -1) return property
+
         val closeIndex = property.indexOf("}")
+        if (closeIndex == -1) throw IllegalStateException("Unclosed template!")
+
         val template = property.substring(openIndex + 2, closeIndex)
 
         val split = template.split(":", limit = 2)
-        val processed = propertyTemplates.process(split[0], split.getOrNull(1) ?: "");
+        val processed = propertyTemplates.process(split[0], split.getOrNull(1) ?: "")
 
         return replaceTemplates(property.replaceRange(openIndex, closeIndex + 1, processed))
     }
@@ -176,5 +130,93 @@ open class ProjectMeta(
         val params = split.getOrNull(1) ?: ""
 
         return propertyMacros.process(macro, params)
+    }
+
+    private fun registerDefaultMacros() {
+        propertyMacros.register("modrinth") { params ->
+            MacroHandlerUtil.requireParams(
+                params,
+                "No modrinth slug or id was provided",
+                "No loader was provided",
+                "No game version was provided"
+            )
+
+            val slug = params[0]
+            val loader = params[1]
+            val gameVersion = params[2]
+
+            logger.debug("Processing modrinth macro (id:$slug,loader:$loader,game_version:$gameVersion)")
+
+            logger.debug("Reading generated version meta file")
+            val generatedMeta = project.rootProject.file("project.meta.generated.json")
+            if (!generatedMeta.exists()) generatedMeta.writeText("{}")
+
+            val generated = json.readValue(generatedMeta, ObjectNode::class.java)
+
+            val versionProperties = generated.putIfAbsentAndGet("version_properties") { ObjectNode(it) }
+            val props = versionProperties.putIfAbsentAndGet("macro:modrinth/$loader/$gameVersion") { ObjectNode(it) }
+
+            if (props.has(slug)) {
+                logger.debug("Version found in cache, using it")
+                return@register props.get(slug).textValue()
+            }
+
+            logger.debug("Getting mod data from modrinth")
+            val modrinthResponse = URI("https://api.modrinth.com/v2/project/$slug/version?loaders=%5B%22$loader%22%5D&game_versions=%5B%22$gameVersion%22%5D").toURL().openStream().use {
+                json.readValue(it, object : TypeReference<List<ProjectVersion>>() {})
+            }
+
+            val version = modrinthResponse.first().versionNumber
+
+            props.set<TextNode>(slug, TextNode(version))
+
+            logger.debug("Writing generated version meta file")
+            json.writeValue(generatedMeta, generated)
+
+            return@register version
+        }
+
+        propertyMacros.register("yarn") { params ->
+            MacroHandlerUtil.requireParams(params, "No game version was provided")
+
+            val gameVersion = params[0]
+
+            logger.debug("Processing yarn macro (game_version:$gameVersion)")
+
+            logger.debug("Reading generated version meta file")
+            val generatedMeta = project.rootProject.file("project.meta.generated.json")
+            if (!generatedMeta.exists()) generatedMeta.writeText("{}")
+
+            val generated = json.readValue(generatedMeta, ObjectNode::class.java)
+
+            val versionProperties = generated.putIfAbsentAndGet("version_properties") { ObjectNode(it) }
+
+            if (versionProperties.has("macro:yarn/$gameVersion")) {
+                logger.debug("Version found in cache, using it")
+                return@register versionProperties.get("macro:yarn/$gameVersion").textValue()
+            }
+
+            logger.debug("Getting mod data from modrinth")
+            val yarnResponse = URI("https://meta.fabricmc.net/v2/versions/yarn/$gameVersion").toURL().openStream().use {
+                json.readValue(it, object : TypeReference<List<YarnVersion>>() {})
+            }
+
+            val version = yarnResponse.first().version
+
+            versionProperties.set<TextNode>("macro:yarn/$gameVersion", TextNode(version))
+
+            logger.debug("Writing generated version meta file")
+            json.writeValue(generatedMeta, generated)
+
+            return@register version
+        }
+    }
+
+    private fun registerDefaultTemplates() {
+        propertyTemplates.register("version") { stonecutter.current.version }
+        propertyTemplates.register("property") { params ->
+            if (params.isEmpty()) throw MissingValueException("No property was provided!")
+            project.property(params.joinToString("/")).toString()
+        }
     }
 }
