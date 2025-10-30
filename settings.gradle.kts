@@ -1,4 +1,6 @@
 pluginManagement {
+    includeBuild("plugins/multiversion")
+
     repositories {
         maven("https://maven.fabricmc.net/")
         maven("https://maven.kikugie.dev/releases")

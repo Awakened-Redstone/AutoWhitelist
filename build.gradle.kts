@@ -13,7 +13,7 @@ plugins {
     id("com.modrinth.minotaur") version "2.+"
     id("me.modmuss50.mod-publish-plugin") version "0.8.4"
     id("com.gradleup.shadow") version "8.+"
-    id("common")
+    id("com.awakenedredstone.multiversion")
 }
 
 repositories {
@@ -39,7 +39,7 @@ if (sc.eval(sc.current.version, ">=1.20.5")) {
 }
 
 @Suppress("UNCHECKED_CAST")
-val modVersions: Map<String, List<String>> = JsonSlurper().parse(file("versions/modrinth.json")) as Map<String, List<String>>
+val modVersions: List<String> = meta.property("versions") as List<String>
 val modVersion: String = property("mod_version").toString()
 
 base {
@@ -181,6 +181,7 @@ loom {
         ideConfigGenerated(true)
         runDir("../../run")
     }
+
     runConfigs.getByName("client") {
         ideConfigGenerated(false)
         runDir("../../run")
@@ -199,8 +200,6 @@ stonecutter {
     registerMacro("entryPatchReturn", ">=1.21.9", "boolean", "void")
 }
 
-
-
 if (stonecutter.current.isActive) {
     rootProject.tasks.register("buildActive") {
         group = "build"
@@ -215,10 +214,9 @@ tasks.compileJava {
 }
 
 tasks.processResources {
-    val versions = JsonSlurper().parse(file("versions/versions.json")) as Map<*, *>
     val map = mapOf(
         "version" to version,
-        "minecraft" to versions[minecraftVersion],
+        "minecraft" to meta.property("predicate"),
         "accesswidener" to accessWidener.second
     )
 
@@ -306,10 +304,6 @@ fun <T> action(action: Action<T>) : Action<T> where T : Task {
 }
 
 val checks: Action<Task> = action {
-    if (modVersions[minecraftVersion] == null) {
-        throw MissingResourceException("Please update modrinth.json, missing $minecraftVersion")
-    }
-
     if (changelogText.isEmpty()) {
         throw MissingResourceException("Update the changelog!")
     }
@@ -320,20 +314,9 @@ tasks.getByName("modrinthSyncBody").doFirst(checks)
 tasks.getByName("publishMods").doFirst(checks)
 
 modrinth {
-    versionType = projectVersionType.toString().lowercase()
     token = providers.gradleProperty("MODRINTH_TOKEN")
     projectId = "BMaqFQAd"
-    versionName = "[$minecraftVersion] $projectVersionName"
-    changelog = changelogText
-    uploadFile = tasks.getByName("remapJar")
-    gameVersions = modVersions[minecraftVersion]
     syncBodyFrom = file("README.md").readText()
-    dependencies = listOf(
-        ModDependency("fabric-api", "required"),
-        ModDependency("fabric-language-kotlin", "required"),
-        ModDependency("luckperms", "optional"),
-        ModDependency("placeholder-api", "embedded")
-    )
 }
 
 publishMods {
@@ -343,24 +326,24 @@ publishMods {
     modLoaders.add("fabric")
     displayName = "[$minecraftVersion] $projectVersionName"
 
+    modrinth {
+        projectId = "BMaqFQAd"
+        accessToken = providers.gradleProperty("MODRINTH_TOKEN")
+        minecraftVersions = modVersions
+        changelog = changelogText
+        requires("fabric-api", "fabric-language-kotlin")
+        embeds("placeholder-api")
+        optional("luckperms")
+    }
+
     curseforge {
         projectId = "575422"
         projectSlug = "autowhitelist" // Required for discord webhook
         accessToken = providers.gradleProperty("CURSEFORGE_TOKEN")
-        minecraftVersions = modVersions[minecraftVersion]
+        minecraftVersions = modVersions
         changelog = changelogText
         requires("fabric-api", "fabric-language-kotlin")
         embeds("text-placeholder-api")
-        optional("luckperms")
-    }
-
-    modrinth {
-        projectId = "BMaqFQAd"
-        accessToken = providers.gradleProperty("MODRINTH_TOKEN")
-        minecraftVersions = modVersions[minecraftVersion]
-        changelog = changelogText
-        requires("fabric-api", "fabric-language-kotlin")
-        embeds("placeholder-api")
         optional("luckperms")
     }
 

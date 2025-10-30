@@ -37,7 +37,7 @@
       }
     },
     "1.21.9": {
-      "predicate": ">=1.21.9 <1.22",
+      "predicate": "auto",
       "properties": {
         "translation_api_version": "2.5.2+1.21.9-pre3"
       }

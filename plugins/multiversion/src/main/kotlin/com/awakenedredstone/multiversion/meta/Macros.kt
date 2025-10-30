@@ -1,6 +1,5 @@
-import kotlinx.serialization.Serializable
+package com.awakenedredstone.multiversion.meta
 
-@Serializable
 class Macros(val parsers: MutableMap<String, (params: List<String>) -> String> = HashMap()) {
     fun register(macro: String, parser: (params: List<String>) -> String) {
         parsers.put(macro, parser)

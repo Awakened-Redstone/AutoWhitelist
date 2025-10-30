@@ -4,6 +4,10 @@ plugins {
 	kotlin("plugin.serialization") version "2.1.21"
 }
 
+group = "com.awakenedredstone"
+val name = "multiversion"
+version = "0.1.0"
+
 repositories {
 	mavenCentral()
 	gradlePluginPortal()
@@ -17,4 +21,14 @@ dependencies {
 	implementation(kotlin("stdlib"))
 	implementation("dev.kikugie:stonecutter:0.8+")
 	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+	implementation("com.awakenedredstone:commons:0.1.0")
+}
+
+gradlePlugin {
+	plugins {
+		create(name) {
+			id = "$group.$name"
+			implementationClass = "$group.$name.PluginInit"
+		}
+	}
 }
