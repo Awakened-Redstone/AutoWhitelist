@@ -1,24 +1,23 @@
 package com.awakenedredstone.multiversion.fetch.modrinth
 
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.SerialName
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.PropertyNamingStrategies
+import com.fasterxml.jackson.databind.annotation.JsonNaming
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
 @Serializable
-@JsonIgnoreUnknownKeys
-@OptIn(ExperimentalSerializationApi::class)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class ProjectVersion(
-    @SerialName("version_number")
     val versionNumber: String,
-    @SerialName("game_versions")
-    val gameVersions: String,
-    @SerialName("version_type")
+    val gameVersions: List<String>,
     val versionType: VersionType,
 ) {
+    @Suppress("unused")
     enum class VersionType {
-        @SerialName("release") Release,
-        @SerialName("beta") Beta,
-        @SerialName("alpha") Alpha
+        @JsonProperty("release") Release,
+        @JsonProperty("beta") Beta,
+        @JsonProperty("alpha") Alpha
     }
 }

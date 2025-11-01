@@ -3,11 +3,11 @@
   "properties": {
     "fabric_api_version": "#modrinth fabric-api fabric ${version}",
     "placeholder_api_version": "#modrinth placeholder-api fabric ${version}",
-    "yarn_mappings2": "#yarn ${version}"
+    "yarn_mappings": "#yarn ${version}"
   },
   "versions": {
     "1.20": {
-      "predicate": ">=1.20.1 <=1.20.1",
+      "predicate": ">=1.20 <=1.20.1",
       "properties": {
         "translation_api_version": "2.0.0+1.20"
       }

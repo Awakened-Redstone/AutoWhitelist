@@ -6,7 +6,7 @@ import org.gradle.api.Project
 
 class PluginInit : Plugin<Project> {
     override fun apply(project: Project) {
-        project.getExtensions().create("meta", ProjectMeta::class.java, project)
+        project.extensions.create("meta", ProjectMeta::class.java, project)
 
         project.plugins.apply( com.awakenedredstone.commons.PluginInit::class.java)
     }

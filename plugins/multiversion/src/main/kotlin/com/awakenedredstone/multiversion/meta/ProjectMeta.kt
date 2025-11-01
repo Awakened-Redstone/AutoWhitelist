@@ -3,12 +3,12 @@ package com.awakenedredstone.multiversion.meta
 import com.awakenedredstone.multiversion.fetch.fabricmeta.game.GameVersion
 import com.awakenedredstone.multiversion.fetch.fabricmeta.yarn.YarnVersion
 import com.awakenedredstone.multiversion.fetch.modrinth.ProjectVersion
-import com.awakenedredstone.multiversion.meta.Macros.MacroHandlerUtil
 import com.awakenedredstone.multiversion.putIfAbsentAndGet
 import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.IntNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TextNode
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.kikugie.semver.data.SemanticVersion
 import dev.kikugie.stonecutter.build.StonecutterBuildExtension
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -17,6 +17,7 @@ import kotlinx.serialization.json.decodeFromStream
 import org.gradle.api.Project
 import org.gradle.api.internal.provider.MissingValueException
 import org.gradle.problems.internal.impl.logger
+import java.io.File
 import java.net.URI
 import java.util.*
 
@@ -25,7 +26,9 @@ import java.util.*
 open class ProjectMeta(private val project: Project) {
     private val stonecutter: StonecutterBuildExtension = project.extensions.getByName("stonecutter") as StonecutterBuildExtension
     private val meta = Json.decodeFromString<Meta>(project.rootProject.file("project.meta.json").readText())
-    private val json = ObjectMapper()
+    private val json = jacksonObjectMapper()
+    private val generatedMetaFile: File = project.rootProject.file("project.meta.generated.json")
+    private val generatedMeta: ObjectNode = readObjectJsonFile(generatedMetaFile)
     val properties: MutableMap<String, Any> = HashMap<String, Any>()
     val propertyMacros: Macros = Macros()
     val propertyTemplates: Macros = Macros()
@@ -34,15 +37,15 @@ open class ProjectMeta(private val project: Project) {
         registerDefaultMacros()
         registerDefaultTemplates()
 
-        logger.debug("Applying project meta properties")
+        val propertiesToApply = mutableMapOf<String, String>()
         if (meta.properties != null) {
             for (property in meta.properties) {
-                project.setProperty(property.key, parseProperty(property.value))
+                propertiesToApply.put(property.key, property.value)
             }
         }
 
-        logger.debug("Applying project meta version properties")
         if (meta.versions != null) {
+            logger.debug("Processing project version meta")
             val versions = LinkedList(meta.versions.entries)
             versions.sortWith { entry1, entry2 ->
                 stonecutter.compare(entry1.key, entry2.key)
@@ -52,7 +55,7 @@ open class ProjectMeta(private val project: Project) {
 
             if (currentVersion.properties != null) {
                 for (property in currentVersion.properties) {
-                    project.setProperty(property.key, parseProperty(property.value))
+                    propertiesToApply.put(property.key, property.value)
                 }
             }
 
@@ -96,6 +99,14 @@ open class ProjectMeta(private val project: Project) {
             properties.put("predicate", predicate)
             properties.put("versions", versionRange)
         }
+
+        logger.debug("Applying project meta properties")
+        for ((name, value) in propertiesToApply) {
+            project.setProperty(name, parseProperty(value))
+        }
+
+        logger.debug("Writing generated version meta file")
+        json.writeValue(generatedMetaFile, generatedMeta)
     }
 
     @Suppress("unused")
@@ -133,82 +144,44 @@ open class ProjectMeta(private val project: Project) {
     }
 
     private fun registerDefaultMacros() {
-        propertyMacros.register("modrinth") { params ->
-            MacroHandlerUtil.requireParams(
-                params,
-                "No modrinth slug or id was provided",
-                "No loader was provided",
-                "No game version was provided"
-            )
-
-            val slug = params[0]
-            val loader = params[1]
-            val gameVersion = params[2]
-
-            logger.debug("Processing modrinth macro (id:$slug,loader:$loader,game_version:$gameVersion)")
-
-            logger.debug("Reading generated version meta file")
-            val generatedMeta = project.rootProject.file("project.meta.generated.json")
-            if (!generatedMeta.exists()) generatedMeta.writeText("{}")
-
-            val generated = json.readValue(generatedMeta, ObjectNode::class.java)
-
-            val versionProperties = generated.putIfAbsentAndGet("version_properties") { ObjectNode(it) }
+        propertyMacros.register("modrinth", "slug", "loader", "game_version") { (slug, loader, gameVersion) ->
+            val versionProperties = generatedMeta.putIfAbsentAndGet("version_properties") { ObjectNode(it) }
             val props = versionProperties.putIfAbsentAndGet("macro:modrinth/$loader/$gameVersion") { ObjectNode(it) }
 
             if (props.has(slug)) {
-                logger.debug("Version found in cache, using it")
+                logger.debug("Found $slug version in cache, using it")
                 return@register props.get(slug).textValue()
             }
 
-            logger.debug("Getting mod data from modrinth")
-            val modrinthResponse = URI("https://api.modrinth.com/v2/project/$slug/version?loaders=%5B%22$loader%22%5D&game_versions=%5B%22$gameVersion%22%5D").toURL().openStream().use {
-                json.readValue(it, object : TypeReference<List<ProjectVersion>>() {})
-            }
+            val modrinthResponse = Macros.fetchData(
+                "https://api.modrinth.com/v2/project/$slug/version?loaders=%5B%22$loader%22%5D&game_versions=%5B%22$gameVersion%22%5D",
+                object : TypeReference<List<ProjectVersion>>() {}
+            )
 
             val version = modrinthResponse.first().versionNumber
 
             props.set<TextNode>(slug, TextNode(version))
 
-            logger.debug("Writing generated version meta file")
-            json.writeValue(generatedMeta, generated)
-
             return@register version
         }
 
-        propertyMacros.register("yarn") { params ->
-            MacroHandlerUtil.requireParams(params, "No game version was provided")
-
-            val gameVersion = params[0]
-
-            logger.debug("Processing yarn macro (game_version:$gameVersion)")
-
-            logger.debug("Reading generated version meta file")
-            val generatedMeta = project.rootProject.file("project.meta.generated.json")
-            if (!generatedMeta.exists()) generatedMeta.writeText("{}")
-
-            val generated = json.readValue(generatedMeta, ObjectNode::class.java)
-
-            val versionProperties = generated.putIfAbsentAndGet("version_properties") { ObjectNode(it) }
+        propertyMacros.register("yarn", "game_version") { (gameVersion) ->
+            val versionProperties = generatedMeta.putIfAbsentAndGet("version_properties") { ObjectNode(it) }
 
             if (versionProperties.has("macro:yarn/$gameVersion")) {
-                logger.debug("Version found in cache, using it")
-                return@register versionProperties.get("macro:yarn/$gameVersion").textValue()
+                logger.debug("Found yarn version in cache, using it")
+                return@register versionProperties.get("macro:yarn/$gameVersion").intValue().toString()
             }
 
-            logger.debug("Getting mod data from modrinth")
-            val yarnResponse = URI("https://meta.fabricmc.net/v2/versions/yarn/$gameVersion").toURL().openStream().use {
-                json.readValue(it, object : TypeReference<List<YarnVersion>>() {})
-            }
+            val yarnResponse = Macros.fetchData(
+                "https://meta.fabricmc.net/v2/versions/yarn/$gameVersion",
+                object : TypeReference<List<YarnVersion>>() {}
+            )
+            val version = yarnResponse.first().build
 
-            val version = yarnResponse.first().version
+            versionProperties.set<TextNode>("macro:yarn/$gameVersion", IntNode(version))
 
-            versionProperties.set<TextNode>("macro:yarn/$gameVersion", TextNode(version))
-
-            logger.debug("Writing generated version meta file")
-            json.writeValue(generatedMeta, generated)
-
-            return@register version
+            return@register version.toString()
         }
     }
 
@@ -218,5 +191,12 @@ open class ProjectMeta(private val project: Project) {
             if (params.isEmpty()) throw MissingValueException("No property was provided!")
             project.property(params.joinToString("/")).toString()
         }
+    }
+
+    private fun readObjectJsonFile(file: File): ObjectNode {
+        logger.debug("Reading {}", file.name)
+        if (!file.exists() || file.readText().isBlank()) file.writeText("{}")
+
+        return json.readValue(file, ObjectNode::class.java)
     }
 }
