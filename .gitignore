@@ -125,3 +125,4 @@ run*/
 /versions/*.sh
 /qodana.yaml
 /compare/
+.kotlin/

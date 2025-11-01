@@ -19,10 +19,14 @@ repositories {
 
 dependencies {
 	implementation(kotlin("stdlib"))
-	implementation("dev.kikugie:stonecutter:0.8+")
+	implementation(kotlin("reflect"))
 	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.17.2")
+
 	implementation("com.awakenedredstone:commons:0.1.0")
+
+	implementation("dev.kikugie:stonecutter:0.8+")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.17.2")
+
 }
 
 gradlePlugin {

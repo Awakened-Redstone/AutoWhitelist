@@ -3,7 +3,7 @@
   "properties": {
     "fabric_api_version": "#modrinth fabric-api fabric ${version}",
     "placeholder_api_version": "#modrinth placeholder-api fabric ${version}",
-    "yarn_mappings2": "#yarn ${version}"
+    "yarn_mappings": "#yarn ${version}"
   },
   "versions": {
     "1.20": {
