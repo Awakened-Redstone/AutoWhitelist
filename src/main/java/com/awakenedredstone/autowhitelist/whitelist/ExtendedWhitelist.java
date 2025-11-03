@@ -19,8 +19,6 @@ import java.util.List;
 import java.util.UUID;
 
 public class ExtendedWhitelist extends Whitelist {
-    private boolean dirty = false;
-
     public ExtendedWhitelist(File file/*? if >=1.21.9 {*/, ManagementListener managementListener /*?}*/) {
         super(file/*? if >=1.21.9 {*/, managementListener /*?}*/);
     }
@@ -80,12 +78,9 @@ public class ExtendedWhitelist extends Whitelist {
     @Override
     protected ServerConfigEntry</*$ WhitelistProfile {*/net.minecraft.server.PlayerConfigEntry/*$}*/> fromJson(JsonObject json) {
         ExtendedWhitelistEntry entry = new ExtendedWhitelistEntry(json);
-        try {
-            if (entry.getKey() != null) return entry;
-            else return new ExtendedWhitelistEntry(json);
-        } catch (ClassCastException e) {
-            return new ExtendedWhitelistEntry(json);
-        }
+
+        if (entry.getKey() != null) return entry;
+        else return new WhitelistEntry(json);
     }
 
     public boolean isAllowed(ExtendedPlayerProfile profile) {
@@ -98,14 +93,6 @@ public class ExtendedWhitelist extends Whitelist {
 
     public Collection<? extends WhitelistEntry> getEntries() {
         return this.values();
-    }
-
-    public boolean isDirty() {
-        return dirty;
-    }
-
-    public void setDirty(boolean dirty) {
-        this.dirty = dirty;
     }
 
     public void remove(String key, Type type) {
@@ -164,15 +151,6 @@ public class ExtendedWhitelist extends Whitelist {
             )
           )
           .findFirst().orElse(null);
-    }
-
-    @Override
-    public void load() throws IOException {
-        super.load();
-        if (this.dirty) {
-            this.dirty = false;
-            this.save();
-        }
     }
 
     public enum Type {
