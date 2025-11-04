@@ -24,8 +24,6 @@ import com.awakenedredstone.autowhitelist.util.JsonUtil;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.awakenedredstone.autowhitelist.util.TimeParser;
 import com.google.common.base.CaseFormat;
-import net.dv8tion.jda.api.entities.Activity;
-import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -43,8 +41,8 @@ import static com.awakenedredstone.autowhitelist.AutoWhitelist.DATA_FIXER_LOGGER
 public class AutoWhitelistConfig extends ConfigHandler {
     public AutoWhitelistConfig() {
         super("autowhitelist", JanksonBuilder.buildJankson(builder -> {
-            builder.registerDeserializer(JsonObject.class, BaseEntryAction.class, (jsonObject, marshaller) -> Stonecutter.getOrThrowDataResult(BaseEntryAction.CODEC.parse(JanksonOps.INSTANCE, jsonObject)));
-            builder.registerSerializer(BaseEntryAction.class, (entryData, marshaller) -> Stonecutter.getOrThrowDataResult(BaseEntryAction.CODEC.encodeStart(JanksonOps.INSTANCE, entryData)));
+            builder.registerDeserializer(JsonObject.class, BaseEntryAction.class, (jsonObject, marshaller) -> BaseEntryAction.CODEC.parse(JanksonOps.INSTANCE, jsonObject).getOrThrow());
+            builder.registerSerializer(BaseEntryAction.class, (entryData, marshaller) -> BaseEntryAction.CODEC.encodeStart(JanksonOps.INSTANCE, entryData).getOrThrow());
         }));
     }
 
@@ -169,7 +167,7 @@ public class AutoWhitelistConfig extends ConfigHandler {
                             DATA_FIXER_LOGGER.debug("Updating entry name from {} to {}", oldType, newType);
 
                             entryData.remove("type");
-                            entryData.put("type", Stonecutter.getOrThrowDataResult(Identifier.CODEC.encodeStart(JanksonOps.INSTANCE, newType)));
+                            entryData.put("type", Identifier.CODEC.encodeStart(JanksonOps.INSTANCE, newType).getOrThrow());
 
                             JsonArray rolesArray = entryData.get(JsonArray.class, "roleIds");
 
@@ -182,13 +180,13 @@ public class AutoWhitelistConfig extends ConfigHandler {
 
                             entryData = BaseEntryAction.getDataFixers().get(newType).apply(configVersion, entryData);
 
-                            entryList.add(Stonecutter.getOrThrowDataResult(BaseEntryAction.CODEC.parse(JanksonOps.INSTANCE, entryData)));
+                            entryList.add(BaseEntryAction.CODEC.parse(JanksonOps.INSTANCE, entryData).getOrThrow());
                         }
 
                         entries.clear();
                         for (BaseEntryAction entry : entryList) {
                             AutoWhitelist.LOGGER.debug("Encoding {}", entry.getType());
-                            entries.add(Stonecutter.getOrThrowDataResult(BaseEntryAction.CODEC.encodeStart(JanksonOps.INSTANCE, entry)));
+                            entries.add(BaseEntryAction.CODEC.encodeStart(JanksonOps.INSTANCE, entry).getOrThrow());
                         }
 
                         config.remove("entries");

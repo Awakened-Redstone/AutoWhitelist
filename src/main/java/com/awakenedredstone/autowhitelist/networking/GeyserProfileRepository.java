@@ -28,7 +28,7 @@ public class GeyserProfileRepository implements GameProfileRepository {
     }
 
     @Override
-    public void findProfilesByNames(String[] names /*? if <1.20.2 {*//*, final Agent agent*//*?}*/, ProfileLookupCallback callback) {
+    public void findProfilesByNames(String[] names, ProfileLookupCallback callback) {
         final Set<String> criteria = Arrays.stream(names)
           .filter(StringUtils::isNotBlank)
           .collect(Collectors.toSet());
@@ -104,8 +104,8 @@ public class GeyserProfileRepository implements GameProfileRepository {
         return name.toLowerCase(Locale.ROOT);
     }
 
-    private static /*? if <1.20.2 {*//*GameProfile*//*?} else {*/String/*?}*/ error(String request) {
-        return /*? if <1.20.2 {*//*new GameProfile(null, request)*//*?} else {*/request/*?}*/;
+    private static String error(String request) {
+        return request;
     }
 
     private void sleep(long time) {

@@ -1,13 +1,8 @@
-package com.awakenedredstone.autowhitelist.discord;
+package com.awakenedredstone.autowhitelist.discord.old;
 
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
-import net.dv8tion.jda.api.utils.messages.MessageData;
-import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import discord4j.core.object.entity.Member;
+import discord4j.core.object.entity.Role;
 import net.minecraft.text.Text;
 
 import java.awt.Color;
@@ -16,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 //TODO: Rewrite for cleaner code and better uses (1/2 - Clean up)
-public class DiscordBotHelper extends DiscordBot {
+public class DiscordBotHelper {
     public static List<Role> getRolesForMember(Member member) {
         List<Role> roles = new ArrayList<>(member.getRoles());
         roles.add(member.getGuild().getPublicRole());
@@ -50,7 +45,7 @@ public class DiscordBotHelper extends DiscordBot {
             String roleSearch = roleString.equalsIgnoreCase("@everyone") ? roleString : roleString.substring(1);
             List<Role> roles = DiscordBot.getGuild().getRolesByName(roleSearch, true);
             if (!roles.isEmpty()) {
-                role = Optional.of(roles.get(0));
+                role = Optional.of(roles.getFirst());
             } else {
                 role = Optional.empty();
             }

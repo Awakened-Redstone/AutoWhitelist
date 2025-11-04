@@ -16,7 +16,7 @@ import java.util.Objects;
 
 public class CommandEntryAction extends BaseEntryAction {
     public static final Identifier ID = AutoWhitelist.id("execute_command");
-    public static final /*? if <1.20.5 {*//*Codec*//*?} else {*/ MapCodec/*?}*/<CommandEntryAction> CODEC = Stonecutter.entryCodec(instance -> instance.group(
+    public static final MapCodec<CommandEntryAction> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
         Codec.STRING.listOf().fieldOf("roles").forGetter(BaseEntryAction::getRoles),
         Identifier.CODEC.fieldOf("type").forGetter(BaseEntryAction::getType),
         Keys.CODEC.fieldOf("execute").forGetter(command -> new Keys(command.addCommand, command.removeCommand))

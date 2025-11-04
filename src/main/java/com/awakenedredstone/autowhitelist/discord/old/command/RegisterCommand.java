@@ -1,10 +1,10 @@
-package com.awakenedredstone.autowhitelist.discord.command;
+package com.awakenedredstone.autowhitelist.discord.old.command;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.LazyConstants;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
-import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
-import com.awakenedredstone.autowhitelist.discord.api.ReplyCallback;
+import com.awakenedredstone.autowhitelist.discord.old.DiscordBotHelper;
+import com.awakenedredstone.autowhitelist.discord.old.api.ReplyCallback;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
 import com.awakenedredstone.autowhitelist.networking.GeyserProfileRepository;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
@@ -14,8 +14,6 @@ import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import com.awakenedredstone.autowhitelist.whitelist.WhitelistCacheEntry;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
-/*? if <1.20.2 {*//*import com.mojang.authlib.Agent;*//*?}*/
-import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.ProfileLookupCallback;
 import com.mojang.authlib.yggdrasil.ProfileNotFoundException;
 import net.dv8tion.jda.api.entities.Member;
@@ -34,7 +32,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class RegisterCommand extends SimpleSlashCommand {
+public class RegisterCommand extends AbstractSlashCommand {
     public RegisterCommand() {
         super("register");
 
@@ -166,7 +164,7 @@ public class RegisterCommand extends SimpleSlashCommand {
             return;
         }
 
-        //Only check username if it is a Java username
+        // Only check username if it is a Java username
         if (uuid == null && !geyser && !Validation.isValidMinecraftUsername(username)) {
             replyCallback.editMessage(
               DiscordBotHelper.buildEmbedMessage(true,
@@ -224,7 +222,7 @@ public class RegisterCommand extends SimpleSlashCommand {
                     //?}
 
                     @Override
-                    public void onProfileLookupFailed(/*? if >=1.20.2 {*/String/*?} else {*//*GameProfile*//*?}*/ name, Exception exception) {
+                    public void onProfileLookupFailed(String name, Exception exception) {
                         if (!(exception instanceof ProfileNotFoundException)) {
                             atomicException.set(exception);
                         }
@@ -234,7 +232,7 @@ public class RegisterCommand extends SimpleSlashCommand {
 
                 GeyserProfileRepository repository = LazyConstants.getGeyserProfileRepository();
 
-                repository.findProfilesByNames(new String[]{username}/*? if <1.20.2 {*//*, Agent.MINECRAFT*//*?}*/, profileLookupCallback);
+                repository.findProfilesByNames(new String[]{username}, profileLookupCallback);
 
                 if (atomicException.get() != null) {
                     Exception exception = atomicException.get();

@@ -93,7 +93,7 @@ public class JanksonBuilder {
                       throw new IllegalStateException("No suitable " + annotation.value() + " method found for " + fieldName);
                   }
               } else if (methods.size() == 1) {
-                  method = methods.get(0);
+                  method = methods.getFirst();
               } else {
                   throw new IllegalStateException("No " + annotation.value() + " method found for " + fieldName);
               }

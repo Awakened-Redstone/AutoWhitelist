@@ -1,11 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import com.modrinth.minotaur.dependencies.ModDependency
 import dev.kikugie.semver.data.Version
-import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
-import kotlinx.serialization.json.Json
 import me.modmuss50.mpp.ReleaseType
-import java.io.File
 
 plugins {
     id("fabric-loom") version "1.12+"
@@ -33,10 +28,7 @@ val changelogText: String = if (file("CHANGELOG.md").exists()) {
 val minecraftVersion: String = stonecutter.current.version
 val latestVersion: String = stonecutter.versions.last().version
 
-var javaVer = "17"
-if (sc.eval(sc.current.version, ">=1.20.5")) {
-    javaVer = "21"
-}
+var javaVer = "21"
 
 @Suppress("UNCHECKED_CAST")
 val modVersions: List<String> = meta.property("versions") as List<String>
@@ -127,44 +119,8 @@ dependencies {
     // Libraries
     include(api("blue.endless:jankson:${property("jankson_version")}")!!)
 
-    api("pw.chew:jda-chewtils:${property("chewtils_version")}") {
-        exclude(module = "log4j-core")
-    }
-    api("net.dv8tion:JDA:${property("jda_version")}") {
-        exclude(module = "opus-java")
-        exclude(module = "log4j-core")
-        exclude(module = "log4j-api")
-        exclude(module = "slf4j-api")
-    }
-
-    shade("net.dv8tion:JDA:${property("jda_version")}") {
-        isTransitive = false
-        exclude(module = "opus-java")
-        exclude(module = "log4j-core")
-        exclude(module = "log4j-api")
-        exclude(module = "slf4j-api")
-    }
-
-    // JDA dependencies
-    include("com.fasterxml.jackson.core:jackson-annotations:2.17.2")
-    include("com.fasterxml.jackson.core:jackson-databind:2.17.2")
-    include("com.fasterxml.jackson.core:jackson-core:2.17.2")
-    include("com.neovisionaries:nv-websocket-client:2.14")
-    include("com.google.crypto.tink:tink:1.14.1")
-    include("com.squareup.okhttp3:okhttp:4.12.0")
-    include("com.squareup.okio:okio-jvm:3.6.0")
-    include("com.squareup.okio:okio:3.6.0")
-    include("net.sf.trove4j:core:3.1.0")
-    include("org.apache.commons:commons-collections4:4.4")
-    include("org.json:json:20241224")
-
-    // Chewtils
-    shade("pw.chew:jda-chewtils-command:${property("chewtils_version")}") {
-        isTransitive = false
-    }
-    shade("pw.chew:jda-chewtils-commons:${property("chewtils_version")}") {
-        isTransitive = false
-    }
+    api("com.discord4j:discord4j-core:${property("discord4j_version")}")
+    shade("com.discord4j:discord4j-core:${property("discord4j_version")}")
 
     // Runtime only
     modRuntimeOnly("net.fabricmc:fabric-language-kotlin:${property("kotlin_version")}")
@@ -208,7 +164,7 @@ if (stonecutter.current.isActive) {
 }
 
 tasks.compileJava {
-    sourceCompatibility = "17"
+    sourceCompatibility = "21"
     targetCompatibility = javaVer
     options.encoding = "UTF-8"
 }
@@ -256,6 +212,7 @@ tasks.named<ShadowJar>("shadowJar") {
     relocate("net.dv8tion.jda", "com.awakenedredstone.autowhitelist.lib.jda")
     relocate("com.jagrosh.jdautilities", "com.awakenedredstone.autowhitelist.lib.jdautils")
     relocate("pw.chew.jdachewtils", "com.awakenedredstone.autowhitelist.lib.chewtils")
+    relocate("com.discord4j", "com.awakenedredstone.autowhitelist.lib.discord4j")
     exclude("META-INF/maven/**/*", "META-INF/*.txt", "META-INF/proguard/*", "META-INF/LICENSE")
     from("LICENSE") {
         rename { "${it}_${archivesBaseName}" }

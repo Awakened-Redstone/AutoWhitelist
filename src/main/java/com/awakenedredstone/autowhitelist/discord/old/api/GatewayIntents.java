@@ -1,4 +1,4 @@
-package com.awakenedredstone.autowhitelist.discord.api;
+package com.awakenedredstone.autowhitelist.discord.old.api;
 
 import net.dv8tion.jda.api.requests.GatewayIntent;
 

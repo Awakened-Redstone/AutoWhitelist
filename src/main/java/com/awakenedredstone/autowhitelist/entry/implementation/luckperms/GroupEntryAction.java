@@ -5,6 +5,7 @@ import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.luckperms.api.node.Node;
 import net.luckperms.api.node.types.InheritanceNode;
 import net.minecraft.util.Identifier;
@@ -15,7 +16,7 @@ import java.util.Objects;
 
 public class GroupEntryAction extends LuckpermsEntryAction {
     public static final Identifier ID = AutoWhitelist.id("luckperms/group");
-    public static final /*? if <1.20.5 {*//*Codec*//*?} else {*/MapCodec/*?}*/<GroupEntryAction> CODEC = Stonecutter.entryCodec(instance ->
+    public static final MapCodec<GroupEntryAction> CODEC = RecordCodecBuilder.mapCodec(instance ->
       instance.group(
         Codec.STRING.listOf().fieldOf("roles").forGetter(BaseEntryAction::getRoles),
         Identifier.CODEC.fieldOf("type").forGetter(BaseEntryAction::getType),

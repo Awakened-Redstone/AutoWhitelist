@@ -1,13 +1,13 @@
-package com.awakenedredstone.autowhitelist.discord;
+package com.awakenedredstone.autowhitelist.discord.old;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.config.AutoWhitelistConfig;
-import com.awakenedredstone.autowhitelist.discord.api.GatewayIntents;
-import com.awakenedredstone.autowhitelist.discord.command.InfoCommand;
-import com.awakenedredstone.autowhitelist.discord.command.RegisterCommand;
-import com.awakenedredstone.autowhitelist.discord.command.admin.ModifyCommand;
-import com.awakenedredstone.autowhitelist.discord.command.admin.UserInfoCommand;
-import com.awakenedredstone.autowhitelist.discord.events.CoreEvents;
+import com.awakenedredstone.autowhitelist.discord.old.api.GatewayIntents;
+import com.awakenedredstone.autowhitelist.discord.old.command.InfoCommand;
+import com.awakenedredstone.autowhitelist.discord.old.command.RegisterCommand;
+import com.awakenedredstone.autowhitelist.discord.old.command.admin.ModifyCommand;
+import com.awakenedredstone.autowhitelist.discord.old.command.admin.UserInfoCommand;
+import com.awakenedredstone.autowhitelist.discord.old.events.CoreEvents;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;

@@ -6,13 +6,14 @@ import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.util.Identifier;
 
 import java.util.List;
 
 public class WhitelistEntryAction extends BaseEntryAction {
     public static final Identifier ID = AutoWhitelist.id("whitelist");
-    public static final /*? if <1.20.5 {*//*Codec*//*?} else {*/MapCodec/*?}*/<WhitelistEntryAction> CODEC = Stonecutter.entryCodec(instance ->
+    public static final MapCodec<WhitelistEntryAction> CODEC = RecordCodecBuilder.mapCodec(instance ->
       instance.group(
         Codec.STRING.listOf().fieldOf("roles").forGetter(BaseEntryAction::getRoles),
         Identifier.CODEC.fieldOf("type").forGetter(BaseEntryAction::getType)

@@ -4,6 +4,8 @@ import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.duck.WhitelistCacheHolder;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.WhitelistCache;
+import com.llamalad7.mixinextras.expression.Expression;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.Whitelist;
@@ -25,6 +27,12 @@ public class PlayerManagerMixin implements WhitelistCacheHolder {
         whitelist = new ExtendedWhitelist(WHITELIST_FILE/*? if >=1.21.9 {*/, managementListener /*?}*/);
         whitelistCache = new WhitelistCache(AutoWhitelist.WHITELIST_CACHE_FILE/*? if >=1.21.9 {*/, managementListener /*?}*/);
         AutoWhitelist.LOGGER.debug("Replaced whitelist");
+    }
+
+    @Expression("'multiplayer.disconnect.not_whitelisted'")
+    @ModifyExpressionValue(method = "checkCanJoin", at = @At(value = "MIXINEXTRAS:EXPRESSION"))
+    private static String replaceString(String original) {
+        return "multiplayer.autowhitelist.disconnect.not_whitelisted";
     }
 
     @Override

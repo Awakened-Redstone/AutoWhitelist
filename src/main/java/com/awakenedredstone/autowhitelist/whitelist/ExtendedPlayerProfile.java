@@ -4,8 +4,7 @@ import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
-import net.dv8tion.jda.api.entities.Role;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import discord4j.core.object.entity.Role;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -56,7 +55,7 @@ public class ExtendedPlayerProfile extends /*$ WhitelistProfile >>*/net.minecraf
     }
 
     public ExtendedPlayerProfile withRole(Role newRole) {
-        return withRole(newRole.getId());
+        return withRole(newRole.getId().asString());
     }
 
     public ExtendedPlayerProfile withLockedUntil(long newLockedUntil) {

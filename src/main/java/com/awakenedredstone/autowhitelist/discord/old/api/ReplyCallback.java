@@ -1,4 +1,4 @@
-package com.awakenedredstone.autowhitelist.discord.api;
+package com.awakenedredstone.autowhitelist.discord.old.api;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;

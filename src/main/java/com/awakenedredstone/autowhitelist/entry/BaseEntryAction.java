@@ -3,7 +3,7 @@ package com.awakenedredstone.autowhitelist.entry;
 import blue.endless.jankson.JsonObject;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
 import com.mojang.serialization.Codec;
-/*? if >=1.20.5 {*/import com.mojang.serialization.MapCodec;/*?}*/
+import com.mojang.serialization.MapCodec;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
@@ -22,7 +22,7 @@ import java.util.function.BiFunction;
  * The entry action used when whitelisting a user
  */
 public abstract class BaseEntryAction {
-    private static final Map<Identifier, /*? if <1.20.5 {*//*Codec*//*?} else {*/MapCodec/*?}*/<? extends BaseEntryAction>> ENTRIES = new HashMap<>();
+    private static final Map<Identifier, MapCodec<? extends BaseEntryAction>> ENTRIES = new HashMap<>();
     public static final Codec<BaseEntryAction> CODEC = Identifier.CODEC.dispatch(BaseEntryAction::getType, ENTRIES::get);
     private static final Map<Identifier, BiFunction<Byte, JsonObject, JsonObject>> DATA_FIXERS = new HashMap<>();
     protected final Logger LOGGER;
@@ -41,7 +41,7 @@ public abstract class BaseEntryAction {
      * for the execution of the task must be inside execute and named in such a way where it's action in
      * the task can be easily assumed by its name
      */
-    public static void register(Identifier id, /*? if <1.20.5 {*//*Codec*//*?} else {*/MapCodec/*?}*/<? extends BaseEntryAction> codec) {
+    public static void register(Identifier id, MapCodec<? extends BaseEntryAction> codec) {
         ENTRIES.putIfAbsent(id, codec);
     }
 

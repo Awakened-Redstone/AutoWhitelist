@@ -1,11 +1,11 @@
-package com.awakenedredstone.autowhitelist.discord.command.admin;
+package com.awakenedredstone.autowhitelist.discord.old.command.admin;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.LazyConstants;
-import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
-import com.awakenedredstone.autowhitelist.discord.api.ReplyCallback;
-import com.awakenedredstone.autowhitelist.discord.command.RegisterCommand;
-import com.awakenedredstone.autowhitelist.discord.command.SimpleSlashCommand;
+import com.awakenedredstone.autowhitelist.discord.old.DiscordBotHelper;
+import com.awakenedredstone.autowhitelist.discord.old.api.ReplyCallback;
+import com.awakenedredstone.autowhitelist.discord.old.command.RegisterCommand;
+import com.awakenedredstone.autowhitelist.discord.old.command.AbstractSlashCommand;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
 import com.awakenedredstone.autowhitelist.networking.GeyserProfileRepository;
@@ -15,8 +15,6 @@ import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
-/*? if <1.20.2 {*//*import com.mojang.authlib.Agent;*//*?}*/
-import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.ProfileLookupCallback;
 import com.mojang.authlib.yggdrasil.ProfileNotFoundException;
 import net.dv8tion.jda.api.Permission;
@@ -36,7 +34,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class ModifyCommand extends SimpleSlashCommand {
+public class ModifyCommand extends AbstractSlashCommand {
     public ModifyCommand() {
         super("modify", "admin");
 
@@ -200,7 +198,7 @@ public class ModifyCommand extends SimpleSlashCommand {
                     //?}
 
                     @Override
-                    public void onProfileLookupFailed(/*? if >=1.20.2 {*/String/*?} else {*//*GameProfile*//*?}*/ name, Exception exception) {
+                    public void onProfileLookupFailed(String name, Exception exception) {
                         if (!(exception instanceof ProfileNotFoundException)) {
                             atomicException.set(exception);
                         }
@@ -210,7 +208,7 @@ public class ModifyCommand extends SimpleSlashCommand {
 
                 GeyserProfileRepository repository = LazyConstants.getGeyserProfileRepository();
 
-                repository.findProfilesByNames(new String[]{username}/*? if <1.20.2 {*//*, Agent.MINECRAFT*//*?}*/, profileLookupCallback);
+                repository.findProfilesByNames(new String[]{username}, profileLookupCallback);
 
                 if (atomicException.get() != null) {
                     Exception exception = atomicException.get();

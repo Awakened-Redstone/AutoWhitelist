@@ -265,7 +265,7 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
             obj.setMarshaller(this);
 
             if (typeAdapters.containsKey(clazz)) {
-                return (T) typeAdapters.get(clazz).apply((JsonObject) elem);
+                return (T) typeAdapters.get(clazz).apply(obj);
             }
 
             if (typeFactories.containsKey(clazz)) {
@@ -299,14 +299,13 @@ public class Marshaller implements blue.endless.jankson.api.Marshaller {
                 }
             }
 
-        } else if (elem instanceof JsonArray) {
+        } else if (elem instanceof JsonArray array) {
             if (clazz.isPrimitive()) {
                 LOGGER.debug("Failed to parse JSON into class {} [elem instanceof JsonArray]", clazz.getCanonicalName());
                 return null;
             }
             if (clazz.isArray()) {
                 Class<?> componentType = clazz.getComponentType();
-                JsonArray array = (JsonArray) elem;
 
                 T result = (T) Array.newInstance(componentType, array.size());
                 for (int i = 0; i < array.size(); i++) {

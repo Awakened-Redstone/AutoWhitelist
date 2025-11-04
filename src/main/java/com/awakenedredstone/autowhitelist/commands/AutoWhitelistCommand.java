@@ -3,7 +3,7 @@ package com.awakenedredstone.autowhitelist.commands;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.commands.api.Permission;
 import com.awakenedredstone.autowhitelist.data.DefaultTranslationsDataProvider;
-import com.awakenedredstone.autowhitelist.discord.DiscordBot;
+import com.awakenedredstone.autowhitelist.discord.old.DiscordBot;
 import com.awakenedredstone.autowhitelist.util.LinedStringBuilder;
 import com.awakenedredstone.autowhitelist.util.ModData;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;

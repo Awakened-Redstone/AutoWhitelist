@@ -1,6 +1,6 @@
 package com.awakenedredstone.autowhitelist.entry;
 
-import net.dv8tion.jda.api.entities.Role;
+import discord4j.core.object.entity.Role;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,7 +19,7 @@ public final class RoleActionMap {
     }
 
     public static void register(Role role, BaseEntryAction action) {
-        register(role.getId(), action);
+        register(role.getId().asString(), action);
     }
 
     @NotNull
@@ -34,7 +34,7 @@ public final class RoleActionMap {
 
     @NotNull
     public static BaseEntryAction get(Role role) {
-        return get(role.getId());
+        return get(role.getId().asString());
     }
 
     @Nullable
@@ -44,7 +44,7 @@ public final class RoleActionMap {
 
     @Nullable
     public static BaseEntryAction getNullable(Role role) {
-        return getNullable(role.getId());
+        return getNullable(role.getId().asString());
     }
 
     public static boolean containsRole(String role) {
@@ -52,6 +52,6 @@ public final class RoleActionMap {
     }
 
     public static boolean containsRole(Role role) {
-        return containsRole(role.getId());
+        return containsRole(role.getId().asString());
     }
 }

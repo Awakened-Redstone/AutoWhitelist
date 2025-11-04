@@ -1,10 +1,10 @@
-package com.awakenedredstone.autowhitelist.discord.command.admin;
+package com.awakenedredstone.autowhitelist.discord.old.command.admin;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
-import com.awakenedredstone.autowhitelist.discord.api.ReplyCallback;
-import com.awakenedredstone.autowhitelist.discord.command.RegisterCommand;
-import com.awakenedredstone.autowhitelist.discord.command.SimpleSlashCommand;
+import com.awakenedredstone.autowhitelist.discord.old.DiscordBotHelper;
+import com.awakenedredstone.autowhitelist.discord.old.api.ReplyCallback;
+import com.awakenedredstone.autowhitelist.discord.old.command.RegisterCommand;
+import com.awakenedredstone.autowhitelist.discord.old.command.AbstractSlashCommand;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.awakenedredstone.autowhitelist.util.Texts;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
@@ -27,7 +27,7 @@ import net.minecraft.text.Text;
 import java.util.List;
 import java.util.Optional;
 
-public class UserInfoCommand extends SimpleSlashCommand {
+public class UserInfoCommand extends AbstractSlashCommand {
     public UserInfoCommand() {
         super("userinfo", "admin");
 

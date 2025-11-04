@@ -1,10 +1,10 @@
-package com.awakenedredstone.autowhitelist.discord.command;
+package com.awakenedredstone.autowhitelist.discord.old.command;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.LazyConstants;
-import com.awakenedredstone.autowhitelist.discord.DiscordBot;
-import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
-import com.awakenedredstone.autowhitelist.discord.api.ReplyCallback;
+import com.awakenedredstone.autowhitelist.discord.old.DiscordBot;
+import com.awakenedredstone.autowhitelist.discord.old.DiscordBotHelper;
+import com.awakenedredstone.autowhitelist.discord.old.api.ReplyCallback;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.awakenedredstone.autowhitelist.util.Texts;
 import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
@@ -36,7 +36,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-public class InfoCommand extends SimpleSlashCommand {
+public class InfoCommand extends AbstractSlashCommand {
     public InfoCommand() {
         super("info");
     }

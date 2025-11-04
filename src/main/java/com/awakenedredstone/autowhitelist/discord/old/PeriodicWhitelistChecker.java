@@ -1,4 +1,4 @@
-package com.awakenedredstone.autowhitelist.discord;
+package com.awakenedredstone.autowhitelist.discord.old;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
@@ -74,7 +74,7 @@ public class PeriodicWhitelistChecker implements Runnable {
             }
 
             // Update profile to a new entry if needed
-            ExtendedPlayerProfile profile = profiles.get(0);
+            ExtendedPlayerProfile profile = profiles.getFirst();
             if (!profile.getRole().equals(highestRole.get().getId())) {
                 AutoWhitelist.LOGGER.debug("Updating entry for {}", Stonecutter.profileName(profile));
                 BaseEntryAction entry = RoleActionMap.get(highestRole.get());

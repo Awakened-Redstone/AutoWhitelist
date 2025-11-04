@@ -3,7 +3,7 @@ package com.awakenedredstone.autowhitelist;
 import blue.endless.jankson.JsonObject;
 import com.awakenedredstone.autowhitelist.commands.AutoWhitelistCommand;
 import com.awakenedredstone.autowhitelist.config.AutoWhitelistConfig;
-import com.awakenedredstone.autowhitelist.discord.DiscordBotHelper;
+import com.awakenedredstone.autowhitelist.discord.old.DiscordBotHelper;
 import com.awakenedredstone.autowhitelist.duck.WhitelistCacheHolder;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
 import com.awakenedredstone.autowhitelist.entry.implementation.CommandEntryAction;
@@ -11,7 +11,7 @@ import com.awakenedredstone.autowhitelist.entry.implementation.VanillaTeamEntryA
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.entry.implementation.WhitelistEntryAction;
 import com.awakenedredstone.autowhitelist.entry.implementation.luckperms.GroupEntryAction;
-import com.awakenedredstone.autowhitelist.discord.DiscordBot;
+import com.awakenedredstone.autowhitelist.discord.DiscordClientHolder;
 import com.awakenedredstone.autowhitelist.entry.implementation.luckperms.PermissionEntryAction;
 import com.awakenedredstone.autowhitelist.mixin.ServerLoginNetworkHandlerAccessor;
 import com.awakenedredstone.autowhitelist.util.JsonUtil;
@@ -23,8 +23,9 @@ import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
 import com.awakenedredstone.autowhitelist.whitelist.WhitelistCache;
 import com.awakenedredstone.autowhitelist.whitelist.WhitelistCacheEntry;
 import com.mojang.authlib.GameProfile;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Role;
+import discord4j.common.util.Snowflake;
+import discord4j.core.object.entity.Member;
+import discord4j.core.object.entity.Role;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -100,7 +101,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
     }
 
     public static void updateEntryMap(List<BaseEntryAction> entries) {
-        if (DiscordBot.getInstance() == null || DiscordBot.getGuild() == null) return;
+        if (!DiscordClientHolder.hasTask()) return;
 
         RoleActionMap.clear();
         for (BaseEntryAction entry : entries) {
@@ -117,8 +118,6 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
 
     @Override
     public void onInitializeServer() {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> DiscordBot.stopBot(true), "JDA shutdown"));
-
         CONFIG.registerListener("entries", (List<BaseEntryAction> entries) -> {
             for (BaseEntryAction entry : entries) {
                 if (!entry.isValid()) {
@@ -132,7 +131,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
         ServerLifecycleEvents.SERVER_STARTING.register(server -> AutoWhitelist.server = server);
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> AutoWhitelistCommand.register(dispatcher));
-        ServerLifecycleEvents.SERVER_STOPPING.register((server -> DiscordBot.stopBot(false)));
+        ServerLifecycleEvents.SERVER_STOPPING.register((server -> DiscordClientHolder.BOT_SERVICE.shutdown()));
         ServerLifecycleEvents.SERVER_STARTED.register((server -> {
             CONFIG.load();
 
@@ -142,7 +141,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
                 AutoWhitelist.LOGGER.error("Failed to replace whitelist, the mod can not work without the custom system!");
             }
 
-            DiscordBot.startInstance();
+            DiscordClientHolder.queueBotInit();
             if (!server.isOnlineMode()) {
                 LOGGER.warn("***** OFFLINE SERVER DETECTED! *****");
                 LOGGER.warn("This mod does not offer support for offline servers!");
@@ -154,8 +153,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
         ServerLoginConnectionEvents.QUERY_START.register((handler, server, sender, synchronizer) -> {
             if (!AutoWhitelist.CONFIG.enableWhitelistCache) return;
             if (!AutoWhitelist.getServer().isOnlineMode()) return;
-            if (!DiscordBot.botExists()) return;
-            if (DiscordBot.getGuild() == null) return;
+            if (!DiscordClientHolder.hasTask()) return;
             ServerLoginNetworkHandlerAccessor accessor = (ServerLoginNetworkHandlerAccessor) handler;
             GameProfile profile = accessor.getProfile();
             if (handler.getConnectionInfo() == null) return;
@@ -164,28 +162,29 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             *///?} else {
             Text canJoin = AutoWhitelist.getServer().getPlayerManager().checkCanJoin(accessor.getConnection().getAddress(), new net.minecraft.server.PlayerConfigEntry(profile));
             //?}
-            if (canJoin != null && !canJoin.equals(Text.translatable("multiplayer.disconnect.not_whitelisted"))) return;
+            if (canJoin != null && !canJoin.equals(Text.translatable("multiplayer.autowhitelist.disconnect.not_whitelisted"))) return;
 
             WhitelistCacheEntry cachedEntry = getWhitelistCache().get(profile);
             if (cachedEntry == null) return;
             String discordId = cachedEntry.getProfile().getDiscordId();
-            Member member = DiscordBot.getGuild().getMemberById(discordId);
+            Member member = DiscordClientHolder.getCurrent().guild.get().getMemberById(Snowflake.of(discordId)).block();
             if (member == null) {
                 getWhitelistCache().remove(profile);
                 return;
             }
 
-            Optional<Role> role = DiscordBotHelper.getHighestEntryRole(member);
-            if (role.isEmpty()) return;
+            Optional<Role> perhapsRole = DiscordBotHelper.getHighestEntryRole(member);
+            if (perhapsRole.isEmpty()) return;
 
-            BaseEntryAction entry = RoleActionMap.get(role.get());
+            Role role = perhapsRole.get();
+            BaseEntryAction entry = RoleActionMap.get(role);
             if (!entry.isValid()) {
                 LOGGER.error("Failed to use whitelist cache due to a broken entry {}", entry);
                 return;
             }
 
             Whitelist whitelist = server.getPlayerManager().getWhitelist();
-            ExtendedPlayerProfile extendedProfile = new ExtendedPlayerProfile(Stonecutter.profileId(profile), Stonecutter.profileName(profile), role.get().getId(), discordId, CONFIG.lockTime());
+            ExtendedPlayerProfile extendedProfile = new ExtendedPlayerProfile(Stonecutter.profileId(profile), Stonecutter.profileName(profile), role.getId().asString(), discordId, CONFIG.lockTime());
             whitelist.add(new ExtendedWhitelistEntry(extendedProfile));
             entry.registerUser(extendedProfile);
         });
