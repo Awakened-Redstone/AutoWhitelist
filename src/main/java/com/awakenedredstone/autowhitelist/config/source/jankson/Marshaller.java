@@ -13,7 +13,7 @@ import blue.endless.jankson.api.DeserializerFunction;
 import blue.endless.jankson.impl.POJODeserializer;
 import blue.endless.jankson.impl.serializer.DeserializerFunctionPool;
 import blue.endless.jankson.magic.TypeMagic;
-import com.awakenedredstone.autowhitelist.config.source.AnnotationParserException;
+import com.awakenedredstone.autowhitelist.config.source.exception.AnnotationParserException;
 import com.awakenedredstone.autowhitelist.config.source.annotation.NameFormat;
 import com.awakenedredstone.autowhitelist.config.source.annotation.SkipNameFormat;
 import com.awakenedredstone.autowhitelist.mixin.jankson.POJODeserializerAccessor;

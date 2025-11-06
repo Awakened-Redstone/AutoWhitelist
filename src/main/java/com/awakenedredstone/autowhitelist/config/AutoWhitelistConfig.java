@@ -34,27 +34,23 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.awakenedredstone.autowhitelist.AutoWhitelist.CONFIG;
 import static com.awakenedredstone.autowhitelist.AutoWhitelist.DATA_FIXER_LOGGER;
 
 @SuppressWarnings("CanBeFinal")
 @NameFormat(NameFormat.Case.SNAKE_CASE)
 public class AutoWhitelistConfig extends ConfigHandler {
     public AutoWhitelistConfig() {
-        super("autowhitelist", JanksonBuilder.buildJankson(builder -> {
+        super("autowhitelist", Constants.CONFIG_VERSION, JanksonBuilder.buildJankson(builder -> {
             builder.registerDeserializer(JsonObject.class, BaseEntryAction.class, (jsonObject, marshaller) -> BaseEntryAction.CODEC.parse(JanksonOps.INSTANCE, jsonObject).getOrThrow());
             builder.registerSerializer(BaseEntryAction.class, (entryData, marshaller) -> BaseEntryAction.CODEC.encodeStart(JanksonOps.INSTANCE, entryData).getOrThrow());
         }));
     }
 
-    @SkipNameFormat
     @SuppressWarnings("unused")
+    @SkipNameFormat
     @Comment("The JSON schema for the config, this is for text editors to show syntax highlighting, do not change it")
     public String $schema = Constants.CONFIG_SCHEMA;
-
-    @SkipNameFormat
-    @SuppressWarnings("unused")
-    @Comment("DO NOT CHANGE, MODIFYING THIS VALUE WILL BREAK THE CONFIGURATION FILE")
-    public byte CONFIG_VERSION = Constants.CONFIG_VERSION;
 
     @Comment("When enabled, it will keep a cache of previous registered users and will use it to automatically add the user back (if they have the proper role)")
     public boolean enableWhitelistCache = true;
@@ -98,6 +94,8 @@ public class AutoWhitelistConfig extends ConfigHandler {
 
     @Comment("The whitelist entry settings, please refer to the documentation to set them up")
     public List<BaseEntryAction> entries = new ArrayList<>();
+
+
 
     @SuppressWarnings("unused")
     public static boolean timeConstraint(String timeString) {

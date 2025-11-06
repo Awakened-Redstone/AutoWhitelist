@@ -11,7 +11,7 @@ public class Constants {
     5 - Added `command_permission_level`
     6 - Removed `admins` and `prefix`, renamed `update_period` to `periodic_check_delay`
     */
-    public static final byte CONFIG_VERSION = 6;
+    public static final byte CONFIG_VERSION = 7;
     public static final String CONFIG_SCHEMA = "https://awakenedredstone.com/json-schema/autowhitelist/draft-%02d.json".formatted(CONFIG_VERSION);
     public static final JsonGrammar GRAMMAR = JsonGrammar.builder()
       .withComments(true)
