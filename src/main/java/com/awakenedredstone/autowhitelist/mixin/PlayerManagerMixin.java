@@ -2,8 +2,8 @@ package com.awakenedredstone.autowhitelist.mixin;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.duck.WhitelistCacheHolder;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
-import com.awakenedredstone.autowhitelist.whitelist.WhitelistCache;
+import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelist;
+import com.awakenedredstone.autowhitelist.whitelist.cache.WhitelistCache;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;

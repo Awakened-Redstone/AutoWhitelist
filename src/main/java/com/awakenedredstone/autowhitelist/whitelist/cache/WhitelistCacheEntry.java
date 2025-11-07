@@ -1,6 +1,7 @@
-package com.awakenedredstone.autowhitelist.whitelist;
+package com.awakenedredstone.autowhitelist.whitelist.cache;
 
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
+import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
 import com.google.gson.JsonObject;
 import net.minecraft.server.ServerConfigEntry;
 import org.jetbrains.annotations.Nullable;

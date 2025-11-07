@@ -1,4 +1,4 @@
-package com.awakenedredstone.autowhitelist.whitelist;
+package com.awakenedredstone.autowhitelist.whitelist.override;
 
 import com.google.gson.JsonObject;
 import net.minecraft.server.WhitelistEntry;

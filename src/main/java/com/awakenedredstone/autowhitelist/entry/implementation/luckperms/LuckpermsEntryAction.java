@@ -3,7 +3,7 @@ package com.awakenedredstone.autowhitelist.entry.implementation.luckperms;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
+import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;

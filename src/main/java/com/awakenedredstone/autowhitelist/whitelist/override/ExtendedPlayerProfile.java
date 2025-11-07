@@ -1,4 +1,4 @@
-package com.awakenedredstone.autowhitelist.whitelist;
+package com.awakenedredstone.autowhitelist.whitelist.override;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;

@@ -17,11 +17,11 @@ import com.awakenedredstone.autowhitelist.mixin.ServerLoginNetworkHandlerAccesso
 import com.awakenedredstone.autowhitelist.util.JsonUtil;
 import com.awakenedredstone.autowhitelist.util.ModData;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelistEntry;
-import com.awakenedredstone.autowhitelist.whitelist.WhitelistCache;
-import com.awakenedredstone.autowhitelist.whitelist.WhitelistCacheEntry;
+import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
+import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelist;
+import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelistEntry;
+import com.awakenedredstone.autowhitelist.whitelist.cache.WhitelistCache;
+import com.awakenedredstone.autowhitelist.whitelist.cache.WhitelistCacheEntry;
 import com.mojang.authlib.GameProfile;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Member;

@@ -2,8 +2,7 @@ package com.awakenedredstone.autowhitelist.entry.implementation;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
+import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;

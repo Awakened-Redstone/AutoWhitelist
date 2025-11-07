@@ -1,9 +1,10 @@
-package com.awakenedredstone.autowhitelist.whitelist;
+package com.awakenedredstone.autowhitelist.whitelist.override;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
 import com.awakenedredstone.autowhitelist.util.Stonecutter;
+import com.awakenedredstone.autowhitelist.whitelist.WhitelistHandler;
 import com.google.gson.JsonObject;
 import net.minecraft.server.ServerConfigEntry;
 import net.minecraft.server.Whitelist;

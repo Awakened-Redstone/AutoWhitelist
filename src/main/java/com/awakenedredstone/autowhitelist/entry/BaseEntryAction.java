@@ -1,7 +1,7 @@
 package com.awakenedredstone.autowhitelist.entry;
 
 import blue.endless.jankson.JsonObject;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
+import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.util.Identifier;
