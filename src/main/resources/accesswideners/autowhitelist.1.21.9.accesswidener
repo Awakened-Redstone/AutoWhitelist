@@ -1,5 +1,7 @@
 accessWidener v2 named
 
 accessible method net/minecraft/server/ServerConfigEntry getKey ()Ljava/lang/Object;
+extendable method net/minecraft/server/PlayerConfigEntry equals (Ljava/lang/Object;)Z
+extendable method net/minecraft/server/PlayerConfigEntry toString ()Ljava/lang/String;
 
 extendable class net/minecraft/server/PlayerConfigEntry

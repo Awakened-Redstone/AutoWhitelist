@@ -11,7 +11,7 @@ public record PlayerProfile(UUID id, String name) {
     }
 
     public /*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry toEntryType() {
-        return new /*$ WhitelistProfile {*/net.minecraft.server.PlayerConfigEntry/*?}*/(id, name);
+        return new /*$ WhitelistProfile {*/net.minecraft.server.PlayerConfigEntry/*$}*/(id, name);
     }
 
     public LinkedPlayerProfile linked() {

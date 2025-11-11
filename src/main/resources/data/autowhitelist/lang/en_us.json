@@ -2,6 +2,10 @@
   "commands.autowhitelist.remove.failed": "Failed to remove player(s) from the whitelist. An error occurred or they weren't whitelisted.",
   "multiplayer.autowhitelist.disconnect.not_whitelisted": "You are not white-listed on this server!\nPlease run /register [username] in discord",
 
+  "discord.autowhitelist.timestamp.lock": "<t:%s:R>",
+  "discord.autowhitelist.lock.expires": "The lock expires %s",
+  "discord.autowhitelist.lock.never": "never",
+
   "discord.command.description.register": "Adds the informed Minecraft account to the server whitelist",
   "discord.command.description.register.argument/username": "Your Minecraft username",
   "discord.command.description.register.argument/geyser": "Whenever it is a Java or Bedrock username",

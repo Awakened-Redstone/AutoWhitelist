@@ -1,10 +1,16 @@
 package com.awakenedredstone.autowhitelist.discord.util.message;
 
+import net.minecraft.text.Text;
+
 import java.awt.*;
 
 public class MessageUtils {
-    public static String relativeTimestamp(long timestamp) {
-        return "<t:" + (timestamp / 1000) + ":R>";
+    public static Text timestampMillis(long timestamp, String type) {
+        return timestamp(timestamp / 1000, type);
+    }
+
+    public static Text timestamp(long timestamp, String type) {
+        return Text.translatable("discord.autowhitelist.timestamp." + type, timestamp);
     }
 
     public enum Pallet {

@@ -5,8 +5,12 @@ import com.awakenedredstone.autowhitelist.stonecutter.Stonecutter;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import discord4j.core.object.entity.Role;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.runtime.ObjectMethods;
+import java.util.Objects;
 import java.util.UUID;
 
 public class LinkedPlayerProfile extends /*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry {
@@ -73,19 +77,31 @@ public class LinkedPlayerProfile extends /*$ WhitelistProfile >>*/net.minecraft.
         return AutoWhitelist.CONFIG.lockTime() == -1 || lockedUntil == -1 || lockedUntil > System.currentTimeMillis() || AutoWhitelist.getServer().getPlayerManager().getUserBanList().contains(this);
     }
 
-    /*? if <1.21.9 {*//*
     @Override
-    public String toString() {
+    public boolean equals(Object obj) {
+        //noinspection RedundantCast
+        if (((/*$ WhitelistProfile {*/net.minecraft.server.PlayerConfigEntry/*$}*/) this).equals(obj)) {
+            return true;
+        }
+
+        if (obj instanceof LinkedPlayerProfile other) {
+            return Objects.equals(other.discordId, this.discordId);
+        }
+
+        return false;
+    }
+
+    @Override
+    public @NotNull String toString() {
         return new ToStringBuilder(this)
           .append("id", Stonecutter.profileId(this))
           .append("name", Stonecutter.profileName(this))
-          .append("properties", this.getProperties())
+          /*?if < 1.21.9*///.append("properties", this.getProperties())
           .append("role", role)
           .append("discordId", discordId)
           .append("lockedUntil", lockedUntil)
           .toString();
     }
-    *//*?}*/
 
     @Nullable
     public static LinkedPlayerProfile read(JsonObject object) {
@@ -126,5 +142,10 @@ public class LinkedPlayerProfile extends /*$ WhitelistProfile >>*/net.minecraft.
             }
         }
         return true;
+    }
+
+    @SuppressWarnings("RedundantCast")
+    private /*$ WhitelistProfile >>*/Object parent() {
+        return (/*$ WhitelistProfile {*/net.minecraft.server.PlayerConfigEntry/*$}*/) this;
     }
 }

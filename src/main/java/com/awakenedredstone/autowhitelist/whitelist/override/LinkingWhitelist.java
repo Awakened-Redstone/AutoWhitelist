@@ -5,6 +5,7 @@ import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
 import com.awakenedredstone.autowhitelist.stonecutter.Stonecutter;
 import com.google.gson.JsonObject;
+import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.ServerConfigEntry;
 import net.minecraft.server.Whitelist;
 import net.minecraft.server.WhitelistEntry;
