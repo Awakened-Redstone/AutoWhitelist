@@ -3,8 +3,7 @@ package com.awakenedredstone.autowhitelist.whitelist.override;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
-import com.awakenedredstone.autowhitelist.whitelist.WhitelistHandler;
+import com.awakenedredstone.autowhitelist.stonecutter.Stonecutter;
 import com.google.gson.JsonObject;
 import net.minecraft.server.ServerConfigEntry;
 import net.minecraft.server.Whitelist;
@@ -17,32 +16,37 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-public class ExtendedWhitelist extends Whitelist {
+public class LinkingWhitelist extends Whitelist {
     private boolean dirty = false;
 
-    public ExtendedWhitelist(File file/*? if >=1.21.9 {*/, ManagementListener managementListener /*?}*/) {
+    public LinkingWhitelist(File file/*? if >=1.21.9 {*/, ManagementListener managementListener /*?}*/) {
         super(file/*? if >=1.21.9 {*/, managementListener /*?}*/);
     }
 
-    public WhitelistEntry getEntry(/*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry profile) {
-        if (this.isAllowed(profile)) {
-            return getEntryFromProfile(profile);
+    public WhitelistEntry getOrCreateEntry(/*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry profile) {
+        if (this.contains(profile)) {
+            return get(profile);
         }
 
         return new WhitelistEntry(profile);
     }
 
+    public boolean isLocked(/*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry entry) {
+        return !isAllowed(entry) || (get(entry) instanceof LinkedWhitelistEntry linkedEntry && !linkedEntry.isLocked());
+    }
+
     @Override
     public /*$ entryPatchReturn >>*/boolean remove(/*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry key) {
         /*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry profile;
-        if (key instanceof ExtendedPlayerProfile extendedPlayerProfile) {
-            profile = extendedPlayerProfile;
+        if (key instanceof LinkedPlayerProfile linkedPlayerProfile) {
+            profile = linkedPlayerProfile;
         } else if (Stonecutter.profileId(key).getMostSignificantBits() == 0) {
             /*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry storedProfile = getProfileFromUUID(Stonecutter.profileId(key));
-            if (storedProfile instanceof ExtendedPlayerProfile extendedPlayerProfile) {
-                profile = extendedPlayerProfile;
+            if (storedProfile instanceof LinkedPlayerProfile linkedPlayerProfile) {
+                profile = linkedPlayerProfile;
             } else {
                 profile = key;
             }
@@ -50,7 +54,7 @@ public class ExtendedWhitelist extends Whitelist {
             profile = key;
         }
 
-        if (profile instanceof ExtendedPlayerProfile extendedProfile) {
+        if (profile instanceof LinkedPlayerProfile extendedProfile) {
             BaseEntryAction entryAction = RoleActionMap.getNullable(extendedProfile.getRole());
             if (entryAction != null) {
                 if (entryAction.isValid()) {
@@ -80,20 +84,17 @@ public class ExtendedWhitelist extends Whitelist {
 
     @Override
     protected ServerConfigEntry</*$ WhitelistProfile {*/net.minecraft.server.PlayerConfigEntry/*$}*/> fromJson(JsonObject json) {
-        ExtendedWhitelistEntry entry = new ExtendedWhitelistEntry(json);
-        try {
-            if (entry.getKey() != null) return entry;
-            else return new ExtendedWhitelistEntry(json);
-        } catch (ClassCastException e) {
-            return new ExtendedWhitelistEntry(json);
-        }
+        LinkedWhitelistEntry entry = new LinkedWhitelistEntry(json);
+
+        if (entry.getKey() != null) return entry;
+        else return new WhitelistEntry(json);
     }
 
-    public boolean isAllowed(ExtendedPlayerProfile profile) {
+    public boolean isAllowed(LinkedPlayerProfile profile) {
         return this.contains(profile);
     }
 
-    protected String toString(ExtendedPlayerProfile gameProfile) {
+    protected String toString(LinkedPlayerProfile gameProfile) {
         return Stonecutter.profileId(gameProfile).toString();
     }
 
@@ -112,7 +113,7 @@ public class ExtendedWhitelist extends Whitelist {
     public void remove(String key, Type type) {
         switch (type) {
             case DISCORD_ID -> values().stream()
-              .filter(entry -> entry.getKey() instanceof ExtendedPlayerProfile extendedProfile && extendedProfile.getDiscordId().equals(key))
+              .filter(entry -> entry.getKey() instanceof LinkedPlayerProfile extendedProfile && extendedProfile.getDiscordId().equals(key))
               .forEach(whitelistEntry -> remove(whitelistEntry.getKey()));
             case USERNAME -> values().stream()
               .filter(entry -> entry.getKey() != null)
@@ -121,18 +122,18 @@ public class ExtendedWhitelist extends Whitelist {
         }
     }
 
-    public List<ExtendedPlayerProfile> getProfilesFromDiscordId(String id) {
+    public List<LinkedPlayerProfile> getProfilesFromDiscordId(String id) {
         return values().stream()
-          .filter(entry -> entry.getKey() instanceof ExtendedPlayerProfile extendedProfile && extendedProfile.getDiscordId().equals(id))
-          .map(whitelistEntry -> (ExtendedPlayerProfile) whitelistEntry.getKey()).toList();
+          .filter(entry -> entry.getKey() instanceof LinkedPlayerProfile extendedProfile && extendedProfile.getDiscordId().equals(id))
+          .map(whitelistEntry -> (LinkedPlayerProfile) whitelistEntry.getKey()).toList();
     }
 
-    public List<ExtendedWhitelistEntry> getFromDiscordId(String id) {
+    public Optional<LinkedWhitelistEntry> getFromDiscordId(String id) {
         return values().stream()
-          .filter(entry -> entry instanceof ExtendedWhitelistEntry)
-          .filter(entry -> entry.getKey() instanceof ExtendedPlayerProfile profile && profile.getDiscordId().equals(id))
-          .map(v -> (ExtendedWhitelistEntry) v)
-          .toList();
+          .filter(entry -> entry instanceof LinkedWhitelistEntry)
+          .filter(entry -> entry.getKey() instanceof LinkedPlayerProfile profile && profile.getDiscordId().equals(id))
+          .map(v -> (LinkedWhitelistEntry) v)
+          .findFirst();
     }
 
     @Nullable

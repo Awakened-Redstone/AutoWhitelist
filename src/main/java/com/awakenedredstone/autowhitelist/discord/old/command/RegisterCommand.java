@@ -7,11 +7,11 @@ import com.awakenedredstone.autowhitelist.discord.old.DiscordBotHelper;
 import com.awakenedredstone.autowhitelist.discord.old.api.ReplyCallback;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
 import com.awakenedredstone.autowhitelist.networking.GeyserProfileRepository;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
+import com.awakenedredstone.autowhitelist.stonecutter.Stonecutter;
 import com.awakenedredstone.autowhitelist.util.Validation;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelist;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelistEntry;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedPlayerProfile;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkingWhitelist;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedWhitelistEntry;
 import com.awakenedredstone.autowhitelist.whitelist.cache.WhitelistCacheEntry;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.mojang.authlib.ProfileLookupCallback;
@@ -86,9 +86,9 @@ public class RegisterCommand extends AbstractSlashCommand {
         }
 
         MinecraftServer server = AutoWhitelist.getServer();
-        ExtendedWhitelist whitelist = (ExtendedWhitelist) server.getPlayerManager().getWhitelist();
+        LinkingWhitelist whitelist = (LinkingWhitelist) server.getPlayerManager().getWhitelist();
 
-        Optional<ExtendedWhitelistEntry> whitelistedAccount = getWhitelistedAccount(discordId, whitelist);
+        Optional<LinkedWhitelistEntry> whitelistedAccount = getWhitelistedAccount(discordId, whitelist);
         if (whitelistedAccount.isPresent()) {
             boolean sameAccount;
             if (uuid != null) {
@@ -294,7 +294,7 @@ public class RegisterCommand extends AbstractSlashCommand {
             return;
         }
 
-        ExtendedPlayerProfile extendedProfile = new ExtendedPlayerProfile(Stonecutter.profileId(profile), Stonecutter.profileName(profile), highestRole.get().getId(), discordId, AutoWhitelist.CONFIG.lockTime());
+        LinkedPlayerProfile extendedProfile = new LinkedPlayerProfile(Stonecutter.profileId(profile), Stonecutter.profileName(profile), highestRole.get().getId(), discordId, AutoWhitelist.CONFIG.lockTime());
 
         if (AutoWhitelist.getServer().getPlayerManager().getUserBanList().contains(extendedProfile)) {
             replyCallback.editMessage(
@@ -354,7 +354,7 @@ public class RegisterCommand extends AbstractSlashCommand {
         execute(member, username, geyser, new ReplyCallback.DefaultInteractionReplyCallback(event));
     }
 
-    public static void whitelistPlayer(ExtendedWhitelistEntry whitelistedAccount, ExtendedWhitelist whitelist, ExtendedPlayerProfile extendedProfile, BaseEntryAction entry) {
+    public static void whitelistPlayer(LinkedWhitelistEntry whitelistedAccount, LinkingWhitelist whitelist, LinkedPlayerProfile extendedProfile, BaseEntryAction entry) {
         if (whitelistedAccount != null) {
             whitelist.remove(whitelistedAccount.getProfile());
             if (AutoWhitelist.CONFIG.enableWhitelistCache) {
@@ -362,7 +362,7 @@ public class RegisterCommand extends AbstractSlashCommand {
             }
         }
 
-        whitelist.add(new ExtendedWhitelistEntry(extendedProfile));
+        whitelist.add(new LinkedWhitelistEntry(extendedProfile));
         if (AutoWhitelist.CONFIG.enableWhitelistCache) {
             WhitelistCacheEntry cacheEntry;
             if ((cacheEntry = AutoWhitelist.getWhitelistCache().getFromId(extendedProfile.getDiscordId())) != null) {
@@ -375,14 +375,14 @@ public class RegisterCommand extends AbstractSlashCommand {
     }
 
     @NotNull
-    public static Optional<ExtendedWhitelistEntry> getWhitelistedAccount(String id, @NotNull ExtendedWhitelist whitelist) {
+    public static Optional<LinkedWhitelistEntry> getWhitelistedAccount(String id, @NotNull LinkingWhitelist whitelist) {
         return whitelist.getEntries().stream().filter(entry -> {
             try {
-                ExtendedWhitelistEntry whitelistEntry = (ExtendedWhitelistEntry) entry;
+                LinkedWhitelistEntry whitelistEntry = (LinkedWhitelistEntry) entry;
                 return whitelistEntry.getProfile().getDiscordId().equals(id);
             } catch (Throwable e) {
                 return false;
             }
-        }).map(e -> (ExtendedWhitelistEntry) e).findFirst();
+        }).map(e -> (LinkedWhitelistEntry) e).findFirst();
     }
 }

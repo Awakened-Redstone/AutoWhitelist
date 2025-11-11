@@ -2,8 +2,8 @@ package com.awakenedredstone.autowhitelist.entry.implementation.luckperms;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
+import com.awakenedredstone.autowhitelist.stonecutter.Stonecutter;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedPlayerProfile;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
@@ -30,7 +30,7 @@ public abstract class LuckpermsEntryAction extends BaseEntryAction {
     }
 
     @Override
-    public void registerUser(ExtendedPlayerProfile profile) {
+    public void registerUser(LinkedPlayerProfile profile) {
         getUser(profile).whenComplete((user, throwable) -> {
             // Add the LuckPerms group/permission to the user
             user.data().add(getNode());
@@ -41,7 +41,7 @@ public abstract class LuckpermsEntryAction extends BaseEntryAction {
     }
 
     @Override
-    public void removeUser(ExtendedPlayerProfile profile) {
+    public void removeUser(LinkedPlayerProfile profile) {
         getUser(profile).whenComplete((user, throwable) -> {
             // Remove the LuckPerms group/permission from the user
             user.data().remove(getNode());

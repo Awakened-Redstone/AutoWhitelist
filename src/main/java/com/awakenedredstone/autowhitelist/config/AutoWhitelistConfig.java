@@ -21,7 +21,6 @@ import com.awakenedredstone.autowhitelist.entry.implementation.luckperms.Permiss
 import com.awakenedredstone.autowhitelist.entry.serialization.JanksonOps;
 import com.awakenedredstone.autowhitelist.util.JanksonBuilder;
 import com.awakenedredstone.autowhitelist.util.JsonUtil;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
 import com.awakenedredstone.autowhitelist.util.TimeParser;
 import com.google.common.base.CaseFormat;
 import net.minecraft.util.Identifier;
@@ -34,7 +33,6 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.awakenedredstone.autowhitelist.AutoWhitelist.CONFIG;
 import static com.awakenedredstone.autowhitelist.AutoWhitelist.DATA_FIXER_LOGGER;
 
 @SuppressWarnings("CanBeFinal")

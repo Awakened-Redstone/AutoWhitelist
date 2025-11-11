@@ -16,10 +16,10 @@ import com.awakenedredstone.autowhitelist.entry.implementation.luckperms.Permiss
 import com.awakenedredstone.autowhitelist.mixin.ServerLoginNetworkHandlerAccessor;
 import com.awakenedredstone.autowhitelist.util.JsonUtil;
 import com.awakenedredstone.autowhitelist.util.ModData;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelist;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelistEntry;
+import com.awakenedredstone.autowhitelist.stonecutter.Stonecutter;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedPlayerProfile;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkingWhitelist;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedWhitelistEntry;
 import com.awakenedredstone.autowhitelist.whitelist.cache.WhitelistCache;
 import com.awakenedredstone.autowhitelist.whitelist.cache.WhitelistCacheEntry;
 import com.mojang.authlib.GameProfile;
@@ -52,14 +52,14 @@ import java.util.Optional;
 public class AutoWhitelist implements DedicatedServerModInitializer {
     public static final String MOD_ID = "autowhitelist";
     public static final Logger LOGGER = LoggerFactory.getLogger("AutoWhitelist");
-    public static final Logger DATA_FIXER_LOGGER = LoggerFactory.getLogger("AutoWhitelist Data Fixer");
     public static final AutoWhitelistConfig CONFIG = new AutoWhitelistConfig();
     public static final File WHITELIST_CACHE_FILE = new File("whitelist-cache.json");
     private static MinecraftServer server;
 
-    public static void removePlayer(ExtendedPlayerProfile profile) {
+    @Deprecated(forRemoval = true)
+    public static void removePlayer(LinkedPlayerProfile profile) {
         if (server.getPlayerManager().getWhitelist().isAllowed(profile)) {
-            server.getPlayerManager().getWhitelist().remove(new ExtendedWhitelistEntry(profile));
+            server.getPlayerManager().getWhitelist().remove(new LinkedWhitelistEntry(profile));
         }
 
         if (AutoWhitelist.getServer().getPlayerManager().isWhitelistEnabled()) {
@@ -67,6 +67,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
         }
     }
 
+    @Deprecated(forRemoval = true)
     public static ServerCommandSource getCommandSource() {
         ServerWorld serverWorld = /*? if <1.21.9 {*/ /*server.getOverworld(); *//*?} else {*/ server.getSpawnWorld() /*?}*/;
         return new ServerCommandSource(
@@ -82,6 +83,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
         );
     }
 
+    @Deprecated(forRemoval = true)
     public static void loadWhitelistCache() {
         if (!CONFIG.enableWhitelistCache) return;
 
@@ -100,6 +102,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
         }
     }
 
+    @Deprecated(forRemoval = true)
     public static void updateEntryMap(List<BaseEntryAction> entries) {
         if (!DiscordClientHolder.hasTask()) return;
 
@@ -137,7 +140,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
 
             loadWhitelistCache();
 
-            if (!(server.getPlayerManager().getWhitelist() instanceof ExtendedWhitelist)) {
+            if (!(server.getPlayerManager().getWhitelist() instanceof LinkingWhitelist)) {
                 AutoWhitelist.LOGGER.error("Failed to replace whitelist, the mod can not work without the custom system!");
             }
 
@@ -184,8 +187,8 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             }
 
             Whitelist whitelist = server.getPlayerManager().getWhitelist();
-            ExtendedPlayerProfile extendedProfile = new ExtendedPlayerProfile(Stonecutter.profileId(profile), Stonecutter.profileName(profile), role.getId().asString(), discordId, CONFIG.lockTime());
-            whitelist.add(new ExtendedWhitelistEntry(extendedProfile));
+            LinkedPlayerProfile extendedProfile = new LinkedPlayerProfile(Stonecutter.profileId(profile), Stonecutter.profileName(profile), role.getId().asString(), discordId, CONFIG.lockTime());
+            whitelist.add(new LinkedWhitelistEntry(extendedProfile));
             entry.registerUser(extendedProfile);
         });
     }
@@ -194,14 +197,16 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
         return server;
     }
 
+    @Deprecated(forRemoval = true)
     public static WhitelistCache getWhitelistCache() {
         return ((WhitelistCacheHolder) getServer().getPlayerManager()).autoWhitelist$getWhitelistCache();
     }
 
-    public static Identifier id(String path) {
-        return Identifier.of(MOD_ID, path);
+    public static Identifier id(String ...path) {
+        return Identifier.of(MOD_ID, String.join(path, "/"));
     }
 
+    @Deprecated(forRemoval = true)
     static {
         BaseEntryAction.register(WhitelistEntryAction.ID, WhitelistEntryAction.CODEC);
         BaseEntryAction.register(VanillaTeamEntryAction.ID, VanillaTeamEntryAction.CODEC);

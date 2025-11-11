@@ -1,4 +1,4 @@
-package com.awakenedredstone.autowhitelist.util;
+package com.awakenedredstone.autowhitelist.stonecutter;
 
 import com.mojang.authlib.GameProfile;
 

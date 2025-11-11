@@ -2,8 +2,8 @@ package com.awakenedredstone.autowhitelist.entry.implementation;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
+import com.awakenedredstone.autowhitelist.stonecutter.Stonecutter;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedPlayerProfile;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -40,14 +40,14 @@ public class VanillaTeamEntryAction extends BaseEntryAction {
     }
 
     @Override
-    public void registerUser(ExtendedPlayerProfile profile) {
+    public void registerUser(LinkedPlayerProfile profile) {
         ServerScoreboard scoreboard = AutoWhitelist.getServer().getScoreboard();
         Team serverTeam = scoreboard.getTeam(team);
         scoreboard.addScoreHolderToTeam(Stonecutter.profileName(profile), serverTeam);
     }
 
     @Override
-    public void removeUser(ExtendedPlayerProfile profile) {
+    public void removeUser(LinkedPlayerProfile profile) {
         AutoWhitelist.getServer().getScoreboard().clearTeam(Stonecutter.profileName(profile));
     }
 

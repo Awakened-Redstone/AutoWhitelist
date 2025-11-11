@@ -1,7 +1,7 @@
 package com.awakenedredstone.autowhitelist.mixin;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelist;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkingWhitelist;
 import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
@@ -36,7 +36,7 @@ public class WhitelistCommandMixin {
     @WrapOperation(method = "executeRemove", at = @At(value = "NEW", target = "(Lnet/minecraft/server/PlayerConfigEntry;)Lnet/minecraft/server/WhitelistEntry;"))
     //?}
     private static WhitelistEntry useExtendedWhitelist(/*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry profile, Operation<WhitelistEntry> original, @Local Whitelist whitelist) {
-        return ((ExtendedWhitelist) whitelist).getEntry(profile);
+        return ((LinkingWhitelist) whitelist).getOrCreateEntry(profile);
     }
 
     @WrapWithCondition(method = "executeRemove", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/command/ServerCommandSource;sendFeedback(Ljava/util/function/Supplier;Z)V"))

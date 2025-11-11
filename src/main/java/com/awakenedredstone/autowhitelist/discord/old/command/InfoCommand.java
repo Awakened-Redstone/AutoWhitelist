@@ -5,11 +5,11 @@ import com.awakenedredstone.autowhitelist.LazyConstants;
 import com.awakenedredstone.autowhitelist.discord.old.DiscordBot;
 import com.awakenedredstone.autowhitelist.discord.old.DiscordBotHelper;
 import com.awakenedredstone.autowhitelist.discord.old.api.ReplyCallback;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
+import com.awakenedredstone.autowhitelist.stonecutter.Stonecutter;
 import com.awakenedredstone.autowhitelist.util.Texts;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelist;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelistEntry;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedPlayerProfile;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkingWhitelist;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedWhitelistEntry;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
@@ -66,15 +66,15 @@ public class InfoCommand extends AbstractSlashCommand {
 
         String memberId = member.getId();
         MinecraftServer server = AutoWhitelist.getServer();
-        ExtendedWhitelist whitelist = (ExtendedWhitelist) server.getPlayerManager().getWhitelist();
+        LinkingWhitelist whitelist = (LinkingWhitelist) server.getPlayerManager().getWhitelist();
 
         final String eventId = event.getId();
 
-        Optional<ExtendedWhitelistEntry> whitelistedAccount = RegisterCommand.getWhitelistedAccount(memberId, whitelist);
+        Optional<LinkedWhitelistEntry> whitelistedAccount = RegisterCommand.getWhitelistedAccount(memberId, whitelist);
 
         if (whitelistedAccount.isPresent()) {
-            ExtendedWhitelistEntry entry = whitelistedAccount.get();
-            ExtendedPlayerProfile profile = entry.getProfile();
+            LinkedWhitelistEntry entry = whitelistedAccount.get();
+            LinkedPlayerProfile profile = entry.getProfile();
 
             EmbedBuilder embed = DiscordBotHelper.Feedback.defaultEmbed(
               Text.translatable("discord.command.info.title"),

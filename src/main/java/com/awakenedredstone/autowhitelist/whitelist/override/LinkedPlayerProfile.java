@@ -1,7 +1,7 @@
 package com.awakenedredstone.autowhitelist.whitelist.override;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
+import com.awakenedredstone.autowhitelist.stonecutter.Stonecutter;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import discord4j.core.object.entity.Role;
@@ -9,13 +9,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class ExtendedPlayerProfile extends /*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry {
+public class LinkedPlayerProfile extends /*$ WhitelistProfile >>*/net.minecraft.server.PlayerConfigEntry {
     private final String role;
     private final String discordId;
     private final long lockedUntil;
 
     //? if >=1.21.9 {
-    public ExtendedPlayerProfile(net.minecraft.server.PlayerConfigEntry profile) {
+    public LinkedPlayerProfile(net.minecraft.server.PlayerConfigEntry profile) {
         super(Stonecutter.profileId(profile), Stonecutter.profileName(profile));
         this.role = null;
         this.discordId = null;
@@ -23,14 +23,21 @@ public class ExtendedPlayerProfile extends /*$ WhitelistProfile >>*/net.minecraf
     }
     //?}
 
-    public ExtendedPlayerProfile(GameProfile profile) {
+    public LinkedPlayerProfile(UUID id, String name) {
+        super(id, name);
+        this.role = null;
+        this.discordId = null;
+        this.lockedUntil = -1;
+    }
+
+    public LinkedPlayerProfile(GameProfile profile) {
         super(Stonecutter.profileId(profile), Stonecutter.profileName(profile));
         this.role = null;
         this.discordId = null;
         this.lockedUntil = -1;
     }
 
-    public ExtendedPlayerProfile(UUID id, String name, String role, String discordId, long lockedUntil) {
+    public LinkedPlayerProfile(UUID id, String name, String role, String discordId, long lockedUntil) {
         super(id, name);
         this.role = role;
         this.discordId = discordId;
@@ -50,16 +57,16 @@ public class ExtendedPlayerProfile extends /*$ WhitelistProfile >>*/net.minecraf
         return AutoWhitelist.getServer().getPlayerManager().getUserBanList().contains(this) ? -1 : lockedUntil;
     }
 
-    public ExtendedPlayerProfile withRole(String newRole) {
-        return new ExtendedPlayerProfile(Stonecutter.profileId(this), Stonecutter.profileName(this), newRole, discordId, lockedUntil);
+    public LinkedPlayerProfile withRole(String newRole) {
+        return new LinkedPlayerProfile(Stonecutter.profileId(this), Stonecutter.profileName(this), newRole, discordId, lockedUntil);
     }
 
-    public ExtendedPlayerProfile withRole(Role newRole) {
+    public LinkedPlayerProfile withRole(Role newRole) {
         return withRole(newRole.getId().asString());
     }
 
-    public ExtendedPlayerProfile withLockedUntil(long newLockedUntil) {
-        return new ExtendedPlayerProfile(Stonecutter.profileId(this), Stonecutter.profileName(this), role, discordId, newLockedUntil);
+    public LinkedPlayerProfile withLockedUntil(long newLockedUntil) {
+        return new LinkedPlayerProfile(Stonecutter.profileId(this), Stonecutter.profileName(this), role, discordId, newLockedUntil);
     }
 
     public boolean isLocked() {
@@ -81,7 +88,7 @@ public class ExtendedPlayerProfile extends /*$ WhitelistProfile >>*/net.minecraf
     *//*?}*/
 
     @Nullable
-    public static ExtendedPlayerProfile read(JsonObject object) {
+    public static LinkedPlayerProfile read(JsonObject object) {
         if (jsonHasAllKeys(object, "uuid", "name", "discordId", "role", "lockedUntil")) {
             String uuidString = object.get("uuid").getAsString();
 
@@ -92,7 +99,7 @@ public class ExtendedPlayerProfile extends /*$ WhitelistProfile >>*/net.minecraf
                 return null;
             }
 
-            return new ExtendedPlayerProfile(
+            return new LinkedPlayerProfile(
               uuid,
               object.get("name").getAsString(),
               object.get("role").getAsString(),

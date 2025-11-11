@@ -2,7 +2,7 @@ package com.awakenedredstone.autowhitelist.entry.implementation;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedPlayerProfile;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -24,12 +24,12 @@ public class WhitelistEntryAction extends BaseEntryAction {
     }
 
     @Override
-    public void registerUser(ExtendedPlayerProfile profile) {
+    public void registerUser(LinkedPlayerProfile profile) {
         // Nothing to do here
     }
 
     @Override
-    public void removeUser(ExtendedPlayerProfile profile) {
+    public void removeUser(LinkedPlayerProfile profile) {
         // Nothing to do here
     }
 

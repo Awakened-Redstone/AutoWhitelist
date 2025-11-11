@@ -5,11 +5,11 @@ import com.awakenedredstone.autowhitelist.discord.old.DiscordBotHelper;
 import com.awakenedredstone.autowhitelist.discord.old.api.ReplyCallback;
 import com.awakenedredstone.autowhitelist.discord.old.command.RegisterCommand;
 import com.awakenedredstone.autowhitelist.discord.old.command.AbstractSlashCommand;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
+import com.awakenedredstone.autowhitelist.stonecutter.Stonecutter;
 import com.awakenedredstone.autowhitelist.util.Texts;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelist;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelistEntry;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedPlayerProfile;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkingWhitelist;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedWhitelistEntry;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -42,7 +42,7 @@ public class UserInfoCommand extends AbstractSlashCommand {
 
         replyCallback.sendMessage(null);
 
-        ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
+        LinkingWhitelist whitelist = (LinkingWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
         Member member = event.getOption("user", event.getMember(), OptionMapping::getAsMember);
 
         //noinspection DuplicatedCode
@@ -59,7 +59,7 @@ public class UserInfoCommand extends AbstractSlashCommand {
             return;
         }
 
-        Optional<ExtendedWhitelistEntry> whitelistedAccount = RegisterCommand.getWhitelistedAccount(member.getId(), whitelist);
+        Optional<LinkedWhitelistEntry> whitelistedAccount = RegisterCommand.getWhitelistedAccount(member.getId(), whitelist);
 
         List<Role> roles = DiscordBotHelper.getRolesForMember(member);
         List<Role> validRoles = DiscordBotHelper.getValidRolesForMember(member);
@@ -80,8 +80,8 @@ public class UserInfoCommand extends AbstractSlashCommand {
         embed.addField(Texts.translated("discord.command.userinfo.qualifies"), String.valueOf(accepted), true);
 
         if (whitelistedAccount.isPresent()) {
-            ExtendedWhitelistEntry entry = whitelistedAccount.get();
-            ExtendedPlayerProfile profile = entry.getProfile();
+            LinkedWhitelistEntry entry = whitelistedAccount.get();
+            LinkedPlayerProfile profile = entry.getProfile();
 
             //noinspection DuplicatedCode
             String[] fields = new String[]{"username", "role", "lock"};

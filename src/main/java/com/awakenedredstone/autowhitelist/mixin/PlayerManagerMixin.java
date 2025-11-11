@@ -2,7 +2,7 @@ package com.awakenedredstone.autowhitelist.mixin;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.duck.WhitelistCacheHolder;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelist;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkingWhitelist;
 import com.awakenedredstone.autowhitelist.whitelist.cache.WhitelistCache;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
@@ -24,7 +24,7 @@ public class PlayerManagerMixin implements WhitelistCacheHolder {
 
     @Inject(method = "<init>", at = @At(value = "TAIL"), require = 1, remap = false)
     private void modifyWhitelist(CallbackInfo ci /*? if >=1.21.9 {*/, @Local(argsOnly = true) ManagementListener managementListener /*?}*/) {
-        whitelist = new ExtendedWhitelist(WHITELIST_FILE/*? if >=1.21.9 {*/, managementListener /*?}*/);
+        whitelist = new LinkingWhitelist(WHITELIST_FILE/*? if >=1.21.9 {*/, managementListener /*?}*/);
         whitelistCache = new WhitelistCache(AutoWhitelist.WHITELIST_CACHE_FILE/*? if >=1.21.9 {*/, managementListener /*?}*/);
         AutoWhitelist.LOGGER.debug("Replaced whitelist");
     }

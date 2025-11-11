@@ -3,18 +3,22 @@ package com.awakenedredstone.autowhitelist.whitelist.override;
 import com.google.gson.JsonObject;
 import net.minecraft.server.WhitelistEntry;
 
-public class ExtendedWhitelistEntry extends WhitelistEntry {
+public class LinkedWhitelistEntry extends WhitelistEntry {
 
-    public ExtendedWhitelistEntry(ExtendedPlayerProfile profile) {
+    public LinkedWhitelistEntry(LinkedPlayerProfile profile) {
         super(profile);
     }
 
-    public ExtendedWhitelistEntry(JsonObject json) {
-        super(ExtendedPlayerProfile.read(json));
+    public LinkedWhitelistEntry(JsonObject json) {
+        super(LinkedPlayerProfile.read(json));
     }
 
-    public ExtendedPlayerProfile getProfile() {
-        return (ExtendedPlayerProfile) getKey();
+    public LinkedPlayerProfile getProfile() {
+        return (LinkedPlayerProfile) getKey();
+    }
+
+    public boolean isLocked() {
+        return getProfile().isLocked();
     }
 
     /*? if <1.21.9 {*//*

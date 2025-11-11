@@ -1,11 +1,14 @@
 package com.awakenedredstone.autowhitelist.entry;
 
+import com.awakenedredstone.autowhitelist.discord.util.RoleUtils;
+import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Role;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public final class RoleActionMap {
     private static final Map<String, BaseEntryAction> ROLE_ACTION_MAP = new HashMap<>();
@@ -35,6 +38,10 @@ public final class RoleActionMap {
     @NotNull
     public static BaseEntryAction get(Role role) {
         return get(role.getId().asString());
+    }
+
+    public static Optional<BaseEntryAction> get(Member user) {
+        return RoleUtils.getHighestEntryRole(user).map(RoleActionMap::getNullable);
     }
 
     @Nullable

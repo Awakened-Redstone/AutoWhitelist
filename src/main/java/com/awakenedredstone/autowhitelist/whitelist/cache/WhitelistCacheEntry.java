@@ -1,15 +1,15 @@
 package com.awakenedredstone.autowhitelist.whitelist.cache;
 
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
+import com.awakenedredstone.autowhitelist.stonecutter.Stonecutter;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedPlayerProfile;
 import com.google.gson.JsonObject;
 import net.minecraft.server.ServerConfigEntry;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class WhitelistCacheEntry extends ServerConfigEntry<ExtendedPlayerProfile> {
-    public WhitelistCacheEntry(@Nullable ExtendedPlayerProfile key) {
+public class WhitelistCacheEntry extends ServerConfigEntry<LinkedPlayerProfile> {
+    public WhitelistCacheEntry(@Nullable LinkedPlayerProfile key) {
         super(key);
     }
 
@@ -17,7 +17,7 @@ public class WhitelistCacheEntry extends ServerConfigEntry<ExtendedPlayerProfile
         this(profileFromJson(json));
     }
 
-    private static ExtendedPlayerProfile profileFromJson(JsonObject json) {
+    private static LinkedPlayerProfile profileFromJson(JsonObject json) {
         String string = json.get("uuid").getAsString();
 
         UUID uuid;
@@ -27,10 +27,10 @@ public class WhitelistCacheEntry extends ServerConfigEntry<ExtendedPlayerProfile
             return null;
         }
 
-        return new ExtendedPlayerProfile(uuid, json.get("name").getAsString(), null, json.get("discordId").getAsString(), -1);
+        return new LinkedPlayerProfile(uuid, json.get("name").getAsString(), null, json.get("discordId").getAsString(), -1);
     }
 
-    public ExtendedPlayerProfile getProfile() {
+    public LinkedPlayerProfile getProfile() {
         return this.getKey();
     }
 

@@ -9,11 +9,11 @@ import com.awakenedredstone.autowhitelist.discord.old.command.AbstractSlashComma
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
 import com.awakenedredstone.autowhitelist.networking.GeyserProfileRepository;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
+import com.awakenedredstone.autowhitelist.stonecutter.Stonecutter;
 import com.awakenedredstone.autowhitelist.util.Validation;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelist;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelistEntry;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedPlayerProfile;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkingWhitelist;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedWhitelistEntry;
 import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.mojang.authlib.ProfileLookupCallback;
 import com.mojang.authlib.yggdrasil.ProfileNotFoundException;
@@ -99,9 +99,9 @@ public class ModifyCommand extends AbstractSlashCommand {
         }
 
         MinecraftServer server = AutoWhitelist.getServer();
-        ExtendedWhitelist whitelist = (ExtendedWhitelist) server.getPlayerManager().getWhitelist();
+        LinkingWhitelist whitelist = (LinkingWhitelist) server.getPlayerManager().getWhitelist();
 
-        Optional<ExtendedWhitelistEntry> whitelistedAccount = RegisterCommand.getWhitelistedAccount(id, whitelist);
+        Optional<LinkedWhitelistEntry> whitelistedAccount = RegisterCommand.getWhitelistedAccount(id, whitelist);
         if (whitelistedAccount.isPresent()) {
             boolean sameAccount;
             if (uuid != null) {
@@ -270,7 +270,7 @@ public class ModifyCommand extends AbstractSlashCommand {
             return;
         }
 
-        ExtendedPlayerProfile extendedProfile = new ExtendedPlayerProfile(Stonecutter.profileId(profile), Stonecutter.profileName(profile), highestRole.get().getId(), id, AutoWhitelist.CONFIG.lockTime());
+        LinkedPlayerProfile extendedProfile = new LinkedPlayerProfile(Stonecutter.profileId(profile), Stonecutter.profileName(profile), highestRole.get().getId(), id, AutoWhitelist.CONFIG.lockTime());
 
         boolean whitelisted = whitelist.isAllowed(extendedProfile);
         if (whitelisted) {

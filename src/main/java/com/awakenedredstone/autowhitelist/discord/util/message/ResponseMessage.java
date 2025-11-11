@@ -1,5 +1,6 @@
 package com.awakenedredstone.autowhitelist.discord.util.message;
 
+import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import discord4j.core.object.component.TopLevelMessageComponent;
 import discord4j.core.spec.InteractionReplyEditSpec;
 import net.minecraft.util.Identifier;
@@ -7,7 +8,6 @@ import net.minecraft.util.Identifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 public class ResponseMessage {
     private static final Map<Identifier, MessageBuilder> BUILDERS = new HashMap<>();
@@ -34,5 +34,11 @@ public class ResponseMessage {
     @FunctionalInterface
     public interface MessageBuilder {
         List<TopLevelMessageComponent> build(Object... args);
+    }
+
+    static {
+        register(AutoWhitelist.id("error/unqualified"), args -> {});
+
+        register(AutoWhitelist.id("error/not_found"), args -> {});
     }
 }

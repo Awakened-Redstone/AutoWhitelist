@@ -3,10 +3,10 @@ package com.awakenedredstone.autowhitelist.discord.old;
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelist;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelistEntry;
+import com.awakenedredstone.autowhitelist.stonecutter.Stonecutter;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedPlayerProfile;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkingWhitelist;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedWhitelistEntry;
 import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -29,7 +29,7 @@ public class PeriodicWhitelistChecker implements Runnable {
         if (DiscordBot.getGuild() == null) return;
         AutoWhitelist.LOGGER.debug("Reading trough whitelisted players");
 
-        ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
+        LinkingWhitelist whitelist = (LinkingWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
 
         // Get all users that qualify for whitelist
         List<Member> members = DiscordBot.getGuild().findMembers(member -> {
@@ -40,23 +40,23 @@ public class PeriodicWhitelistChecker implements Runnable {
         List<String> memberIds = members.stream().map(ISnowflake::getId).toList();
 
         // Get a list of players that has no valid role to stay whitelisted
-        List<ExtendedPlayerProfile> playersToRemove = whitelist.getEntries().stream()
-          .filter(entry -> entry instanceof ExtendedWhitelistEntry)
-          .map(entry -> ((ExtendedWhitelistEntry) entry).getProfile())
+        List<LinkedPlayerProfile> playersToRemove = whitelist.getEntries().stream()
+          .filter(entry -> entry instanceof LinkedWhitelistEntry)
+          .map(entry -> ((LinkedWhitelistEntry) entry).getProfile())
           .filter(profile -> !memberIds.contains(profile.getDiscordId()))
           .toList();
 
         // Remove players that shouldn't be whitelisted anymore
         if (!playersToRemove.isEmpty()) {
             AutoWhitelist.LOGGER.debug("Removing {} players that don't qualify", playersToRemove.size());
-            for (ExtendedPlayerProfile profile : playersToRemove) {
+            for (LinkedPlayerProfile profile : playersToRemove) {
                 AutoWhitelist.LOGGER.debug("Removing entry for {}", Stonecutter.profileName(profile));
                 AutoWhitelist.removePlayer(profile);
             }
         }
 
         for (Member member : members) {
-            List<ExtendedPlayerProfile> profiles = whitelist.getProfilesFromDiscordId(member.getId());
+            List<LinkedPlayerProfile> profiles = whitelist.getProfilesFromDiscordId(member.getId());
 
             Optional<Role> highestRole = DiscordBotHelper.getHighestEntryRole(DiscordBotHelper.getRolesForMember(member));
             // Handle race condition, since a user can have the role changed between the list creation and this point
@@ -74,7 +74,7 @@ public class PeriodicWhitelistChecker implements Runnable {
             }
 
             // Update profile to a new entry if needed
-            ExtendedPlayerProfile profile = profiles.getFirst();
+            LinkedPlayerProfile profile = profiles.getFirst();
             if (!profile.getRole().equals(highestRole.get().getId())) {
                 AutoWhitelist.LOGGER.debug("Updating entry for {}", Stonecutter.profileName(profile));
                 BaseEntryAction entry = RoleActionMap.get(highestRole.get());
@@ -87,7 +87,7 @@ public class PeriodicWhitelistChecker implements Runnable {
                     AutoWhitelist.LOGGER.warn("Failed to validate new entry {}, could not update whitelist for {}", entry, member.getEffectiveName());
                     continue;
                 }
-                whitelist.add(new ExtendedWhitelistEntry(profile.withRole(highestRole.get())));
+                whitelist.add(new LinkedWhitelistEntry(profile.withRole(highestRole.get())));
                 entry.updateUser(profile, oldEntry);
             }
         }

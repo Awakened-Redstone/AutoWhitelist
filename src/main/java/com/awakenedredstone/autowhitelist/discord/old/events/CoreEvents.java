@@ -6,9 +6,9 @@ import com.awakenedredstone.autowhitelist.discord.old.DiscordBot;
 import com.awakenedredstone.autowhitelist.discord.old.DiscordBotHelper;
 import com.awakenedredstone.autowhitelist.discord.old.PeriodicWhitelistChecker;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelist;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelistEntry;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedPlayerProfile;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkingWhitelist;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedWhitelistEntry;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -94,19 +94,19 @@ public class CoreEvents extends ListenerAdapter {
     @Override
     public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent e) {
         User user = e.getUser();
-        ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
+        LinkingWhitelist whitelist = (LinkingWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
 
-        List<ExtendedPlayerProfile> players = whitelist.getEntries().stream()
-            .filter(entry -> entry.getKey() instanceof ExtendedPlayerProfile)
-            .filter(entry -> user.getId().equals(((ExtendedPlayerProfile) entry.getKey()).getDiscordId()))
-            .map(entry -> (ExtendedPlayerProfile) entry.getKey())
+        List<LinkedPlayerProfile> players = whitelist.getEntries().stream()
+            .filter(entry -> entry.getKey() instanceof LinkedPlayerProfile)
+            .filter(entry -> user.getId().equals(((LinkedPlayerProfile) entry.getKey()).getDiscordId()))
+            .map(entry -> (LinkedPlayerProfile) entry.getKey())
             .toList();
 
         if (players.size() > 1) {
             AutoWhitelist.LOGGER.error("Found more than one registered user with same discord id: {}", user.getId(), new IllegalStateException("Could not update the whitelist, found more than one entry with the same discord id."));
             return;
         } else if (players.isEmpty()) return;
-        ExtendedPlayerProfile player = players.getFirst();
+        LinkedPlayerProfile player = players.getFirst();
 
         if (!AutoWhitelist.getServer().getPlayerManager().isOperator(player)) {
             AutoWhitelist.removePlayer(player);
@@ -129,9 +129,9 @@ public class CoreEvents extends ListenerAdapter {
         AutoWhitelist.LOGGER.debug("Updating entry for {}", member.getEffectiveName());
         Optional<Role> role = DiscordBotHelper.getHighestEntryRole(DiscordBotHelper.getRolesForMember(member));
 
-        ExtendedWhitelist whitelist = (ExtendedWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
+        LinkingWhitelist whitelist = (LinkingWhitelist) AutoWhitelist.getServer().getPlayerManager().getWhitelist();
 
-        List<ExtendedPlayerProfile> profiles = whitelist.getProfilesFromDiscordId(member.getId());
+        List<LinkedPlayerProfile> profiles = whitelist.getProfilesFromDiscordId(member.getId());
         if (profiles.isEmpty()) return;
         if (profiles.size() > 1) {
             AutoWhitelist.LOGGER.warn("Duplicate entries of Discord user with id {}. All of them will be removed.", member.getId());
@@ -139,7 +139,7 @@ public class CoreEvents extends ListenerAdapter {
             return;
         }
 
-        ExtendedPlayerProfile profile = profiles.getFirst();
+        LinkedPlayerProfile profile = profiles.getFirst();
         if (role.isEmpty()) {
             AutoWhitelist.removePlayer(profile);
             return;
@@ -158,7 +158,7 @@ public class CoreEvents extends ListenerAdapter {
                 return;
             }
 
-            whitelist.add(new ExtendedWhitelistEntry(profile.withRole(role.get())));
+            whitelist.add(new LinkedWhitelistEntry(profile.withRole(role.get())));
             entry.updateUser(profile, oldEntry);
         }
 

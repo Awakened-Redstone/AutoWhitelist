@@ -6,10 +6,10 @@ import com.awakenedredstone.autowhitelist.data.DefaultTranslationsDataProvider;
 import com.awakenedredstone.autowhitelist.discord.old.DiscordBot;
 import com.awakenedredstone.autowhitelist.util.LinedStringBuilder;
 import com.awakenedredstone.autowhitelist.util.ModData;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
+import com.awakenedredstone.autowhitelist.stonecutter.Stonecutter;
 import com.awakenedredstone.autowhitelist.util.TimeParser;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedWhitelist;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedPlayerProfile;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkingWhitelist;
 import com.jagrosh.jdautilities.commons.JDAUtilitiesInfo;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
@@ -168,11 +168,11 @@ public class AutoWhitelistCommand {
             source.getPlayer().sendMessage(Text.literal("Loading info..."), true);
         }
 
-        Collection<? extends WhitelistEntry> entries = ((ExtendedWhitelist) source.getServer().getPlayerManager().getWhitelist()).getEntries();
+        Collection<? extends WhitelistEntry> entries = ((LinkingWhitelist) source.getServer().getPlayerManager().getWhitelist()).getEntries();
 
         List</*$ WhitelistProfile {*/net.minecraft.server.PlayerConfigEntry/*$}*/> profiles = entries.stream()
           .map(ServerConfigEntry::getKey)
-          .filter(profile -> !(profile instanceof ExtendedPlayerProfile))
+          .filter(profile -> !(profile instanceof LinkedPlayerProfile))
           .toList();
 
         MutableText list = Text.literal("");
@@ -181,8 +181,8 @@ public class AutoWhitelistCommand {
             profiles.forEach(player -> list.append("\n").append("    ").append(Stonecutter.profileName(player)));
         }
 
-        List<ExtendedPlayerProfile> extendedProfiles = entries.stream()
-          .map(entry -> entry.getKey() instanceof ExtendedPlayerProfile profile ? profile : null)
+        List<LinkedPlayerProfile> extendedProfiles = entries.stream()
+          .map(entry -> entry.getKey() instanceof LinkedPlayerProfile profile ? profile : null)
           .filter(Objects::nonNull)
           .toList();
 
@@ -191,7 +191,7 @@ public class AutoWhitelistCommand {
             list.append("Automated whitelist:");
             Guild guild = DiscordBot.getGuild();
             if (guild != null) {
-                for (ExtendedPlayerProfile profile : extendedProfiles) {
+                for (LinkedPlayerProfile profile : extendedProfiles) {
                     list.append("\n").append("    ").append(Stonecutter.profileName(profile));
                     list.append(Text.literal(" - ").formatted(Formatting.DARK_GRAY));
 

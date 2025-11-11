@@ -1,7 +1,7 @@
 package com.awakenedredstone.autowhitelist.entry;
 
 import blue.endless.jankson.JsonObject;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedPlayerProfile;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.util.Identifier;
@@ -89,7 +89,7 @@ public abstract class BaseEntryAction {
      * </ul>
      * @param profile The game profile of the user being added to the entry this action is from
      */
-    public abstract void registerUser(ExtendedPlayerProfile profile);
+    public abstract void registerUser(LinkedPlayerProfile profile);
 
     /**
      * Executes the actions for when a user is removed from the entry this action is from<br/>
@@ -100,14 +100,14 @@ public abstract class BaseEntryAction {
      * </ul>
      * @param profile The game profile of the user being removed from the entry this action is from
      */
-    public abstract void removeUser(ExtendedPlayerProfile profile);
+    public abstract void removeUser(LinkedPlayerProfile profile);
 
     /**
      * When overriding this, remember to execute the removal of the old entry action
      * @param profile The game profile of the user that is being updated
      * @param oldEntry The old entry action the user was on, or null if none was found
      */
-    public void updateUser(ExtendedPlayerProfile profile, @Nullable BaseEntryAction oldEntry) {
+    public void updateUser(LinkedPlayerProfile profile, @Nullable BaseEntryAction oldEntry) {
         if (oldEntry != null) {
             oldEntry.removeUser(profile);
         }

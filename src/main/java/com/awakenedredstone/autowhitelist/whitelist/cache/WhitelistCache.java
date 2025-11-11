@@ -1,8 +1,8 @@
 package com.awakenedredstone.autowhitelist.whitelist.cache;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
-import com.awakenedredstone.autowhitelist.whitelist.override.ExtendedPlayerProfile;
+import com.awakenedredstone.autowhitelist.stonecutter.Stonecutter;
+import com.awakenedredstone.autowhitelist.whitelist.override.LinkedPlayerProfile;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.server.ServerConfigEntry;
@@ -12,18 +12,18 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
-public class WhitelistCache extends ServerConfigList<ExtendedPlayerProfile, WhitelistCacheEntry> {
+public class WhitelistCache extends ServerConfigList<LinkedPlayerProfile, WhitelistCacheEntry> {
     public WhitelistCache(File file/*? if >=1.21.9 {*/, ManagementListener managementListener /*?}*/) {
         super(file/*? if >=1.21.9 {*/, managementListener /*?}*/);
     }
 
     @Override
-    protected ServerConfigEntry<ExtendedPlayerProfile> fromJson(JsonObject json) {
+    protected ServerConfigEntry<LinkedPlayerProfile> fromJson(JsonObject json) {
         return new WhitelistCacheEntry(json);
     }
 
     @Override
-    protected String toString(ExtendedPlayerProfile gameProfile) {
+    protected String toString(LinkedPlayerProfile gameProfile) {
         return Stonecutter.profileId(gameProfile).toString();
     }
 
@@ -37,7 +37,7 @@ public class WhitelistCache extends ServerConfigList<ExtendedPlayerProfile, Whit
     }
 
     @Nullable
-    public WhitelistCacheEntry get(ExtendedPlayerProfile key) {
+    public WhitelistCacheEntry get(LinkedPlayerProfile key) {
         return super.get(key);
     }
 
@@ -47,21 +47,21 @@ public class WhitelistCache extends ServerConfigList<ExtendedPlayerProfile, Whit
 
     @Nullable
     public WhitelistCacheEntry get(GameProfile key) {
-        return super.get(new ExtendedPlayerProfile(key));
+        return super.get(new LinkedPlayerProfile(key));
     }
 
     public void remove(GameProfile key) {
-        super.remove(new ExtendedPlayerProfile(key));
+        super.remove(new LinkedPlayerProfile(key));
     }
 
     //? if >=1.21.9 {
     @Nullable
     public WhitelistCacheEntry get(net.minecraft.server.PlayerConfigEntry key) {
-        return super.get(new ExtendedPlayerProfile(key));
+        return super.get(new LinkedPlayerProfile(key));
     }
 
     public void remove(net.minecraft.server.PlayerConfigEntry key) {
-        super.remove(new ExtendedPlayerProfile(key));
+        super.remove(new LinkedPlayerProfile(key));
     }
     //?}
 }

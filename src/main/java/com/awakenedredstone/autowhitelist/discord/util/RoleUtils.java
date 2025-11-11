@@ -1,6 +1,7 @@
 package com.awakenedredstone.autowhitelist.discord.util;
 
 import com.awakenedredstone.autowhitelist.discord.DiscordClientHolder;
+import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Guild;
