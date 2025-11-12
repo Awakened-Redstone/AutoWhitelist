@@ -40,10 +40,6 @@ public final class RoleActionMap {
         return get(role.getId().asString());
     }
 
-    public static Optional<BaseEntryAction> get(Member user) {
-        return RoleUtils.getHighestEntryRole(user).map(RoleActionMap::getNullable);
-    }
-
     @Nullable
     public static BaseEntryAction getNullable(String role) {
         return ROLE_ACTION_MAP.get(role);

@@ -2,6 +2,8 @@ package com.awakenedredstone.autowhitelist;
 
 import blue.endless.jankson.JsonGrammar;
 
+import java.util.UUID;
+
 public class Constants {
     /*
     1 - Initial config
@@ -20,4 +22,5 @@ public class Constants {
       .printUnquotedKeys(false)
       .bareSpecialNumerics(true)
       .build();
+    public static final UUID UUID_ZERO = new UUID(0, 0);
 }

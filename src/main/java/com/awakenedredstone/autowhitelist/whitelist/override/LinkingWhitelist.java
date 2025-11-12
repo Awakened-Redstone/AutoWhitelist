@@ -4,6 +4,7 @@ import com.awakenedredstone.autowhitelist.AutoWhitelist;
 import com.awakenedredstone.autowhitelist.entry.BaseEntryAction;
 import com.awakenedredstone.autowhitelist.entry.RoleActionMap;
 import com.awakenedredstone.autowhitelist.stonecutter.Stonecutter;
+import com.awakenedredstone.autowhitelist.whitelist.cache.WhitelistCacheEntry;
 import com.google.gson.JsonObject;
 import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.ServerConfigEntry;
@@ -78,9 +79,17 @@ public class LinkingWhitelist extends Whitelist {
             AutoWhitelist.getServer().kickNonWhitelistedPlayers(/*? if <1.21.9 {*//*AutoWhitelist.getServer().getCommandSource()*//*?}*/);
         }
 
+        AutoWhitelist.getWhitelistCache().remove(new WhitelistCacheEntry(currentEntry.getProfile()));
+
         //? if >=1.21.9 {
         return result;
         //?}
+    }
+
+    @Override
+    public /*$ entryPatchReturn >>*/boolean add(WhitelistEntry whitelistEntry) {
+        AutoWhitelist.getWhitelistCache().add(new WhitelistCacheEntry(linkedProfile));
+        return super.add(whitelistEntry);
     }
 
     @Override

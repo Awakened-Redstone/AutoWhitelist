@@ -6,6 +6,8 @@ import discord4j.core.event.domain.interaction.ApplicationCommandInteractionEven
 import discord4j.core.object.command.ApplicationCommand;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import net.minecraft.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 public class CommandRegistry {
+    public static final Logger LOGGER = LoggerFactory.getLogger(CommandRegistry.class);
     @SuppressWarnings("rawtypes") // Use raw type for the JVM to auto cast the event type
     private final Map<Pair<ApplicationCommand.Type, String>, AbstractApplicationCommand> commands = new HashMap<>();
 
@@ -37,6 +40,13 @@ public class CommandRegistry {
 
     @SuppressWarnings("unchecked")
     public void execute(ApplicationCommandInteractionEvent event) {
-        commands.get(new Pair<>(event.getCommandType(), event.getCommandName())).execute(event);
+        try {
+            var command = commands.get(new Pair<>(event.getCommandType(), event.getCommandName()));
+            if (command != null) {
+                command.execute(event);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed to handle interaction!", e);
+        }
     }
 }

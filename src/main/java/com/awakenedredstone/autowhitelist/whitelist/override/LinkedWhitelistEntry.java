@@ -13,12 +13,13 @@ public class LinkedWhitelistEntry extends WhitelistEntry {
         super(LinkedPlayerProfile.read(json));
     }
 
-    public LinkedPlayerProfile getProfile() {
-        return (LinkedPlayerProfile) getKey();
+    @Override
+    public LinkedPlayerProfile getKey() {
+        return (LinkedPlayerProfile) super.getKey();
     }
 
     public boolean isLocked() {
-        return getProfile().isLocked();
+        return getKey().isLocked();
     }
 
     /*? if <1.21.9 {*//*
