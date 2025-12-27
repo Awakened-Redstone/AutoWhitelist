@@ -34,13 +34,13 @@ public class CommandEntryAction extends BaseEntryAction {
     @Override
     public void registerUser(ExtendedPlayerProfile profile) {
         if (StringUtils.isBlank(addCommand)) return;
-        AutoWhitelist.getServer().getCommandManager().executeWithPrefix(AutoWhitelist.getCommandSource(), Texts.playerPlaceholder(addCommand, Stonecutter.profileName(profile)).getString());
+        AutoWhitelist.getServer().getCommandManager()./*? if <1.21.11 {*//*executeWithPrefix *//*?} else {*/parseAndExecute/*?}*/(AutoWhitelist.getCommandSource(), Texts.playerPlaceholder(addCommand, Stonecutter.profileName(profile)).getString());
     }
 
     @Override
     public void removeUser(ExtendedPlayerProfile profile) {
         if (StringUtils.isBlank(removeCommand)) return;
-        AutoWhitelist.getServer().getCommandManager().executeWithPrefix(AutoWhitelist.getCommandSource(), Texts.playerPlaceholder(removeCommand, Stonecutter.profileName(profile)).getString());
+        AutoWhitelist.getServer().getCommandManager()./*? if <1.21.11 {*//*executeWithPrefix *//*?} else {*/parseAndExecute/*?}*/(AutoWhitelist.getCommandSource(), Texts.playerPlaceholder(removeCommand, Stonecutter.profileName(profile)).getString());
     }
 
     @Override

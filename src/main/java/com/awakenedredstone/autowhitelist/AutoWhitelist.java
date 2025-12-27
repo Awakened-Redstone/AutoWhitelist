@@ -31,6 +31,10 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
+//? if >=1.21.11 {
+import net.minecraft.command.permission.LeveledPermissionPredicate;
+import net.minecraft.command.permission.PermissionLevel;
+//?}
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.Whitelist;
 import net.minecraft.server.command.ServerCommandSource;
@@ -67,6 +71,12 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
     }
 
     public static ServerCommandSource getCommandSource() {
+        //? if >=1.21.11 {
+        var permission = LeveledPermissionPredicate.fromLevel(PermissionLevel.fromLevel(CONFIG.commandPermissionLevel));
+        //?} else {
+        /*var permission = CONFIG.commandPermissionLevel;
+        *///?}
+
         ServerWorld serverWorld = /*? if <1.21.9 {*/ /*server.getOverworld(); *//*?} else {*/ server.getSpawnWorld() /*?}*/;
         return new ServerCommandSource(
           server,
@@ -77,7 +87,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             Vec3d.of(serverWorld.getSpawnPoint().getPos()),
             //?}
             Vec2f.ZERO,
-          serverWorld, CONFIG.commandPermissionLevel, "AutoWhitelist", Text.literal("AutoWhitelist"), server, null
+          serverWorld, permission, "AutoWhitelist", Text.literal("AutoWhitelist"), server, null
         );
     }
 
