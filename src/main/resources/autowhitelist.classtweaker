@@ -1,0 +1,18 @@
+classTweaker v2 official
+
+accessible field net/minecraft/server/jsonrpc/internalapi/MinecraftAllowListServiceImpl server Lnet/minecraft/server/dedicated/DedicatedServer;
+accessible field net/minecraft/server/jsonrpc/internalapi/MinecraftAllowListServiceImpl jsonrpcLogger Lnet/minecraft/server/jsonrpc/JsonRpcLogger;
+
+#accessible method net/minecraft/server/players/StoredUserEntry getUser ()Ljava/lang/Object;
+accessible method net/minecraft/server/jsonrpc/IncomingRpcMethod$IncomingRpcMethodBuilder register (Lnet/minecraft/core/Registry;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/server/jsonrpc/IncomingRpcMethod;
+accessible method net/minecraft/server/jsonrpc/OutgoingRpcMethod$OutgoingRpcMethodBuilder register (Lnet/minecraft/resources/Identifier;)Lnet/minecraft/core/Holder$Reference;
+
+extendable class net/minecraft/server/players/NameAndId
+extendable method net/minecraft/server/players/NameAndId equals (Ljava/lang/Object;)Z
+extendable method net/minecraft/server/players/NameAndId toString ()Ljava/lang/String;
+extendable method net/minecraft/server/players/NameAndId hashCode ()I
+
+extendable class net/minecraft/server/jsonrpc/api/PlayerDto
+extendable method net/minecraft/server/jsonrpc/api/PlayerDto equals (Ljava/lang/Object;)Z
+extendable method net/minecraft/server/jsonrpc/api/PlayerDto toString ()Ljava/lang/String;
+extendable method net/minecraft/server/jsonrpc/api/PlayerDto hashCode ()I

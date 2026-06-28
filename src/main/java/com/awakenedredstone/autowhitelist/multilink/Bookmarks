@@ -1,0 +1,6 @@
+InetAddress inetAddress = InetAddress.getByName(serverAddress.getHost());
+InetSocketAddress address = new InetSocketAddress(inetAddress, serverAddress.getPort());
+
+EventLoopGroupHolder group = EventLoopGroupHolder.remote(this.server.useNativeTransport())
+
+Connection connection = Connection.connectToServer(address, group, null);

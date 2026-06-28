@@ -13,6 +13,9 @@ out/
 # JIRA plugin
 atlassian-ide-plugin.xml
 
+# Youtrack
+.youtrack/
+
 # Compiled class file
 *.class
 
@@ -100,7 +103,9 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-.gradle
+# Volatile data
+.kotlin/
+.gradle/
 build/
 bin/
 
@@ -110,18 +115,5 @@ gradle-app.setting
 # Cache of project
 .gradletasknamecache
 
-**/build/
-
 # Common working directory
 run*/
-
-# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
-!gradle-wrapper.jar
-/config.json
-/users.db
-/auto-whitelist.json
-/remappedSrc/
-/CHANGELOG.md
-/versions/*.sh
-/qodana.yaml
-/compare/

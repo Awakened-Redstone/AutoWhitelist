@@ -1,39 +1,46 @@
 package com.awakenedredstone.autowhitelist.commands;
 
 import com.awakenedredstone.autowhitelist.AutoWhitelist;
-import com.awakenedredstone.autowhitelist.commands.api.Permission;
+import com.awakenedredstone.autowhitelist.commands.permission.CommandPermission;
+import com.awakenedredstone.autowhitelist.config.AutoWhitelistConfig;
+import com.awakenedredstone.autowhitelist.server.profile.PlayerProfile;
+import com.awakenedredstone.autowhitelist.server.whitelist.WhitelistHandler;
+import com.awakenedredstone.autowhitelist.server.whitelist.cache.WhitelistCache;
+import com.awakenedredstone.autowhitelist.server.whitelist.cache.WhitelistCacheEntry;
+import com.awakenedredstone.autowhitelist.server.whitelist.link.LinkedWhitelistEntry;
 import com.awakenedredstone.autowhitelist.data.DefaultTranslationsDataProvider;
-import com.awakenedredstone.autowhitelist.discord.DiscordBot;
-import com.awakenedredstone.autowhitelist.util.LinedStringBuilder;
-import com.awakenedredstone.autowhitelist.util.ModData;
-import com.awakenedredstone.autowhitelist.util.Stonecutter;
-import com.awakenedredstone.autowhitelist.util.TimeParser;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedPlayerProfile;
-import com.awakenedredstone.autowhitelist.whitelist.ExtendedWhitelist;
-import com.jagrosh.jdautilities.commons.JDAUtilitiesInfo;
+import com.awakenedredstone.autowhitelist.discord.DiscordClientHolder;
+import com.awakenedredstone.autowhitelist.server.ServerDetails;
+import com.awakenedredstone.autowhitelist.util.string.LinedStringBuilder;
+import com.awakenedredstone.autowhitelist.util.data.ModData;
+import com.awakenedredstone.autowhitelist.util.string.TimeParser;
+import com.awakenedredstone.autowhitelist.server.profile.LinkedPlayerProfile;
+import com.awakenedredstone.autowhitelist.server.whitelist.link.LinkingWhitelist;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import net.dv8tion.jda.api.JDAInfo;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.ISnowflake;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.interactions.commands.Command;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import com.mojang.serialization.DataResult;
+import discord4j.common.util.Snowflake;
+import discord4j.core.GatewayDiscordClient;
+import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.Member;
+import discord4j.core.object.entity.Role;
+import discord4j.discordjson.json.ApplicationCommandData;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModMetadata;
+import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
-import net.minecraft.data.DataWriter;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.ServerConfigEntry;
-import net.minecraft.server.WhitelistEntry;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.WorldSavePath;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.server.players.StoredUserEntry;
+import net.minecraft.server.players.UserWhiteListEntry;
+import net.minecraft.world.level.storage.LevelResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,15 +50,17 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-import static net.minecraft.server.command.CommandManager.literal;
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
 
+// TODO: cleanup
 public class AutoWhitelistCommand {
     public static final Logger LOGGER = LoggerFactory.getLogger(AutoWhitelistCommand.class);
 
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
           literal("autowhitelist")
-            .requires(Permission.require("autowhitelist.command", 3))
+            .requires(CommandPermission.admins("autowhitelist.command").check())
             .then(
               literal("dump")
                 .then(
@@ -68,7 +77,7 @@ public class AutoWhitelistCommand {
                 ).then(
                   literal("config")
                     .executes(context -> {
-                        context.getSource().sendFeedback(() -> Text.literal(AutoWhitelist.CONFIG.toString()), false);
+                        context.getSource().sendSuccess(() -> Component.literal(AutoWhitelist.CONFIG.serialize()), false);
                         return 0;
                     })
                 ).then(
@@ -83,7 +92,7 @@ public class AutoWhitelistCommand {
                             builder.appendLine(modMeta.getName()).append(" - ").append(modMeta.getVersion().getFriendlyString());
                         }
 
-                        context.getSource().sendFeedback(() -> Text.literal(builder.toString()), false);
+                        context.getSource().sendSuccess(() -> Component.literal(builder.toString()), false);
                         return mods.size();
                     })
                 )
@@ -92,26 +101,25 @@ public class AutoWhitelistCommand {
                 .then(
                   literal("bot")
                     .executes(context -> {
-                        ServerCommandSource source = context.getSource();
-                        source.sendFeedback(() -> Text.literal("Restarting bot, please wait."), true);
-                        DiscordBot.getInstanceSafe().restartBot();
-                        source.sendFeedback(() -> Text.literal("The bot is now starting."), true);
+                        CommandSourceStack source = context.getSource();
+
+                        if (DiscordClientHolder.hasTask() && !DiscordClientHolder.isInitialized()) {
+                            source.sendSystemMessage(Component.literal("Warning, it is unsafe to restart the bot before it completes initialization!").withStyle(ChatFormatting.RED));
+                        }
+                        source.sendSuccess(() -> Component.literal("Restarting discord client"), true);
+                        DiscordClientHolder.queue();
+                        DiscordClientHolder.getCurrent().shutdown();
                         return 0;
                     })
                 ).then(
                   literal("config")
                     .executes(context -> {
-                        ServerCommandSource source = context.getSource();
-                        source.sendFeedback(() -> Text.literal("Reloading configurations."), true);
-                        AutoWhitelist.CONFIG.load();
-                        return 0;
-                    })
-                ).then(
-                  literal("cache")
-                    .executes(context -> {
-                        ServerCommandSource source = context.getSource();
-                        source.sendFeedback(() -> Text.literal("Reloading cache."), true);
-                        AutoWhitelist.loadWhitelistCache();
+                        CommandSourceStack source = context.getSource();
+                        source.sendSuccess(() -> Component.literal("Reloading configurations."), true);
+                        if (!AutoWhitelist.CONFIG.tryLoad()) {
+                            // TODO: translation
+                            source.sendFailure(Component.literal("An error occurred while loading the config, check the logs for details"));
+                        }
                         return 0;
                     })
                 )
@@ -119,180 +127,165 @@ public class AutoWhitelistCommand {
               literal("list")
                 .executes(context -> executeList(context.getSource()))
             ).then(
-              literal("fix-duplicate-commands")
-                .executes(context -> {
-                    ServerCommandSource source = context.getSource();
-                    source.sendFeedback(() -> Text.literal("Fixing commands..."), false);
-                    CompletableFuture.runAsync(() -> {
-                        List<Command> commands = DiscordBot.getJda().retrieveCommands().complete();
-                        List<String> toRemove = List.of("register", "info", "userinfo", "modify");
-                        commands.stream().filter(command -> toRemove.contains(command.getName())).map(ISnowflake::getId)
-                          .forEach(id -> {
-                              AutoWhitelist.LOGGER.debug("Removing command with id {}", id);
-                              //noinspection ResultOfMethodCallIgnored
-                              DiscordBot.getJda().deleteCommandById(id).submit();
-                          });
-                    });
-
-                    return 0;
-                })
-            ).then(
               literal("create-translations-datapack")
                 .executes(context -> {
-                    ServerCommandSource source = context.getSource();
-                    source.sendFeedback(() -> Text.literal("Creating datapack"), false);
+                    CommandSourceStack source = context.getSource();
+                    source.sendSuccess(() -> Component.literal("Creating datapack"), false);
 
-                    Path path = source.getServer().getSavePath(WorldSavePath.DATAPACKS).resolve("autowhitelist_translations");
-                    FabricDataOutput output = new FabricDataOutput(FabricLoader.getInstance().getModContainer(AutoWhitelist.MOD_ID).get(), path, true);
+                    Path path = source.getServer().getWorldPath(LevelResource.DATAPACK_DIR).resolve("autowhitelist_translations");
+                    FabricPackOutput output = new FabricPackOutput(FabricLoader.getInstance().getModContainer(AutoWhitelist.MOD_ID).get(), path, true);
                     DataProvider provider = new DefaultTranslationsDataProvider(output);
-                    provider.run(DataWriter.UNCACHED).whenComplete((o, throwable) -> {
+                    provider.run(CachedOutput.NO_CACHE).whenComplete((o, throwable) -> {
                         try {
                             Files.writeString(path.resolve("pack.mcmeta"), "{\"pack\": {\"pack_format\": 34,\"description\": \"\"}}");
                         } catch (IOException e) {
-                            source.sendError(Text.literal("Failed to create pack.mcmeta for \"autowhitelist_translations\""));
+                            source.sendFailure(Component.literal("Failed to create pack.mcmeta for \"autowhitelist_translations\""));
                             LOGGER.error("Failed to create pack.mcmeta for \"autowhitelist_translations\"", e);
                             return;
                         }
 
-                        source.sendFeedback(() -> Text.literal("Created datapack autowhitelist_translations"), false);
+                        source.sendSuccess(() -> Component.literal("Created datapack autowhitelist_translations"), false);
                     });
 
                     return 0;
                 })
+            ).then(literal("rebuild-from-cache")
+              .then(argument("run actions", BoolArgumentType.bool())
+                .executes(context -> {
+                    CommandSourceStack source = context.getSource();
+                    boolean runActions = BoolArgumentType.getBool(context, "run actions");
+
+                    LinkingWhitelist whitelist = WhitelistHandler.getWhitelist();
+                    WhitelistCache cache = whitelist.getCache();
+
+                    int entries = 0;
+                    for (WhitelistCacheEntry entry : cache.getEntries()) {
+                        if (whitelist.isWhiteListed(entry.getUser())) {
+                            entries++;
+                            whitelist.remove(entry.getUser());
+
+                            if (!runActions) {
+                                whitelist.add(new LinkedWhitelistEntry(entry.getUser().withLockedUntil(AutoWhitelist.config().whitelist.lockTime())));
+                            }
+                        }
+                    }
+
+                    return entries;
+                })
+              )
+            ).then(
+              literal("remove-all-guild-commands")
+                .then(literal("i-understand-this-will-also-delete-commands-that-are-not-related-to-the-mod")
+                  .executes(context -> {
+                      GatewayDiscordClient client = DiscordClientHolder.getCurrent().getClient();
+                      long applicationId = client.rest().getApplicationId().blockOptional().orElseThrow();
+
+                      long guildId = AutoWhitelist.config().discord.guildId;
+                      List<ApplicationCommandData> commands = client.rest().getApplicationService().getGuildApplicationCommands(applicationId, guildId).collectList().block();
+                      for (ApplicationCommandData command : Objects.requireNonNull(commands)) {
+                          client.rest().getApplicationService().deleteGuildApplicationCommand(applicationId, guildId, command.id().asLong()).subscribe();
+                      }
+
+                      context.getSource().sendSuccess(() -> Component.literal("All commands have been removed, please restart the bot to add the required ones back. Some users may have to reload Discord to see the changes"), true);
+                      return 0;
+                  })
+                )
             )
         );
     }
 
-    public static int executeList(ServerCommandSource source) {
+    public static int executeList(CommandSourceStack source) {
         if (source.getPlayer() != null) {
-            source.getPlayer().sendMessage(Text.literal("Loading info..."), true);
+            source.getPlayer().sendSystemMessage(Component.literal("Loading info..."), true);
         }
 
-        Collection<? extends WhitelistEntry> entries = ((ExtendedWhitelist) source.getServer().getPlayerManager().getWhitelist()).getEntries();
+        Collection<? extends UserWhiteListEntry> entries = source.getServer().getPlayerList().getWhiteList().getEntries();
 
-        List</*$ WhitelistProfile {*/net.minecraft.server.PlayerConfigEntry/*$}*/> profiles = entries.stream()
-          .map(ServerConfigEntry::getKey)
-          .filter(profile -> !(profile instanceof ExtendedPlayerProfile))
+        List</*$ WhitelistProfile {*/net.minecraft.server.players.NameAndId/*$}*/> profiles = entries.stream()
+          .map(StoredUserEntry::getUser)
+          .filter(profile -> !(profile instanceof LinkedPlayerProfile))
           .toList();
 
-        MutableText list = Text.literal("");
+        MutableComponent list = Component.literal("");
         if (!profiles.isEmpty()) {
             list.append("Vanilla whitelist:");
-            profiles.forEach(player -> list.append("\n").append("    ").append(Stonecutter.profileName(player)));
+            profiles.forEach(player -> list.append("\n").append("    ").append(PlayerProfile.name(player)));
         }
 
-        List<ExtendedPlayerProfile> extendedProfiles = entries.stream()
-          .map(entry -> entry.getKey() instanceof ExtendedPlayerProfile profile ? profile : null)
+        List<LinkedPlayerProfile> extendedProfiles = entries.stream()
+          .map(entry -> entry.getUser() instanceof LinkedPlayerProfile profile ? profile : null)
           .filter(Objects::nonNull)
           .toList();
 
         if (!extendedProfiles.isEmpty()) {
             if (!list.getString().isEmpty()) list.append("\n");
             list.append("Automated whitelist:");
-            Guild guild = DiscordBot.getGuild();
+            Guild guild = DiscordClientHolder.getCurrent().getGuild();
             if (guild != null) {
-                for (ExtendedPlayerProfile profile : extendedProfiles) {
-                    list.append("\n").append("    ").append(Stonecutter.profileName(profile));
-                    list.append(Text.literal(" - ").formatted(Formatting.DARK_GRAY));
+                for (LinkedPlayerProfile profile : extendedProfiles) {
+                    list.append("\n").append("    ").append(PlayerProfile.name(profile));
+                    list.append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY));
 
-                    Member member = guild.getMemberById(profile.getDiscordId());
-                    if (member == null) {
-                        list.append(Text.literal("Invalid member").formatted(Formatting.RED));
+                    Optional<Member> member = guild.getMemberById(Snowflake.of(profile.getDiscordId())).blockOptional();
+                    if (member.isEmpty()) {
+                        list.append(Component.literal("Invalid member").withStyle(ChatFormatting.RED));
                     } else {
-                        list.append(Text.literal(member.getUser().getName()).formatted(Formatting.GRAY));
+                        list.append(Component.literal(member.get().getUsername()).withStyle(ChatFormatting.GRAY));
                     }
 
-                    list.append(Text.literal(" (").formatted(Formatting.DARK_GRAY));
-                    Role role = guild.getRoleById(profile.getRole());
-                    if (role == null) {
-                        list.append(Text.literal("Invalid role").formatted(Formatting.RED));
+                    list.append(Component.literal(" (").withStyle(ChatFormatting.DARK_GRAY));
+                    Optional<Role> role = guild.getRoleById(Snowflake.of(profile.getRole())).blockOptional();
+                    if (role.isEmpty()) {
+                        list.append(Component.literal("Invalid role").withStyle(ChatFormatting.RED));
                     } else {
-                        list.append(Text.literal("@" + role.getName()).formatted(Formatting.GRAY));
+                        list.append(Component.literal("@" + role.get().getName()).withStyle(ChatFormatting.GRAY));
                     }
-                    list.append(Text.literal(")").formatted(Formatting.DARK_GRAY));
+                    list.append(Component.literal(")").withStyle(ChatFormatting.DARK_GRAY));
                 }
             } else {
-                list.append("\n").append("    ").append(Text.literal("Failed to get guild!").formatted(Formatting.RED));
+                list.append("\n").append("    ").append(Component.literal("Failed to get guild!").withStyle(ChatFormatting.RED));
             }
         }
 
         if (source.getPlayer() != null) {
-            source.getPlayer().sendMessage(Text.literal(""), true);
+            source.getPlayer().sendSystemMessage(Component.literal(""), true);
         }
 
-        source.sendFeedback(() -> list, false);
+        source.sendSuccess(() -> list, false);
         return extendedProfiles.size();
     }
 
-    private static String getPlatformName() {
-        String loaderName = getLoaderName();
-        if (FabricLoader.getInstance().isModLoaded("connectormod")) {
-            return loaderName + " - Via Connector";
-        }
-
-        return loaderName;
-    }
-
-    private static String getLoaderName() {
-        return switch (AutoWhitelist.getServer().getServerModName()) {
-            case "fabric" -> "Fabric";
-            case "quilt" -> "Quilt";
-            case "forge" -> "Forge";
-            case "neoforge" -> "NeoForge";
-            default -> "Unknown";
-        };
-    }
-
-    private static String getLoaderVersion() {
-        return switch (AutoWhitelist.getServer().getServerModName()) {
-            case "fabric" -> ModData.getVersion("fabricloader");
-            case "quilt" -> ModData.getVersion("quilt_loader");
-            case "forge" -> ModData.getVersion("forge");
-            case "neoforge" -> ModData.getVersion("neoforge");
-            default -> "unknown";
-        };
-    }
-
-    private static int getInfo(CommandContext<ServerCommandSource> context) {
-        context.getSource().sendFeedback(() -> Text.literal("Generating data dump..."), false);
-        PlayerManager playerManager = AutoWhitelist.getServer().getPlayerManager();
+    private static int getInfo(CommandContext<CommandSourceStack> context) {
+        context.getSource().sendSuccess(() -> Component.literal("Generating data dump..."), false);
+        PlayerList playerManager = ServerDetails.getServer().getPlayerList();
 
         CompletableFuture.runAsync(() -> {
-            boolean canConfigLoad;
+            DataResult<AutoWhitelistConfig> configLoad = AutoWhitelist.CONFIG.tryRead();
             LinedStringBuilder dump = new LinedStringBuilder().append(" ");
             dump.appendLine("==== AutoWhitelist data dump ====");
             dump.appendLine("Minecraft:");
-            dump.appendLine("  Minecraft version: ", SharedConstants.getGameVersion()./*? if <=1.21.5 {*//*getName*//*?} else {*/name/*?}*/());
+            dump.appendLine("  Minecraft version: ", SharedConstants.getCurrentVersion()./*? if <=1.21.5 {*//*getName*//*?} else {*/name/*?}*/());
             dump.appendLine("  Java version: ", Runtime.version());
-            dump.appendLine("  Mod loader: ", getPlatformName());
+            dump.appendLine("  Mod loader: ", ServerDetails.getPlatformName());
             if (FabricLoader.getInstance().isModLoaded("connectormod")) {
                 dump.appendLine("  Connector version: ", ModData.getVersion("connectormod"));
             }
-            dump.appendLine("  Loader version: ", getLoaderVersion());
+            dump.appendLine("  Loader version: ", ServerDetails.getLoaderVersion());
             dump.appendLine("  Mod version: ", ModData.getVersion("autowhitelist"));
-            dump.appendLine("  Total whitelisted players: ", playerManager.getWhitelistedNames().length);
+            dump.appendLine("  Total whitelisted players: ", playerManager.getWhiteListNames().length);
             dump.appendLine("  Luckperms version: ", ModData.getVersion("luckperms"));
 
             dump.appendLine();
             dump.appendLine("AutoWhitelist:");
             dump.appendLine("  Config:");
-            dump.appendLine("    Total entries: ", AutoWhitelist.CONFIG.entries.size());
+            dump.appendLine("    Total entries: ", AutoWhitelist.config().whitelist.allow.size());
             dump.appendLine("    Config exists: ", AutoWhitelist.CONFIG.configExists());
-            dump.appendLine("    Config loads: ", canConfigLoad = AutoWhitelist.CONFIG.canLoad());
-            if (!canConfigLoad) {
-                dump.append(" <-- BAD CONFIG! Check the logs for the error cause");
-            }
-            dump.appendLine("    Lock time: ", TimeParser.parseTime(AutoWhitelist.CONFIG.lockTime));
+            dump.appendLine("    Config status: ", configLoad.error().map(DataResult.Error::message).orElse("Loaded"));
+            dump.appendLine("    Lock time: ", TimeParser.parseTime(AutoWhitelist.config().whitelist.lockTime));
             dump.appendLine("  Bot:");
-            dump.appendLine("    JDA version: ", JDAInfo.VERSION);
-            dump.appendLine("    Chewtils version: ", JDAUtilitiesInfo.VERSION);
-            dump.appendLine("    Bot status: ", DiscordBot.botExists() ? "online" : "offline");
-            if (DiscordBot.botExists()) {
-                dump.appendLine("    Gateway ping: ", DiscordBot.getJda().getGatewayPing());
-                dump.appendLine("    Rest ping: ", DiscordBot.getJda().getRestPing().complete());
-            }
+            dump.appendLine("    Bot status: ", DiscordClientHolder.status().name().toLowerCase());
 
-            context.getSource().sendFeedback(() -> Text.literal(dump.toString()), false);
+            context.getSource().sendSuccess(() -> Component.literal(dump.toString()), false);
         });
 
         return 0;

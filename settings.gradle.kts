@@ -1,19 +1,15 @@
 pluginManagement {
+    includeBuild("plugins/multiversion")
+
     repositories {
         maven("https://maven.fabricmc.net/")
-        maven("https://maven.kikugie.dev/releases")
         maven("https://maven.kikugie.dev/snapshots")
         gradlePluginPortal()
     }
 }
 
 plugins {
-    id("dev.kikugie.stonecutter") version "0.8-alpha.7"
+    id("com.awakenedredstone.multiversion")
 }
 
-
-stonecutter {
-    create(rootProject) {
-        versions("1.20", "1.21", "1.21.2", "1.21.5", "1.21.6", "1.21.9", "1.21.11")
-    }
-}
+includeBuild("annotation-processors/prechecks")

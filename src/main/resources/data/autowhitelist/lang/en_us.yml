@@ -1,0 +1,182 @@
+discord.autowhitelist.response:
+  fatal:
+    impossible: "Impossible state! `id: %s`"
+  info:
+    user_unqualified:
+      direct:
+        title: "# You don't qualify for registration"
+        description: |-
+          You don't have any of the required roles to link a Minecraft account for whitelisting.
+          You must have at least one of the required roles for linking and joining the server.
+      indirect:
+        title: "# The user doesn't qualify for registration"
+        description: |-
+          The user doesn't have any of the required roles to link a Minecraft account for whitelisting.
+          A user must have at least one of the required roles for linking and joining the server.
+
+    user_unregistered:
+      direct:
+        title: "# You aren't registered"
+        description: |-
+          You haven't linked a Minecraft Java account yet.
+          Use the button or `/link <username>` to link your account. It only requires your username.
+          The command will responde once complete.
+        description.geyser: |-
+          You haven't linked a Minecraft account yet.
+          Use the button or `/link <username> <edition>` to link your Minecraft account.
+          Provide your username for the game edition in the **username** field and the edition in **edition**
+
+      indirect:
+        title: "# The user isn't registered"
+        description: |-
+          The user doesn't have a linked Minecraft Java account.
+          You can use the button or `/link <username>` to link an account.
+        description.geyser: |-
+          You haven't linked a Minecraft account yet.
+          You can the button or `/user-link modify <username> <edition>` to link an account.
+          Provide the username for the game edition in the **username** field and the edition in **edition**
+    not_found:
+      title: "# Unable to find user"
+      description: |-
+        No link with the username *%1$s* was found.
+    details/$:
+      whitelisted:
+        direct:
+          title: "# Your link details"
+          description.linked: |-
+            Lock expires <t:%5$s:R>
+            Name: %1$s | UUID: %2$s
+            Discord user: <@%3$s> | Role: <@&%4$s>
+          description.unlinked: |-
+            Entry not linked
+            Name: %3$s | UUID: %4$s
+      cached:
+        direct:
+          title: "# Your link details"
+          description.linked: |-
+            Cached entry | Qualifies: %1$s
+            Name: %2$s | UUID: %3$s
+            Discord user: <@%4$s>
+
+  modify:
+    fail:
+      unqualified:
+        title: "# The user doesn't qualify for registration"
+        description: |-
+          The user doesn't have any of the required roles to link a Minecraft account for whitelisting.
+          A user must have at least one of the required roles for linking and joining the server.
+      not_found:
+        title: "# Unable to find account"
+        description: |-
+          It wasn't possible to find a %1$s account for the %2$s `%3$s`
+          Check your input and try again.
+        geyser_tip: |-
+          The username was not found in the Geyser cache. 
+          You can try to quickly join a Geyser server or the global link server to get your username cached.
+      nothing_changed:
+        title: "# Nothing to do"
+        description: |-
+          The user is already linked with the provided account
+      banned:
+        title: "# Account is banned"
+        description: |-
+          The account provided is banned and can not be linked
+      linked:
+        title: "# Already linked"
+        description: |-
+          The provided account is already linked to another user
+      whitelisted:
+        title: "# Already whitelisted"
+        description: |-
+          The provided account is whitelisted through vanilla and can not be linked to a user
+      broken_action:
+        title: "# Broken action"
+        description: |-
+          The action of type `%2$s` associated for the role <&@%1$s> has a broken configuration.
+          Action: `%3$s`
+          Check the logs for more details.
+      error_while_adding:
+        title: "# Error while adding"
+        description: |-
+          An unknown error occurred while adding the user to the whitelist
+          Check the logs for errors.
+          
+    success:
+      registered:
+        title: "# Successfully registered"
+        description: |-
+          The user has been successfully registered
+
+  register:
+    fail:
+      unqualified:
+        title: "# You don't qualify for registration"
+        description: |-
+          You don't have any of the required roles to link a Minecraft account for whitelisting.
+          You must have at least one of the required roles for linking and joining the server.
+      not_found:
+        title: "# Unable to find account"
+        description: |-
+          It wasn't possible to find a %1$s account for the %2$s `%3$s`
+          Check your input and try again.
+      nothing_changed:
+        title: "# Nothing to do"
+        description: |-
+          You already are linked and whitelisted with the provided account
+      banned:
+        title: "# Account is banned"
+        description: |-
+          The account provided is banned and can not be linked
+      linked:
+        title: "# Already linked"
+        description: |-
+          The provided account is already linked to another user
+      whitelisted:
+        title: "# Already whitelisted"
+        description: |-
+          The provided account is whitelisted through vanilla and can not be linked to a user
+      broken_action:
+        title: "# Broken action"
+        description: |-
+          The action of type `%2$s` associated for the role <&@%1$s> has a broken configuration.
+          Contact an admin to for fixing. More details can be found in the server logs.
+      error_while_adding:
+        title: "# Error while adding"
+        description: |-
+          An unknown error occurred while adding you to the whitelist.
+          Contact an admin for fixing. Check the logs for errors.
+
+    success:
+      registered:
+        title: "# Successfully registered"
+        description: |-
+          You have been successfully registered
+
+discord.command.description:
+  link: "Link a Minecraft account for whitelisting"
+  link.argument/$:
+    username: "The account username"
+    edition: "The game edition [java/bedrock]"
+  linkinfo: "Show information about your link"
+
+discord.command.option:
+  link.edition/$:
+    java: "Java"
+    bedrock: "Bedrock"
+
+discord.autowhitelist.button:
+  register_direct: "Register"
+  register_indirect: "Register user"
+  edit_link_direct: "Edit"
+  edit_link_indirect: "Edit link"
+  remove_link_direct: "Unlink"
+  remove_link_indirect: "Unlink user"
+
+commands.autowhitelist:
+  remove.failed: "Failed to remove player(s) from the whitelist. An error occurred or they weren't whitelisted."
+
+multiplayer.autowhitelist.disconnect:
+  not_whitelisted.tip: "Run /link [username] in the discord server to link your account"
+  not_whitelisted.tip.geyser: "Run /link [username] (edition) in the discord server to link your account"
+  internal_error: "Failed to use whitelist cache due to a broken action"
+  too_early: "Failed to use whitelist cache due to a broken action"

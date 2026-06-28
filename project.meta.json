@@ -1,0 +1,73 @@
+{
+  "$schema": "project.meta.schema.json",
+  "properties": {
+    "fabric_api_version": "#modrinth fabric-api fabric ${version}",
+    "placeholder_api_version": "#modrinth placeholder-api fabric ${version}",
+    "permission_api_version": "#modrinth fabric-permissions-api fabric ${version}",
+
+    "loader_version": "0.19.2",
+    "discord4j_version": "3.3.2"
+  },
+  "versions": {
+    "1.21": {
+      "enabled": false,
+      "predicate": "auto",
+      "properties": {
+        "translation_api_version": "2.3.1+1.21-pre2",
+        "placeholder_api_version": "#modrinth placeholder-api fabric 1.21.1",
+        "mappings_version": "1.21.1+build.2",
+        "parchment_version": "#maven org.parchmentmc.data:parchment-1.21.1"
+      }
+    },
+    "1.21.2": {
+      "enabled": false,
+      "predicate": "auto",
+      "properties": {
+        "translation_api_version": "2.4.0+1.21.2-rc1",
+        "mappings_version": "1.21.1+build.2",
+        "parchment_version": "#maven org.parchmentmc.data:parchment-1.21.3"
+      }
+    },
+    "1.21.5": {
+      "enabled": false,
+      "predicate": "auto",
+      "properties": {
+        "translation_api_version": "2.5.0+1.21.5-rc1",
+        "mappings_version": "1.21.5+build.2",
+        "parchment_version": "#maven org.parchmentmc.data:parchment-${version}"
+      }
+    },
+    "1.21.6": {
+      "enabled": false,
+      "predicate": "auto",
+      "properties": {
+        "translation_api_version": "2.5.1+1.21.5",
+        "mappings_version": "1.21.5+build.2",
+        "parchment_version": "#maven org.parchmentmc.data:parchment-${version}"
+      }
+    },
+    "1.21.9": {
+      "enabled": false,
+      "predicate": "auto",
+      "properties": {
+        "translation_api_version": "2.5.2+1.21.9-pre3",
+        "mappings_version": "1.21.10+build.2",
+        "parchment_version": "#maven org.parchmentmc.data:parchment-1.21.10"
+      }
+    },
+    "1.21.11": {
+      "enabled": false,
+      "predicate": "auto",
+      "properties": {
+        "translation_api_version": "2.5.2+1.21.9-pre3",
+        "parchment_version": "#maven org.parchmentmc.data:parchment-1.21.11"
+      }
+    },
+    "26.1": {
+      "predicate": "auto",
+      "properties": {
+        "translation_api_version": "3.0.3+26.1"
+      }
+    }
+  }
+}
