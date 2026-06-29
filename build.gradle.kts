@@ -228,6 +228,10 @@ loom {
         ideConfigGenerated(false)
         runDir("../../run")
     }
+
+    runConfigs {
+
+    }
 }
 
 stonecutter {
@@ -387,6 +391,7 @@ modrinth {
     syncBodyFrom = file("README.md").readText()
 }
 
+// TODO: Allow publish to continue after failing a step
 publishMods {
     file = getJarTask().archiveFile
     changelog = changelogText
@@ -419,22 +424,29 @@ publishMods {
 
     if (minecraftVersion == latestVersion) {
         discord {
+            webhookUrl = providers.gradleProperty("DISCORD_WEBHOOK")
+            dryRunWebhookUrl = providers.gradleProperty("DRY_WEBHOOK")
+
+            username = "Mod updates"
+            avatarUrl = "https://cdn.discordapp.com/avatars/1268055578073108574/73106a33f497ea5f2c676bcfb4816917.webp"
+
             content = """
                 # AutoWhitelist | $projectVersionName
                 
-                $changelogText
+                ${if (changelogText.length > 4000) "Changelog is too long, check it on [Modrinth](https://modrinth.com/mod/autowhitelist/changelog)" else changelogText}
             """.trimIndent()
 
-            avatarUrl = "https://cdn.discordapp.com/avatars/1268055578073108574/73106a33f497ea5f2c676bcfb4816917.webp"
-            username = "Mod updates"
-            webhookUrl = providers.gradleProperty("DISCORD_WEBHOOK")
-            dryRunWebhookUrl = providers.gradleProperty("DRY_WEBHOOK")
             style {
                 look = "MODERN"
                 link = "BUTTON"
                 thumbnailUrl = "https://cdn.modrinth.com/data/BMaqFQAd/116458c672aadeb31856563eaff8ed7edd764753.png"
                 color = "modrinth"
             }
+
+            /*message {
+                componentsV2 = true;
+                components {}
+            }*/
         }
     }
 }
