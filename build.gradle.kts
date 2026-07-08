@@ -307,7 +307,7 @@ tasks {
     }
 
     compileJava {
-    sourceCompatibility = "25" // TODO: Java 21?
+        sourceCompatibility = "25" // TODO: Java 21?
         targetCompatibility = javaVer
         options.encoding = "UTF-8"
     }
