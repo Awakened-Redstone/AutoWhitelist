@@ -60,7 +60,7 @@ public class DiscordClientHolder implements Runnable, Stoppable {
     private final StatusTracker statusTracker = new StatusTracker();
 
     public DiscordClientHolder() {
-        statusTracker.on(Task.FETCH_GUILD, () -> RoleEntryMap.reload(AutoWhitelist.config().whitelist.allow));
+        statusTracker.on(Task.FETCH_GUILD, () -> { RoleEntryMap.reload(AutoWhitelist.config().whitelist.allow); WhitelistHandler.revalidateEntries(); });
         statusTracker.on(Task.FETCH_GUILD, () -> removeOldCommands(getGuild().getId().asLong()));
     }
 
