@@ -68,6 +68,13 @@
       "properties": {
         "translation_api_version": "3.0.3+26.1"
       }
+    },
+    "26.2": {
+      "predicate": "auto",
+      "properties": {
+        "translation_api_version": "3.1.0+26.2",
+        "permission_api_version": "0.7.0"
+      }
     }
   }
 }

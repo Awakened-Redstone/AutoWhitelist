@@ -89,7 +89,7 @@ public class QueryEventHandler implements ServerLoginConnectionEvents.QueryStart
         if (cachedEntry == null) return;
 
         String discordId = cachedEntry.getUser().getDiscordId();
-        Member member = holder.getGuild().getMemberById(Snowflake.of(discordId)).block();
+        Member member = holder.getGuild().getMemberById(Snowflake.of(discordId)).onErrorReturn(null).block();
         if (member == null) {
             whitelist.getCache().remove(profile.asEntryProfile());
             return;

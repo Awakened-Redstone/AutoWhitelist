@@ -2,4 +2,9 @@ plugins {
     id("dev.kikugie.stonecutter")
 }
 
-stonecutter active "26.1" /* [SC] DO NOT EDIT */
+stonecutter handlers {
+    // Copy the accesswidener configuration to classtweaker
+    inherit("aw", "classtweaker")
+}
+
+stonecutter active "26.2" /* [SC] DO NOT EDIT */
