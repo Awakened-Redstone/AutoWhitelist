@@ -44,7 +44,7 @@ public class EventHandler {
 
     public static void handleEvents(GatewayDiscordClient client) {
         // Lifecycle events
-        listen(client, ReadyEvent.class, EventHandler::handleConnect);
+//        listen(client, ReadyEvent.class, EventHandler::handleConnect);
         listen(client, ReconnectEvent.class, EventHandler::handleReconnect);
 
         // Gateway events
@@ -80,10 +80,6 @@ public class EventHandler {
         LinkingWhitelist whitelist = WhitelistHandler.getWhitelist();
         Optional<LinkedWhitelistEntry> schrodingerEntry = whitelist.fromDiscordId(event.getUser().getId().asString());
         schrodingerEntry.ifPresent(entry -> WhitelistHandler.getWhitelist().remove(entry));
-    }
-
-    private static void handleConnect(ReadyEvent event) {
-        WhitelistHandler.revalidateEntries();
     }
 
     private static void handleReconnect(ReconnectEvent event) {
