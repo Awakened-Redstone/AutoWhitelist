@@ -217,7 +217,7 @@ dependencies {
 
 loom {
     serverOnlyMinecraftJar()
-    accessWidenerPath = file("src/main/resources/autowhitelist.classtweaker")// findClassTweakerFile()
+    accessWidenerPath = sc.process(file("src/main/resources/autowhitelist.classtweaker"),"build/processed.classtweaker")// findClassTweakerFile()
 
     runConfigs.getByName("server") {
         ideConfigGenerated(true)
