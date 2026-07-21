@@ -36,8 +36,11 @@ public class WhitelistHandler {
 
     public static boolean qualifies(PlayerProfile profile) {
         if (!profile.isLinked()) return false;
-        var member = DiscordClientHolder.getCurrent().getGuild().getMemberById(Snowflake.of(profile.discordId())).block();
-        return RoleUtils.getHighestEntryRole(member).isPresent();
+        var member = DiscordClientHolder.getCurrent().getGuild().getMemberById(Snowflake.of(profile.discordId())).onErrorComplete().blockOptional();
+        if (member.isEmpty()) {
+            return false;
+        }
+        return RoleUtils.getHighestEntryRole(member.get()).isPresent();
     }
 
     /**
@@ -166,9 +169,10 @@ public class WhitelistHandler {
             PlayerProfile profile = PlayerProfile.from(entry.getUser());
             if (!profile.isLinked()) continue;
 
-            Optional<Member> schrodingerMember = DiscordClientHolder.getCurrent().getGuild().getMemberById(Snowflake.of(profile.discordId())).blockOptional();
+            Optional<Member> schrodingerMember = DiscordClientHolder.getCurrent().getGuild().getMemberById(Snowflake.of(profile.discordId())).onErrorComplete().blockOptional();
             Optional<Role> schrodingerRole;
             if (schrodingerMember.isEmpty() || (schrodingerRole = RoleUtils.getHighestEntryRole(schrodingerMember.get())).isEmpty()) {
+                AutoWhitelist.LOGGER.warn("Removing user %s (id %s) no longer matching criteria".formatted(profile.name(), profile.discordId()));
                 whitelist.remove(entry);
                 continue;
             }
