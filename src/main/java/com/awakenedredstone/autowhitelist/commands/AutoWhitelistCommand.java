@@ -226,7 +226,7 @@ public class AutoWhitelistCommand {
                     list.append("\n").append("    ").append(PlayerProfile.name(profile));
                     list.append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY));
 
-                    Optional<Member> member = guild.getMemberById(Snowflake.of(profile.getDiscordId())).blockOptional();
+                    Optional<Member> member = guild.getMemberById(Snowflake.of(profile.getDiscordId())).onErrorComplete().blockOptional();
                     if (member.isEmpty()) {
                         list.append(Component.literal("Invalid member").withStyle(ChatFormatting.RED));
                     } else {
