@@ -78,7 +78,7 @@ public class StatusCommandMessages {
 
     public static final Identifier MINECRAFT = ResponseMessage.register(id("status/minecraft"), args -> {
         LinedStringBuilder builder = new LinedStringBuilder();
-        builder.appendLine("Minecraft version: ", SharedConstants.getCurrentVersion().*//*? if <=1.21.5 {*//**//*getName*//**//*?} else {*//*name*//*?}*//*());
+        builder.appendLine("Minecraft version: ", SharedConstants.getCurrentVersion().*REMOVE_THIS//*? if <=1.21.5 {*REMOVE_THIS//**REMOVE_THIS//*getName*REMOVE_THIS//**REMOVE_THIS//*?} else {*REMOVE_THIS//*name*REMOVE_THIS//*?}*REMOVE_THIS//*());
         builder.appendLine("Java version: ", Runtime.version());
         builder.appendLine("Mod loader: ", ServerDetails.getPlatformName());
         if (FabricLoader.getInstance().isModLoaded("connectormod")) {
@@ -95,7 +95,7 @@ public class StatusCommandMessages {
 
     public static final Identifier CONFIG = ResponseMessage.register(id("status/config"), args -> {
         LinedStringBuilder builder = new LinedStringBuilder();
-        builder.appendLine("Minecraft version: ", SharedConstants.getCurrentVersion().*//*? if <=1.21.5 {*//**//*getName*//**//*?} else {*//*name*//*?}*//*());
+        builder.appendLine("Minecraft version: ", SharedConstants.getCurrentVersion().*REMOVE_THIS//*? if <=1.21.5 {*REMOVE_THIS//**REMOVE_THIS//*getName*REMOVE_THIS//**REMOVE_THIS//*?} else {*REMOVE_THIS//*name*REMOVE_THIS//*?}*REMOVE_THIS//*());
         builder.appendLine("Java version: ", Runtime.version());
         builder.appendLine("Mod loader: ", ServerDetails.getPlatformName());
         if (FabricLoader.getInstance().isModLoaded("connectormod")) {

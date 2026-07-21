@@ -1,6 +1,9 @@
 classTweaker v2 official
 
-accessible field net/minecraft/server/jsonrpc/internalapi/MinecraftAllowListServiceImpl server Lnet/minecraft/server/dedicated/DedicatedServer;
+#? if >= 26.2
+accessible method net/minecraft/server/jsonrpc/internalapi/MinecraftAllowListServiceImpl server ()Lnet/minecraft/server/dedicated/DedicatedServer;
+#? if < 26.2
+#accessible field net/minecraft/server/jsonrpc/internalapi/MinecraftAllowListServiceImpl server Lnet/minecraft/server/dedicated/DedicatedServer;
 accessible field net/minecraft/server/jsonrpc/internalapi/MinecraftAllowListServiceImpl jsonrpcLogger Lnet/minecraft/server/jsonrpc/JsonRpcLogger;
 
 #accessible method net/minecraft/server/players/StoredUserEntry getUser ()Ljava/lang/Object;
