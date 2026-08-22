@@ -40,7 +40,7 @@ public class LinkedPlayerDto extends PlayerDto {
     }
 
     public static LinkedPlayerDto from(NameAndId nameAndId) {
-        if (nameAndId instanceof LinkedPlayerProfile linkedProfile) {
+        if (nameAndId instanceof LinkedNameAndId linkedProfile) {
             return new LinkedPlayerDto(
               Optional.of(linkedProfile.id()),
               Optional.of(linkedProfile.name()),

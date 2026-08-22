@@ -19,7 +19,7 @@ public class StatusCommand extends ChatInputApplicationCommand {
     public StatusCommand() {
         super("status", "admin");
 
-        this.permissions = new Permission[]{Permission.KICK_MEMBERS};
+        this.setPermissions(Permission.KICK_MEMBERS);
 
         this.options.add(
           ApplicationCommandOptionData.builder()

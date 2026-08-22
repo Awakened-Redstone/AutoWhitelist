@@ -37,7 +37,7 @@ public class ModifyCommandMessages {
 
     /// This should never trigger, the lock is bypassed on admin commands
     public static final Identifier LOCKED = ResponseMessage.<RegisterPlayerProfile>register(RegisterMessages.LOCKED, (input, geyser, profile) -> List.of(
-      MessageBuilder.translated("discord.autowhitelist.response.fatal.impossible", "admin_modify.response.locked")
+      MessageBuilder.translated("discord.autowhitelist.response.error.impossible", "admin_modify.response.locked")
     ));
 
     /**

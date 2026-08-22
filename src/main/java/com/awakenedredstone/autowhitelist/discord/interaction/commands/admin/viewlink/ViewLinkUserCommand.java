@@ -1,4 +1,4 @@
-package com.awakenedredstone.autowhitelist.discord.interaction.commands.admin.showlink;
+package com.awakenedredstone.autowhitelist.discord.interaction.commands.admin.viewlink;
 
 import com.awakenedredstone.autowhitelist.discord.interaction.commands.LinkInfoCommand;
 import com.awakenedredstone.autowhitelist.discord.interaction.commands.api.AbstractApplicationCommand;
@@ -15,11 +15,11 @@ import reactor.core.publisher.Mono;
 
 import java.util.Optional;
 
-public class ShowLinkUserCommand extends AbstractApplicationCommand<UserInteractionEvent> {
-    public ShowLinkUserCommand() {
-        super("user-link-info", ApplicationCommand.Type.USER);
+public class ViewLinkUserCommand extends AbstractApplicationCommand<UserInteractionEvent> {
+    public ViewLinkUserCommand() {
+        super("user_viewlink", ApplicationCommand.Type.USER);
 
-        this.permissions = new Permission[]{Permission.MANAGE_MESSAGES};
+        this.setPermissions(Permission.KICK_MEMBERS);
         this.contexts = new ApplicationCommandContexts[]{ApplicationCommandContexts.GUILD};
     }
 

@@ -1,7 +1,7 @@
 package com.awakenedredstone.autowhitelist.mixin.jsonrpc;
 
 import com.awakenedredstone.autowhitelist.server.profile.LinkedPlayerDto;
-import com.awakenedredstone.autowhitelist.server.profile.LinkedPlayerProfile;
+import com.awakenedredstone.autowhitelist.server.profile.LinkedNameAndId;
 import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
@@ -28,7 +28,7 @@ public class PlayerDtoMixin {
 
     @Inject(at = @At("HEAD"), method = "from(Lnet/minecraft/server/players/NameAndId;)Lnet/minecraft/server/jsonrpc/api/PlayerDto;", cancellable = true)
     private static void fromLinked(NameAndId nameAndId, CallbackInfoReturnable<PlayerDto> cir) {
-        if (nameAndId instanceof LinkedPlayerProfile linkedProfile) {
+        if (nameAndId instanceof LinkedNameAndId linkedProfile) {
             cir.setReturnValue(new LinkedPlayerDto(
               Optional.of(linkedProfile.id()),
               Optional.of(linkedProfile.name()),

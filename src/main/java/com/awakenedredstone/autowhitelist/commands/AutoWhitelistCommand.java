@@ -14,7 +14,7 @@ import com.awakenedredstone.autowhitelist.server.ServerDetails;
 import com.awakenedredstone.autowhitelist.util.string.LinedStringBuilder;
 import com.awakenedredstone.autowhitelist.util.data.ModData;
 import com.awakenedredstone.autowhitelist.util.string.TimeParser;
-import com.awakenedredstone.autowhitelist.server.profile.LinkedPlayerProfile;
+import com.awakenedredstone.autowhitelist.server.profile.LinkedNameAndId;
 import com.awakenedredstone.autowhitelist.server.whitelist.link.LinkingWhitelist;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
@@ -203,7 +203,7 @@ public class AutoWhitelistCommand {
 
         List</*$ WhitelistProfile {*/net.minecraft.server.players.NameAndId/*$}*/> profiles = entries.stream()
           .map(StoredUserEntry::getUser)
-          .filter(profile -> !(profile instanceof LinkedPlayerProfile))
+          .filter(profile -> !(profile instanceof LinkedNameAndId))
           .toList();
 
         MutableComponent list = Component.literal("");
@@ -212,8 +212,8 @@ public class AutoWhitelistCommand {
             profiles.forEach(player -> list.append("\n").append("    ").append(PlayerProfile.name(player)));
         }
 
-        List<LinkedPlayerProfile> extendedProfiles = entries.stream()
-          .map(entry -> entry.getUser() instanceof LinkedPlayerProfile profile ? profile : null)
+        List<LinkedNameAndId> extendedProfiles = entries.stream()
+          .map(entry -> entry.getUser() instanceof LinkedNameAndId profile ? profile : null)
           .filter(Objects::nonNull)
           .toList();
 
@@ -222,7 +222,7 @@ public class AutoWhitelistCommand {
             list.append("Automated whitelist:");
             Guild guild = DiscordClientHolder.getCurrent().getGuild();
             if (guild != null) {
-                for (LinkedPlayerProfile profile : extendedProfiles) {
+                for (LinkedNameAndId profile : extendedProfiles) {
                     list.append("\n").append("    ").append(PlayerProfile.name(profile));
                     list.append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY));
 

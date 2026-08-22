@@ -10,7 +10,7 @@ import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
     id("maven-publish")
-    id("com.modrinth.minotaur") version "2.+"
+    id("com.modrinth.minotaur") version "2.9.+"
     id("me.modmuss50.mod-publish-plugin") version "0.8.4"
     id("com.gradleup.shadow") version "9.3.+"
     id("com.awakenedredstone.multiversion")
@@ -217,7 +217,7 @@ dependencies {
 
 loom {
     serverOnlyMinecraftJar()
-    accessWidenerPath = sc.process(file("src/main/resources/autowhitelist.classtweaker"),"build/processed.classtweaker")// findClassTweakerFile()
+    accessWidenerPath = sc.process(file("src/main/resources/autowhitelist.classtweaker"), "build/processed.classtweaker")
 
     runConfigs.getByName("server") {
         ideConfigGenerated(true)

@@ -1,6 +1,6 @@
 package com.awakenedredstone.autowhitelist.server.whitelist.link;
 
-import com.awakenedredstone.autowhitelist.server.profile.LinkedPlayerProfile;
+import com.awakenedredstone.autowhitelist.server.profile.LinkedNameAndId;
 import com.awakenedredstone.autowhitelist.server.profile.PlayerProfile;
 import com.google.gson.JsonObject;
 import net.minecraft.server.players.NameAndId;
@@ -10,22 +10,22 @@ import java.util.Objects;
 
 public class LinkedWhitelistEntry extends UserWhiteListEntry {
 
-    public LinkedWhitelistEntry(LinkedPlayerProfile profile) {
+    public LinkedWhitelistEntry(LinkedNameAndId profile) {
         super(profile);
     }
 
     public LinkedWhitelistEntry(JsonObject json) {
-        this(LinkedPlayerProfile.fromJson(json));
+        this(LinkedNameAndId.fromJson(json));
     }
 
     @Override
-    public LinkedPlayerProfile getUser() {
-        return (LinkedPlayerProfile) super.getUser();
+    public LinkedNameAndId getUser() {
+        return (LinkedNameAndId) super.getUser();
     }
 
     public static UserWhiteListEntry withNewName(UserWhiteListEntry oldEntry, String newName) {
         if (oldEntry instanceof LinkedWhitelistEntry linkedEntry) {
-            LinkedPlayerProfile user = linkedEntry.getUser();
+            LinkedNameAndId user = linkedEntry.getUser();
             return new LinkedWhitelistEntry(Objects.requireNonNull(user).withName(newName));
         }
 

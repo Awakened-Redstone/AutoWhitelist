@@ -1,7 +1,7 @@
 package com.awakenedredstone.autowhitelist.server.whitelist.cache;
 
 import com.awakenedredstone.autowhitelist.discord.DiscordClientHolder;
-import com.awakenedredstone.autowhitelist.server.profile.LinkedPlayerProfile;
+import com.awakenedredstone.autowhitelist.server.profile.LinkedNameAndId;
 import com.awakenedredstone.autowhitelist.server.profile.PlayerProfile;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
@@ -19,22 +19,22 @@ import java.io.File;
 import java.util.Optional;
 import java.util.Set;
 
-public class WhitelistCache extends StoredUserList<LinkedPlayerProfile, @NotNull WhitelistCacheEntry> {
+public class WhitelistCache extends StoredUserList<LinkedNameAndId, @NotNull WhitelistCacheEntry> {
     public WhitelistCache(File file/*? if >=1.21.9 {*/, NotificationService managementListener /*?}*/) {
         super(file/*? if >=1.21.9 {*/, managementListener /*?}*/);
     }
 
     @Override
-    protected StoredUserEntry<LinkedPlayerProfile> createEntry(JsonObject json) {
+    protected StoredUserEntry<LinkedNameAndId> createEntry(JsonObject json) {
         return new WhitelistCacheEntry(json);
     }
 
-    public boolean isCached(final LinkedPlayerProfile profile) {
+    public boolean isCached(final LinkedNameAndId profile) {
         return this.contains(profile);
     }
 
     @Override
-    protected @NotNull String getKeyForUser(@NotNull LinkedPlayerProfile gameProfile) {
+    protected @NotNull String getKeyForUser(@NotNull LinkedNameAndId gameProfile) {
         return PlayerProfile.id(gameProfile).toString();
     }
 
@@ -53,7 +53,7 @@ public class WhitelistCache extends StoredUserList<LinkedPlayerProfile, @NotNull
     }
 
     @Override
-    public boolean remove(LinkedPlayerProfile user) {
+    public boolean remove(LinkedNameAndId user) {
         if (DiscordClientHolder.isInitialized()) {
             DiscordClientHolder discord = DiscordClientHolder.getCurrent();
             GatewayDiscordClient client = discord.getClient();
@@ -92,21 +92,21 @@ public class WhitelistCache extends StoredUserList<LinkedPlayerProfile, @NotNull
 
     @Nullable
     public WhitelistCacheEntry get(GameProfile key) {
-        return super.get(new LinkedPlayerProfile(key));
+        return super.get(new LinkedNameAndId(key));
     }
 
     public void remove(GameProfile key) {
-        super.remove(new LinkedPlayerProfile(key));
+        super.remove(new LinkedNameAndId(key));
     }
 
     //? if >=1.21.9 {
     @Nullable
     public WhitelistCacheEntry get(net.minecraft.server.players.NameAndId key) {
-        return super.get(new LinkedPlayerProfile(key));
+        return super.get(new LinkedNameAndId(key));
     }
 
     public void remove(net.minecraft.server.players.NameAndId key) {
-        super.remove(new LinkedPlayerProfile(key));
+        super.remove(new LinkedNameAndId(key));
     }
     //?}
 }

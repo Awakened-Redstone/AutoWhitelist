@@ -14,11 +14,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.reactivestreams.Publisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AbstractApplicationCommand<T extends ApplicationCommandInteractionEvent> implements DeferrableInteraction<T> {
+    public static final Logger LOGGER = LoggerFactory.getLogger(AbstractApplicationCommand.class);
     protected final String name;
     protected @Nullable String description;
     protected @NotNull ApplicationCommandContexts[] contexts;
@@ -41,12 +45,6 @@ public abstract class AbstractApplicationCommand<T extends ApplicationCommandInt
 
     public abstract @NotNull Publisher<?> execute(@NotNull T event);
 
-    public @NotNull Publisher<?> onError(@NotNull T event, @NotNull Throwable exception) {
-        List<TopLevelMessageComponent> components = ResponseMessage.buildComponents(CommonResponseMessages.COMMAND_FATAL, this, event, exception);
-
-        return event.createFollowup(InteractionFollowupCreateSpec.builder().addAllComponents(components).build());
-    }
-
     public String getTranslationName() {
         if (StringUtils.isNotBlank(category)) {
             return category + "/" + name;
@@ -65,6 +63,10 @@ public abstract class AbstractApplicationCommand<T extends ApplicationCommandInt
 
     protected String choice(String argument, String option) {
         return Texts.translated("discord.command.option.%s.%s/%s".formatted(this.getTranslationName(), argument, option));
+    }
+
+    protected void setPermissions(Permission ...permissions) {
+        this.permissions = permissions;
     }
 
     public String getName() {

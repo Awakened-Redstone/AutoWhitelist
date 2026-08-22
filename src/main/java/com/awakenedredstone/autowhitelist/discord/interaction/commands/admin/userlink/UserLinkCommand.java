@@ -27,7 +27,7 @@ public class UserLinkCommand extends ChatInputApplicationCommand {
     public UserLinkCommand() {
         super("userlink", "admin");
 
-        this.permissions = new Permission[]{Permission.KICK_MEMBERS};
+        this.setPermissions(Permission.KICK_MEMBERS);
 
         this.options.add(new UserLinkModifySubCommand(this).asOption());
         this.options.add(new UserLinkRemoveSubCommandGroup(this).asOption());

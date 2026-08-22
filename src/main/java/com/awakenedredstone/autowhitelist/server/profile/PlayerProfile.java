@@ -11,7 +11,7 @@ public record PlayerProfile(@NotNull UUID id, @NotNull String name, String disco
         this(id, name, null, null, -1);
     }
 
-    public PlayerProfile(LinkedPlayerProfile profile) {
+    public PlayerProfile(LinkedNameAndId profile) {
         this(id(profile), name(profile), profile.getDiscordId(), profile.getRole(), profile.getLockedUntil());
     }
 
@@ -49,12 +49,12 @@ public record PlayerProfile(@NotNull UUID id, @NotNull String name, String disco
         return new /*$ WhitelistProfile {*/net.minecraft.server.players.NameAndId/*$}*/(id, name);
     }
 
-    public @NotNull LinkedPlayerProfile asLinkedProfile() {
-        return new LinkedPlayerProfile(id, name, discordId, role, lockedUntil);
+    public @NotNull LinkedNameAndId asLinkedProfile() {
+        return new LinkedNameAndId(id, name, discordId, role, lockedUntil);
     }
 
     public static @NotNull PlayerProfile from(@NotNull /*$ WhitelistProfile >>*/net.minecraft.server.players.NameAndId profile) {
-        if (profile instanceof LinkedPlayerProfile linkedProfile) return new PlayerProfile(linkedProfile);
+        if (profile instanceof LinkedNameAndId linkedProfile) return new PlayerProfile(linkedProfile);
         return new PlayerProfile(profile);
     }
 

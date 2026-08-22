@@ -15,27 +15,27 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.UUID;
 
-public class LinkedPlayerProfile extends /*$ WhitelistProfile >>*/net.minecraft.server.players.NameAndId {
+public class LinkedNameAndId extends /*$ WhitelistProfile >>*/net.minecraft.server.players.NameAndId {
     /*? if >=1.21.9 {*/ private static final java.lang.invoke.MethodHandle EQUALS; /*?}*/
     private final String role;
     private final String discordId;
     private final long lockedUntil;
 
     //? if >=1.21.9 {
-    public LinkedPlayerProfile(net.minecraft.server.players.NameAndId profile) {
+    public LinkedNameAndId(net.minecraft.server.players.NameAndId profile) {
         this(PlayerProfile.id(profile), PlayerProfile.name(profile));
     }
     //?}
 
-    public LinkedPlayerProfile(GameProfile profile) {
+    public LinkedNameAndId(GameProfile profile) {
         this(PlayerProfile.id(profile), PlayerProfile.name(profile));
     }
 
-    public LinkedPlayerProfile(UUID id, String name) {
+    public LinkedNameAndId(UUID id, String name) {
         this(id, name, null, null, -1);
     }
 
-    public LinkedPlayerProfile(UUID id, String name, String discordId, String role, long lockedUntil) {
+    public LinkedNameAndId(UUID id, String name, String discordId, String role, long lockedUntil) {
         super(id, name);
         this.discordId = discordId;
         this.role = role;
@@ -55,29 +55,29 @@ public class LinkedPlayerProfile extends /*$ WhitelistProfile >>*/net.minecraft.
         return ServerDetails.getServer().getPlayerList().getBans().isBanned(this) ? -1 : lockedUntil;
     }
 
-    public LinkedPlayerProfile withRole(String newRole) {
-        return new LinkedPlayerProfile(PlayerProfile.id(this), PlayerProfile.name(this), discordId, newRole, lockedUntil);
+    public LinkedNameAndId withRole(String newRole) {
+        return new LinkedNameAndId(PlayerProfile.id(this), PlayerProfile.name(this), discordId, newRole, lockedUntil);
     }
 
-    public LinkedPlayerProfile withRole(Role newRole) {
+    public LinkedNameAndId withRole(Role newRole) {
         return withRole(newRole.getId().asString());
     }
 
-    public LinkedPlayerProfile withLockedUntil(long newLockedUntil) {
-        return new LinkedPlayerProfile(PlayerProfile.id(this), PlayerProfile.name(this), discordId, role, newLockedUntil);
+    public LinkedNameAndId withLockedUntil(long newLockedUntil) {
+        return new LinkedNameAndId(PlayerProfile.id(this), PlayerProfile.name(this), discordId, role, newLockedUntil);
     }
 
-    public LinkedPlayerProfile withName(String name) {
-        return new LinkedPlayerProfile(PlayerProfile.id(this), name, discordId, role, lockedUntil);
+    public LinkedNameAndId withName(String name) {
+        return new LinkedNameAndId(PlayerProfile.id(this), name, discordId, role, lockedUntil);
     }
 
     public boolean isLocked() {
         return AutoWhitelist.config().whitelist.lockTime() == -1 || lockedUntil == -1 || lockedUntil > System.currentTimeMillis() || ServerDetails.getServer().getPlayerList().getBans().isBanned(this);
     }
 
-    public static LinkedPlayerProfile of(@NotNull UserWhiteListEntry entry) {
+    public static LinkedNameAndId of(@NotNull UserWhiteListEntry entry) {
         if (entry instanceof LinkedWhitelistEntry linkedEntry) return linkedEntry.getUser();
-        return new LinkedPlayerProfile(entry.getUser());
+        return new LinkedNameAndId(entry.getUser());
     }
 
     @Override
@@ -94,7 +94,7 @@ public class LinkedPlayerProfile extends /*$ WhitelistProfile >>*/net.minecraft.
         /*if (!super.equals(obj)) return false;*/
         //?}
 
-        if (obj instanceof LinkedPlayerProfile other) {
+        if (obj instanceof LinkedNameAndId other) {
             return Objects.equals(other.discordId, this.discordId) && Objects.equals(other.role, this.role) && Objects.equals(other.lockedUntil, this.lockedUntil);
         }
 
@@ -118,7 +118,7 @@ public class LinkedPlayerProfile extends /*$ WhitelistProfile >>*/net.minecraft.
         return Objects.hash(PlayerProfile.id(this), PlayerProfile.name(this), discordId, role, lockedUntil);
     }
 
-    public static @Nullable LinkedPlayerProfile fromJson(JsonObject object) {
+    public static @Nullable LinkedNameAndId fromJson(JsonObject object) {
         if (jsonHasAllKeys(object, "uuid", "name", "discordId", "role", "lockedUntil")) {
             String uuidString = object.get("uuid").getAsString();
 
@@ -129,7 +129,7 @@ public class LinkedPlayerProfile extends /*$ WhitelistProfile >>*/net.minecraft.
                 return null;
             }
 
-            return new LinkedPlayerProfile(
+            return new LinkedNameAndId(
               uuid,
               object.get("name").getAsString(),
               object.get("discordId").getAsString(),
@@ -161,7 +161,7 @@ public class LinkedPlayerProfile extends /*$ WhitelistProfile >>*/net.minecraft.
     //? if >=1.21.9 {
     static {
         try {
-            EQUALS = java.lang.invoke.MethodHandles.lookup().findSpecial(NameAndId.class, "equals", java.lang.invoke.MethodType.methodType(boolean.class, Object.class), LinkedPlayerProfile.class);
+            EQUALS = java.lang.invoke.MethodHandles.lookup().findSpecial(NameAndId.class, "equals", java.lang.invoke.MethodType.methodType(boolean.class, Object.class), LinkedNameAndId.class);
         } catch (NoSuchMethodException | IllegalAccessException e) {
             throw new AssertionError("Failed to get known method handle!");
         }

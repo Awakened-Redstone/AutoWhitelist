@@ -10,9 +10,8 @@ import com.awakenedredstone.autowhitelist.entry.api.RoleEntryMap;
 import com.awakenedredstone.autowhitelist.server.ServerDetails;
 import com.awakenedredstone.autowhitelist.server.profile.ProfileFetcher;
 import com.awakenedredstone.autowhitelist.server.profile.PlayerProfile;
-import com.awakenedredstone.autowhitelist.server.profile.LinkedPlayerProfile;
+import com.awakenedredstone.autowhitelist.server.profile.LinkedNameAndId;
 import com.awakenedredstone.autowhitelist.server.whitelist.cache.WhitelistCache;
-import com.awakenedredstone.autowhitelist.server.whitelist.cache.WhitelistCacheEntry;
 import com.awakenedredstone.autowhitelist.server.whitelist.link.LinkedWhitelistEntry;
 import com.awakenedredstone.autowhitelist.server.whitelist.link.LinkingWhitelist;
 import discord4j.common.util.Snowflake;
@@ -77,11 +76,10 @@ public class WhitelistHandler {
 
         LinkingWhitelist whitelist = getWhitelist(server);
 
-        Optional<LinkedPlayerProfile> schrodingerCurrentEntry = whitelist.fromDiscordId(member.getId().asString()).map(LinkedWhitelistEntry::getUser);
-        if (schrodingerCurrentEntry.isEmpty()) {
-            schrodingerCurrentEntry = whitelist.getCache().fromDiscordId(member.getId().asString()).map(WhitelistCacheEntry::getUser);
-        } else if (isLocked(schrodingerCurrentEntry.get()) && !admin) {
-            return new Response(false, RegisterMessages.LOCKED, schrodingerCurrentEntry.get());
+        String discordId = member.getId().asString();
+        Optional<LinkedNameAndId> schrodingerCurrentEntry = whitelist.fromDiscordId(discordId).map(LinkedWhitelistEntry::getUser);
+        if (schrodingerCurrentEntry.isPresent() && isLocked(schrodingerCurrentEntry.get()) && !admin) {
+            return new Response(false, RegisterMessages.LOCKED, PlayerProfile.from(schrodingerCurrentEntry.get()));
         }
 
         Optional<PlayerProfile> schrodingerProfile = fetcher.fetch();
@@ -102,7 +100,9 @@ public class WhitelistHandler {
             return new Response(false, RegisterMessages.BANNED);
         }
 
-        if (whitelist.getCache().isCached(playerEntry)) {
+        var cached = whitelist.getCache().get(playerEntry);
+        assert cached == null || cached.getUser() != null;
+        if (cached != null && !discordId.equals(cached.getUser().getDiscordId())) {
             return new Response(false, RegisterMessages.ALREADY_LINKED);
         }
 
@@ -119,7 +119,7 @@ public class WhitelistHandler {
             }
         }
 
-        PlayerProfile linkedProfile = new PlayerProfile(profile.id(), profile.name(), member.getId().asString(), role.getId().asString(), AutoWhitelist.config().whitelist.lockTime());
+        PlayerProfile linkedProfile = new PlayerProfile(profile.id(), profile.name(), discordId, role.getId().asString(), AutoWhitelist.config().whitelist.lockTime());
 
         if (!whitelistProfile(schrodingerCurrentEntry.orElse(null), linkedProfile, entry)) {
             return new Response(false, RegisterMessages.ERROR_WHILE_ADDING, linkedProfile);
@@ -215,7 +215,7 @@ public class WhitelistHandler {
     }
 
     public static boolean isLocked(MinecraftServer server, /*$ WhitelistProfile >>*/net.minecraft.server.players.NameAndId profile) {
-        long lockedUntil = profile instanceof LinkedPlayerProfile linkedProfile ? linkedProfile.getLockedUntil() : -1;
+        long lockedUntil = profile instanceof LinkedNameAndId linkedProfile ? linkedProfile.getLockedUntil() : -1;
         return lockedUntil > System.currentTimeMillis() || AutoWhitelist.config().whitelist.lockTime() == -1 || lockedUntil == -1 || server.getPlayerList().getBans().isBanned(profile);
     }
 

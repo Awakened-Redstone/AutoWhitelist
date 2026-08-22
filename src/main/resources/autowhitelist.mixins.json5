@@ -15,7 +15,7 @@
     "jsonrpc.MinecraftApiMixin",
     "jsonrpc.PlayerDtoMixin",
     "jsonrpc.SchemaMixin",*/
-    "discord4j.GatewayDiscordClientAccessor"
+    "discord4j.ApplicationCommandInteractionOptionValueAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

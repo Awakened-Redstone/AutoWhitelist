@@ -4,7 +4,7 @@ import com.awakenedredstone.autowhitelist.discord.DiscordClientHolder;
 import com.awakenedredstone.moondust.config.api.ConfigSettings;
 import com.awakenedredstone.moondust.config.api.datafixer.JsonPorting;
 import com.awakenedredstone.autowhitelist.entry.api.EntryAction;
-import com.awakenedredstone.autowhitelist.util.JvmViolations;
+import com.awakenedredstone.autowhitelist.util.CompilerWorkarounds;
 import com.awakenedredstone.moondust.jankson.*;
 import com.awakenedredstone.moondust.jankson.element.*;
 import com.awakenedredstone.moondust.jankson.element.primitive.JsonPrimitive;
@@ -33,7 +33,7 @@ public class AutoWhitelistConfigSettings extends ConfigSettings<AutoWhitelistCon
         super("autowhitelist", AutoWhitelistConfig.class,
           7,
           Jankson.builder()
-            .registerCodec(EntryAction.class, JvmViolations.unsafeCast(EntryAction.CODEC))
+            .registerCodec(EntryAction.class, CompilerWorkarounds.unsafeCast(EntryAction.CODEC))
             .build()
         );
 

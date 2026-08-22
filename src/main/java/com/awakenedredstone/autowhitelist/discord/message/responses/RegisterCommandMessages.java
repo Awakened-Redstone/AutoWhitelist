@@ -40,7 +40,7 @@ public class RegisterCommandMessages {
     /// This should never trigger, the lock is bypassed on admin commands
     public static final Identifier LOCKED = ResponseMessage.<RegisterPlayerProfile>register(RegisterMessages.LOCKED, (input, geyser, profile) -> List.of(
       MessageBuilder.translated("discord.autowhitelist.response.register.fail.locked.title"),
-      MessageBuilder.translated("discord.autowhitelist.response.register.fail.locked.description", profile.name(), profile.role(), profile.lockedUntil())
+      MessageBuilder.translated("discord.autowhitelist.response.register.fail.locked.description", profile.name(), profile.role(), profile.lockedUntil() == -1 ? 999999999999L : profile.lockedUntil() / 1000)
     ));
 
     /**

@@ -1,6 +1,8 @@
-package com.awakenedredstone.autowhitelist.discord.interaction.commands.admin.userlink;
+package com.awakenedredstone.autowhitelist.discord.interaction.commands.admin.viewlink.chat;
 
+import com.awakenedredstone.autowhitelist.discord.interaction.commands.LinkInfoCommand;
 import com.awakenedredstone.autowhitelist.discord.interaction.commands.api.impl.ChatInputSubCommand;
+import com.awakenedredstone.autowhitelist.util.Optioning;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandOption;
@@ -8,22 +10,12 @@ import discord4j.discordjson.json.ApplicationCommandOptionData;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 import org.reactivestreams.Publisher;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-public class UserLinkRemoveSubCommand extends ChatInputSubCommand<UserLinkCommand> {
-    public UserLinkRemoveSubCommand(@NotNull UserLinkCommand parent) {
-        super(parent, "modify");
-
-        this.options.add(
-          ApplicationCommandOptionData.builder()
-            .name("user")
-            .description(argumentDescription("user"))
-            .type(ApplicationCommandOption.Type.USER.getValue())
-            .required(true)
-            .build()
-        );
+public class ViewLinkUsernameSubCommand extends ChatInputSubCommand<ViewLinkChatCommand> {
+    public ViewLinkUsernameSubCommand(@NotNull ViewLinkChatCommand parent) {
+        super(parent, "username");
 
         this.options.add(
           ApplicationCommandOptionData.builder()
@@ -38,7 +30,8 @@ public class UserLinkRemoveSubCommand extends ChatInputSubCommand<UserLinkComman
 
     @Override
     public @NotNull Publisher<?> execute(@NotNull ChatInputInteractionEvent event, @NonNull List<ApplicationCommandInteractionOption> options) {
-        // TODO
-        return Mono.empty();
+        var username = Optioning.getOptionAsString(options, "username").orElseThrow();
+
+        return event.deferReply().then(LinkInfoCommand.execute(event, username));
     }
 }

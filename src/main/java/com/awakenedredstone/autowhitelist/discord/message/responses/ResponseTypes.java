@@ -1,9 +1,11 @@
 package com.awakenedredstone.autowhitelist.discord.message.responses;
 
 import com.awakenedredstone.autowhitelist.discord.interaction.commands.api.AbstractApplicationCommand;
+import com.awakenedredstone.autowhitelist.discord.interaction.commands.api.DeferrableInteraction;
 import com.awakenedredstone.autowhitelist.entry.api.EntryAction;
 import com.awakenedredstone.autowhitelist.server.profile.PlayerProfile;
 import discord4j.core.event.domain.interaction.ApplicationCommandInteractionEvent;
+import discord4j.core.event.domain.interaction.DeferrableInteractionEvent;
 import discord4j.core.object.component.TopLevelMessageComponent;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Role;
@@ -21,10 +23,10 @@ public interface ResponseTypes {
     interface RegisterBanEntry { List<TopLevelMessageComponent> build(String input, boolean geyser, UserBanListEntry entry); }
     interface RegisterRoleAction { List<TopLevelMessageComponent> build(String input, boolean geyser, Role role, EntryAction<?> entry); }
 
-    interface CommandEventThrowable {
+    interface InteractionCrash<T extends DeferrableInteractionEvent> {
         List<TopLevelMessageComponent> build(
-          AbstractApplicationCommand<?> command,
-          ApplicationCommandInteractionEvent event,
+          DeferrableInteraction<T> interaction,
+          T event,
           Throwable exception
         );
     }

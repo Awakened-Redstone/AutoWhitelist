@@ -2,14 +2,11 @@ package com.awakenedredstone.autowhitelist.util;
 
 import org.jetbrains.annotations.ApiStatus;
 
-/**
- * A set of methods that should never exist and bypass the compiler,
- * leaving problems for the JVM to deal with, and probably crash.
- */
+/// A set of methods to deal with the compiler.
 @ApiStatus.Internal
-public class JvmViolations {
+public class CompilerWorkarounds {
     /// Bypass the compiler type checks and cast a class to any other class. \
-    /// This may crash at runtime if used with incompatible types.
+    /// This will crash at runtime if used with incompatible types.
     /// @param o The class to be cast
     /// @return the class cast as T
     /// @param <T> the type to be cast to
@@ -19,7 +16,7 @@ public class JvmViolations {
     }
 
     /// Bypass the compiler type checks and cast a class to any subclass. \
-    /// This may crash at runtime if used with incompatible types.
+    /// This will crash at runtime if used with incompatible types.
     /// @param o The class to be cast
     /// @return the class cast as T
     /// @param <T> the type to be cast to

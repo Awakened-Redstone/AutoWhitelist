@@ -6,13 +6,17 @@ import com.awakenedredstone.autowhitelist.discord.message.MessageUtils;
 import com.awakenedredstone.autowhitelist.discord.util.DiscordData;
 import com.awakenedredstone.autowhitelist.server.profile.ProfileFetcher;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.object.entity.Member;
 import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 public class UserLinkModifySubCommand extends ChatInputSubCommand<UserLinkCommand> {
     public UserLinkModifySubCommand(@NotNull UserLinkCommand parent) {
@@ -67,7 +71,7 @@ public class UserLinkModifySubCommand extends ChatInputSubCommand<UserLinkComman
     }
 
     @Override
-    public @NotNull Publisher<?> execute(@NotNull ChatInputInteractionEvent event) {
+    public @NotNull Publisher<?> execute(@NotNull ChatInputInteractionEvent event, @NonNull List<ApplicationCommandInteractionOption> options) {
         Member member = DiscordData.getMember(event.getOptionAsUser("user")).orElseThrow();
 
         @NotNull String input = event.getOptionAsString("username").orElseThrow();

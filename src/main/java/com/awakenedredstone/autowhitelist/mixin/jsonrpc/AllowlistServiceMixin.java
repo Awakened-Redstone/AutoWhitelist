@@ -1,7 +1,7 @@
 package com.awakenedredstone.autowhitelist.mixin.jsonrpc;
 
 import com.awakenedredstone.autowhitelist.server.profile.LinkedPlayerDto;
-import com.awakenedredstone.autowhitelist.server.profile.LinkedPlayerProfile;
+import com.awakenedredstone.autowhitelist.server.profile.LinkedNameAndId;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -33,7 +33,7 @@ public class AllowlistServiceMixin {
 
             NameAndId nameAndId = optional.get();
             //noinspection OptionalGetWithoutIsPresent
-            return Optional.of(new LinkedPlayerProfile(nameAndId.id(), nameAndId.name(), linkedDto.role().get(), linkedDto.discordId().get(), linkedDto.lockedUntil().orElse(-1L)));
+            return Optional.of(new LinkedNameAndId(nameAndId.id(), nameAndId.name(), linkedDto.role().get(), linkedDto.discordId().get(), linkedDto.lockedUntil().orElse(-1L)));
         });
     }
 }

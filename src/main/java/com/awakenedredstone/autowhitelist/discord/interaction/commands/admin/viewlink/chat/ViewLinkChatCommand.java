@@ -1,4 +1,4 @@
-package com.awakenedredstone.autowhitelist.discord.interaction.commands.admin.showlink.chat;
+package com.awakenedredstone.autowhitelist.discord.interaction.commands.admin.viewlink.chat;
 
 import com.awakenedredstone.autowhitelist.discord.interaction.commands.api.impl.ChatInputApplicationCommand;
 import com.awakenedredstone.autowhitelist.server.profile.PlayerProfile;
@@ -18,27 +18,30 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Objects;
 
-public class ShowLinkChatCommand extends ChatInputApplicationCommand {
-    public ShowLinkChatCommand() {
-        super("link-info");
+public class ViewLinkChatCommand extends ChatInputApplicationCommand {
+    public ViewLinkChatCommand() {
+        super("viewlink");
 
-        this.options.add(new ShowLinkUserSubCommand(this).asOption());
-        this.options.add(new ShowLinkUsernameSubCommand(this).asOption());
+        this.setPermissions(Permission.KICK_MEMBERS);
+
+        this.subCommands.add(new ViewLinkUserSubCommand(this));
+        this.subCommands.add(new ViewLinkUsernameSubCommand(this));
+
+        this.addSubCommandOptions();
     }
 
     @Override
     public @NotNull Publisher<?> execute(@NotNull ChatInputInteractionEvent event) {
-        return Mono.empty();
+        var res = this.handleSubCommands(event, event.getOptions());
+        if (res == Mono.empty()) {
+            return Mono.error(new IllegalArgumentException("Invalid input, no handler found!"));
+        }
+
+        return res;
     }
 
     @Override
     public @NotNull Publisher<?> onChatInput(@NotNull ChatInputAutoCompleteEvent event) {
-        Member invoker = event.getInteraction().getMember().orElseThrow();
-
-        if (!invoker.getBasePermissions().blockOptional().orElseThrow().contains(Permission.MANAGE_MESSAGES)) {
-            return Mono.empty();
-        }
-
         LinkingWhitelist whitelist = WhitelistHandler.getWhitelist();
         String typing = event.getFocusedOption().getValue()
           .map(ApplicationCommandInteractionOptionValue::asString)
@@ -49,7 +52,7 @@ public class ShowLinkChatCommand extends ChatInputApplicationCommand {
           .filter(Objects::nonNull)
           .map(PlayerProfile::name)
           .filter(name -> name.contains(typing))
-          .map(name -> (ApplicationCommandOptionChoiceData) ApplicationCommandOptionChoiceData.builder().name("username").value(name).build())
+          .map(name -> (ApplicationCommandOptionChoiceData) ApplicationCommandOptionChoiceData.builder().name(name).value(name).build())
           .toList();
 
         return event.respondWithSuggestions(usernames);

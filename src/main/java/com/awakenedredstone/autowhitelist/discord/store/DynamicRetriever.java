@@ -16,7 +16,6 @@
  */
 package com.awakenedredstone.autowhitelist.discord.store;
 
-import com.awakenedredstone.autowhitelist.mixin.discord4j.GatewayDiscordClientAccessor;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.ScheduledEventUser;
@@ -45,12 +44,6 @@ public class DynamicRetriever implements EntityRetriever {
 
     public static DynamicRetriever common(GatewayDiscordClient gateway) {
         return new DynamicRetriever(new StoreEntityRetriever(gateway), new RestEntityRetriever(gateway));
-    }
-
-    public static DynamicRetriever fromGateway(GatewayDiscordClient gateway) {
-        EntityRetriever retriever = ((GatewayDiscordClientAccessor) gateway).getEntityRetriever();
-        if (retriever instanceof DynamicRetriever dynamicRetriever) return dynamicRetriever;
-        return null;
     }
 
     private <T> Flux<T> flux(Function<EntityRetriever, Flux<T>> mapper) {

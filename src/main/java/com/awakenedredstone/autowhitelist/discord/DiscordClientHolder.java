@@ -9,6 +9,7 @@ import com.awakenedredstone.autowhitelist.concurrent.atomic.Lazy;
 import com.awakenedredstone.autowhitelist.discord.interaction.buttons.RemoveLinkButton;
 import com.awakenedredstone.autowhitelist.discord.interaction.commands.LinkCommand;
 import com.awakenedredstone.autowhitelist.discord.interaction.commands.LinkInfoCommand;
+import com.awakenedredstone.autowhitelist.discord.interaction.commands.admin.viewlink.chat.ViewLinkChatCommand;
 import com.awakenedredstone.autowhitelist.discord.interaction.commands.api.InteractionHandler;
 import com.awakenedredstone.autowhitelist.discord.store.DynamicRetriever;
 import com.awakenedredstone.autowhitelist.discord.util.Reactor;
@@ -170,7 +171,7 @@ public class DiscordClientHolder implements Runnable, Stoppable {
         // Admin commands
         // commandRegistry.register(new StatusCommand());
         // commandRegistry.register(new WhitelistCommand());
-        // commandRegistry.register(new ShowLinkChatCommand());
+        interactionHandler.registerCommand(new ViewLinkChatCommand());
         // commandRegistry.register(new LinkInfoUserCommand());
         // Buttons
         interactionHandler.registerButton(new RemoveLinkButton());

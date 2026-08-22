@@ -61,7 +61,7 @@ public class InfoCommandMessages {
               profile.id(),
               profile.discordId(),
               profile.role(),
-              profile.lockedUntil() / 1000
+              profile.lockedUntil() == -1 ? 999999999999L : profile.lockedUntil() / 1000
             )
           ),
           ActionRow.of(
