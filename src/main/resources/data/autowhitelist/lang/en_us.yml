@@ -1,6 +1,12 @@
 discord.autowhitelist.response:
-  fatal:
+  error:
     impossible: "Impossible state! `id: %s`"
+    crash:
+      title: "# Failed to handle interaction"
+      description: |-
+        _The interaction handler has crashed while attempting to respond_
+        `%1$s`
+        ### Check logs for the full stacktrace
   info:
     user_unqualified:
       direct:
@@ -49,10 +55,25 @@ discord.autowhitelist.response:
             Discord user: <@%3$s> | Role: <@&%4$s>
           description.unlinked: |-
             Entry not linked
-            Name: %3$s | UUID: %4$s
+            Name: %1$s | UUID: %2$s
+        indirect:
+          title: "# Link details"
+          description.linked: |-
+            Lock expires <t:%5$s:R>
+            Name: %1$s | UUID: %2$s
+            Discord user: <@%3$s> | Role: <@&%4$s>
+          description.unlinked: |-
+            Entry not linked
+            Name: %1$s | UUID: %2$s
       cached:
         direct:
           title: "# Your link details"
+          description.linked: |-
+            Cached entry | Qualifies: %1$s
+            Name: %2$s | UUID: %3$s
+            Discord user: <@%4$s>
+        indirect:
+          title: "# Link details"
           description.linked: |-
             Cached entry | Qualifies: %1$s
             Name: %2$s | UUID: %3$s
@@ -119,6 +140,10 @@ discord.autowhitelist.response:
         description: |-
           It wasn't possible to find a %1$s account for the %2$s `%3$s`
           Check your input and try again.
+      locked:
+        title: "# Entry locked"
+        description: |-
+          Your linked entry is currently locked and can not be modified until <t:%3$s:S>
       nothing_changed:
         title: "# Nothing to do"
         description: |-
@@ -159,6 +184,7 @@ discord.command.description:
     edition: "The game edition [java/bedrock]"
   linkinfo: "Show information about your link"
 
+# TODO: .autowhitelist
 discord.command.option:
   link.edition/$:
     java: "Java"
