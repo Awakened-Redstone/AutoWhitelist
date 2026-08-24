@@ -55,7 +55,7 @@ public class InteractionHandler {
             var requestBuilder = ApplicationCommandRequest.builder()
               .name(command.getName())
               .type(command.getCommandType().getValue())
-              .defaultMemberPermissions(String.valueOf(permissionBytes))
+              .defaultMemberPermissions(Optional.ofNullable(permissionBytes == 0 ? null : String.valueOf(permissionBytes)))
               .addAllContexts(Arrays.stream(command.getContexts()).map(ApplicationCommandContexts::getValue).toList())
               .options(command.getOptions());
 
