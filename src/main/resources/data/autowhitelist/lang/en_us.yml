@@ -205,4 +205,4 @@ multiplayer.autowhitelist.disconnect:
   not_whitelisted.tip: "Run /link [username] in the discord server to link your account"
   not_whitelisted.tip.geyser: "Run /link [username] (edition) in the discord server to link your account"
   internal_error: "Failed to use whitelist cache due to a broken action"
-  too_early: "Failed to use whitelist cache due to a broken action"
+  too_early: "Too early to use the whitelist cache, try again later"
