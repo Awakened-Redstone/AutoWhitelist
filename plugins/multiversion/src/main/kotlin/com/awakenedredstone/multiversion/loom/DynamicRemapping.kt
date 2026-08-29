@@ -1,8 +1,6 @@
 package com.awakenedredstone.multiversion.loom
 
 import dev.kikugie.stonecutter.build.StonecutterBuildExtension
-import net.fabricmc.loom.LoomNoRemapGradlePlugin
-import net.fabricmc.loom.LoomRemapGradlePlugin
 import net.fabricmc.loom.api.RemapConfigurationSettings.PublishingMode
 import net.fabricmc.loom.util.Constants
 import net.fabricmc.loom.util.gradle.SourceSetHelper
@@ -16,7 +14,7 @@ class DynamicRemapping(
     val newMc = stonecutter.eval(stonecutter.current.version, ">=26.1-snapshot-1")
 
     internal fun setup() {
-        project.plugins.apply(if (newMc) LoomNoRemapGradlePlugin::class.java else LoomRemapGradlePlugin::class.java)
+        project.plugins.apply(if (newMc) "net.fabricmc.fabric-loom" else "net.fabricmc.fabric-loom-remap")
 
         setupRemapping()
     }

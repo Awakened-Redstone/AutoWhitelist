@@ -21,5 +21,8 @@ abstract class SettingsExtension {
      */
     abstract val fileFormat: Property<String>
 
+    abstract val loomVersion: Property<String>
+
     internal abstract fun setupStonecutter()
+    internal abstract fun setupLoom()
 }

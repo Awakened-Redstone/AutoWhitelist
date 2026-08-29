@@ -23,4 +23,10 @@ internal abstract class SettingsExtensionImpl @Inject constructor(
             it.versions(versions.filter { (_, version) -> version.enabled }.keys)
         }
     }
+
+    override fun setupLoom() {
+        settings.gradle.beforeProject {
+            it.buildscript.dependencies.add("classpath", "net.fabricmc:fabric-loom:${loomVersion.get()}")
+        }
+    }
 }

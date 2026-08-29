@@ -42,8 +42,8 @@ dependencies {
 
 	implementation("com.awakenedredstone:commons:0.1.2") { isTransitive = false }
 
-	implementation("dev.kikugie:stonecutter:0.9.3")
-	implementation("net.fabricmc:fabric-loom:1.16.1")
+	api("dev.kikugie:stonecutter:0.9.7")
+	api("net.fabricmc:fabric-loom:1.17.20")
 
 	bom("tools.jackson:jackson-bom:3.1.3")
 	implementation("tools.jackson.module:jackson-module-kotlin")

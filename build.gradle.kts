@@ -9,12 +9,13 @@ import net.fabricmc.loom.configuration.providers.minecraft.library.MinecraftLibr
 import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
+    // Multiversion applies the right loom version for the current game version
+    id("com.awakenedredstone.multiversion")
     id("maven-publish")
     id("com.modrinth.minotaur") version "2.9.+"
     id("me.modmuss50.mod-publish-plugin") version "0.8.4"
     id("com.gradleup.shadow") version "9.3.+"
-    id("com.awakenedredstone.multiversion")
-    id("dev.kikugie.fletching-table.fabric") version "0.1.0-alpha.23"
+    alias(ft.plugins.default)
     id("com.awakenedredstone.commons")
 }
 
@@ -220,17 +221,8 @@ loom {
     accessWidenerPath = sc.process(file("src/main/resources/autowhitelist.classtweaker"), "build/processed.classtweaker")
 
     runConfigs.getByName("server") {
-        ideConfigGenerated(true)
-        runDir("../../run")
-    }
-
-    runConfigs.getByName("client") {
-        ideConfigGenerated(false)
-        runDir("../../run")
-    }
-
-    runConfigs {
-
+        generateRunConfig = true
+        runDirectory.dir("$rootDir/run")
     }
 }
 
@@ -247,13 +239,15 @@ stonecutter {
 }
 
 fletchingTable {
-    j52j.register("main") {
-        extension("json", "*.mixins.json5")
+    relocate.configure(sourceSets.main) {
+        matching("*.mixins.json5") {
+            with(Json5ToJson)
+        }
     }
 
-    lang.register("main") {
-        patterns.add("data/autowhitelist/lang/*.yml")
-        prettyPrint = true
+    lang.configure(sourceSets.main) {
+        filters.setIncludes(listOf("data/autowhitelist/lang/*.yml"))
+        jsonIndent = "  "
     }
 }
 
