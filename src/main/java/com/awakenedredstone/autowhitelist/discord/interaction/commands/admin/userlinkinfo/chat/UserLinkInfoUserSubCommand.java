@@ -1,4 +1,4 @@
-package com.awakenedredstone.autowhitelist.discord.interaction.commands.admin.viewlink.chat;
+package com.awakenedredstone.autowhitelist.discord.interaction.commands.admin.userlinkinfo.chat;
 
 import com.awakenedredstone.autowhitelist.discord.interaction.commands.LinkInfoCommand;
 import com.awakenedredstone.autowhitelist.discord.interaction.commands.api.impl.ChatInputSubCommand;
@@ -6,7 +6,6 @@ import com.awakenedredstone.autowhitelist.server.profile.PlayerProfile;
 import com.awakenedredstone.autowhitelist.server.whitelist.WhitelistHandler;
 import com.awakenedredstone.autowhitelist.server.whitelist.link.LinkingWhitelist;
 import com.awakenedredstone.autowhitelist.util.Optioning;
-import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.interaction.ChatInputAutoCompleteEvent;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
@@ -25,8 +24,8 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Objects;
 
-public class ViewLinkUserSubCommand extends ChatInputSubCommand<ViewLinkChatCommand> {
-    public ViewLinkUserSubCommand(@NotNull ViewLinkChatCommand parent) {
+public class UserLinkInfoUserSubCommand extends ChatInputSubCommand<UserLinkInfoChatCommand> {
+    public UserLinkInfoUserSubCommand(@NotNull UserLinkInfoChatCommand parent) {
         super(parent, "user");
 
         this.options.add(
@@ -47,7 +46,7 @@ public class ViewLinkUserSubCommand extends ChatInputSubCommand<ViewLinkChatComm
     }
 
     @Override
-    public @NotNull Publisher<?> onChatInput(@NotNull ChatInputAutoCompleteEvent event) {
+    public @NotNull Publisher<?> onChatInput(@NotNull ChatInputAutoCompleteEvent event, @NonNull List<ApplicationCommandInteractionOption> options) {
         Member invoker = event.getInteraction().getMember().orElseThrow();
 
         if (!invoker.getBasePermissions().blockOptional().orElseThrow().contains(Permission.MANAGE_MESSAGES)) {

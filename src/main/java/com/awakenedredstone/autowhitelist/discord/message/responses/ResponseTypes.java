@@ -14,6 +14,7 @@ import net.minecraft.server.players.UserBanListEntry;
 import java.util.List;
 
 public interface ResponseTypes {
+    interface Simple { List<TopLevelMessageComponent> build(); }
     interface EventMemberDirect { List<TopLevelMessageComponent> build(ApplicationCommandInteractionEvent event, Member member, boolean direct); }
     interface EventPlayerProfileDirect { List<TopLevelMessageComponent> build(ApplicationCommandInteractionEvent event, PlayerProfile profile, boolean direct); }
     interface EventUsername { List<TopLevelMessageComponent> build(ApplicationCommandInteractionEvent event, String username); }
@@ -30,4 +31,6 @@ public interface ResponseTypes {
           Throwable exception
         );
     }
+
+    interface InvalidInput { List<TopLevelMessageComponent> build(ApplicationCommandInteractionEvent event, String name, String value); }
 }

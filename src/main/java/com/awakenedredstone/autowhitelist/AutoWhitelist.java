@@ -43,7 +43,7 @@ public class AutoWhitelist implements DedicatedServerModInitializer {
             }
             earlyConfigPermissionLevel = null;
 
-            if (DiscordClientHolder.hasTask()) RoleEntryMap.reload(config.whitelist.allow);
+            if (DiscordClientHolder.hasClient()) RoleEntryMap.reload(config.whitelist.allow);
         });
 
         ServerDetails.registerEvents();

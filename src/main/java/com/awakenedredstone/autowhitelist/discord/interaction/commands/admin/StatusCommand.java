@@ -21,45 +21,20 @@ public class StatusCommand extends ChatInputApplicationCommand {
 
         this.setPermissions(Permission.KICK_MEMBERS);
 
-        this.options.add(
-          ApplicationCommandOptionData.builder()
-            .name("server")
-            .description(argumentDescription("server"))
-            .type(ApplicationCommandOption.Type.SUB_COMMAND.getValue())
-            .build()
-        );
+        this.options.add(option("minecraft"));
+        this.options.add(option("networking"));
+        this.options.add(option("whitelist"));
+        this.options.add(option("cache"));
+        this.options.add(option("bot"));
+        this.options.add(option("config"));
+    }
 
-        this.options.add(
-          ApplicationCommandOptionData.builder()
-            .name("whitelist")
-            .description(argumentDescription("whitelist"))
-            .type(ApplicationCommandOption.Type.SUB_COMMAND.getValue())
-            .build()
-        );
-
-        this.options.add(
-          ApplicationCommandOptionData.builder()
-            .name("bot")
-            .description(argumentDescription("bot"))
-            .type(ApplicationCommandOption.Type.SUB_COMMAND.getValue())
-            .build()
-        );
-
-        this.options.add(
-          ApplicationCommandOptionData.builder()
-            .name("minecraft")
-            .description(argumentDescription("minecraft"))
-            .type(ApplicationCommandOption.Type.SUB_COMMAND.getValue())
-            .build()
-        );
-
-        this.options.add(
-          ApplicationCommandOptionData.builder()
-            .name("config")
-            .description(argumentDescription("config"))
-            .type(ApplicationCommandOption.Type.SUB_COMMAND.getValue())
-            .build()
-        );
+    private ApplicationCommandOptionData option(String name) {
+        return ApplicationCommandOptionData.builder()
+          .name(name)
+          .description(argumentDescription(name))
+          .type(ApplicationCommandOption.Type.SUB_COMMAND.getValue())
+          .build();
     }
 
     @Override

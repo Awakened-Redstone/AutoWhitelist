@@ -4,7 +4,6 @@ import com.awakenedredstone.autowhitelist.util.string.Texts;
 import discord4j.core.event.domain.interaction.ChatInputAutoCompleteEvent;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
-import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.object.command.ApplicationCommandOption.Type;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +30,7 @@ public abstract class ChatInputSubCommand<T extends ChatInputApplicationCommand>
 
     public abstract @NotNull Publisher<?> execute(@NotNull ChatInputInteractionEvent event, @NonNull List<ApplicationCommandInteractionOption> options);
 
-    public @NotNull Publisher<?> onChatInput(@NotNull ChatInputAutoCompleteEvent event) {
+    public @NotNull Publisher<?> onChatInput(@NotNull ChatInputAutoCompleteEvent event, @NonNull List<ApplicationCommandInteractionOption> options) {
         return Mono.empty();
     }
 

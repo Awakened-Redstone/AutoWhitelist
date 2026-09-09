@@ -14,9 +14,7 @@ import discord4j.core.object.command.ApplicationCommand;
 import discord4j.core.object.command.ApplicationCommandContexts;
 import discord4j.core.object.command.Interaction;
 import discord4j.discordjson.json.ApplicationCommandData;
-import discord4j.discordjson.json.ApplicationCommandInteractionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
-import discord4j.discordjson.possible.Possible;
 import discord4j.rest.util.Permission;
 import org.jspecify.annotations.NonNull;
 import org.reactivestreams.Publisher;
@@ -42,7 +40,7 @@ public class InteractionHandler {
         interactions.put(button.id.toString(), button);
     }
 
-    public Flux<ApplicationCommandData> postCommands(GatewayDiscordClient client, long guildId) {
+    public Flux<ApplicationCommandData> createCommands(GatewayDiscordClient client, long guildId) {
         long applicationId = client.rest().getApplicationId().blockOptional().orElseThrow();
         List<ApplicationCommandRequest> commandRequests = new ArrayList<>();
 

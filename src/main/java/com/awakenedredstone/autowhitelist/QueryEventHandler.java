@@ -45,7 +45,7 @@ public class QueryEventHandler implements ServerLoginConnectionEvents.QueryStart
     ) {
         // Don't run the cache if the bot is disabled
         // TODO: support multilink
-        if (!DiscordClientHolder.hasTask()) return;
+        if (!DiscordClientHolder.hasClient()) return;
 
         PlayerList playerList = server.getPlayerList();
         if (!playerList.isUsingWhitelist()) return;

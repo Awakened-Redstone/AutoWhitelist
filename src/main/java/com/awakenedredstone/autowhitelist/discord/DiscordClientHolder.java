@@ -9,7 +9,9 @@ import com.awakenedredstone.autowhitelist.concurrent.atomic.Lazy;
 import com.awakenedredstone.autowhitelist.discord.interaction.buttons.RemoveLinkButton;
 import com.awakenedredstone.autowhitelist.discord.interaction.commands.LinkCommand;
 import com.awakenedredstone.autowhitelist.discord.interaction.commands.LinkInfoCommand;
-import com.awakenedredstone.autowhitelist.discord.interaction.commands.admin.viewlink.chat.ViewLinkChatCommand;
+import com.awakenedredstone.autowhitelist.discord.interaction.commands.admin.StatusCommand;
+import com.awakenedredstone.autowhitelist.discord.interaction.commands.admin.userlinkinfo.ViewLinkUserCommand;
+import com.awakenedredstone.autowhitelist.discord.interaction.commands.admin.userlinkinfo.chat.UserLinkInfoChatCommand;
 import com.awakenedredstone.autowhitelist.discord.interaction.commands.api.InteractionHandler;
 import com.awakenedredstone.autowhitelist.discord.store.DynamicRetriever;
 import com.awakenedredstone.autowhitelist.discord.util.Reactor;
@@ -30,6 +32,7 @@ import discord4j.gateway.intent.Intent;
 import discord4j.gateway.intent.IntentSet;
 import discord4j.rest.http.client.ClientException;
 import discord4j.rest.service.ApplicationService;
+import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.Disposable;
@@ -83,7 +86,11 @@ public class DiscordClientHolder implements Runnable, Stoppable {
         return current == null ? Status.DISABLED : current.statusTracker.status;
     }
 
-    public static boolean hasTask() {
+    public Set<Task> tasks() {
+        return Set.copyOf(statusTracker.tasks);
+    }
+
+    public static boolean hasClient() {
         return status().ordinal() <= Status.STARTING.ordinal();
     }
 
@@ -92,9 +99,12 @@ public class DiscordClientHolder implements Runnable, Stoppable {
     }
 
     public static boolean hasGuild() {
-        return isInitialized() || hasTask() && !getCurrent().statusTracker.tasks.contains(Task.FETCH_GUILD);
+        return isInitialized() || hasClient() && !getCurrent().statusTracker.tasks.contains(Task.FETCH_GUILD);
     }
 
+    /// Flag the bot to remove the old commands from mod version migration
+    // FIXME: This is kinda pointless rn since the current system just replaces all of them, the system should be updated to not do that
+    @ApiStatus.Internal
     public static void migrateCommands() {
         migrateCommands = true;
     }
@@ -169,14 +179,14 @@ public class DiscordClientHolder implements Runnable, Stoppable {
         interactionHandler.registerCommand(new LinkCommand());
         interactionHandler.registerCommand(new LinkInfoCommand());
         // Admin commands
-        // commandRegistry.register(new StatusCommand());
-        // commandRegistry.register(new WhitelistCommand());
-        interactionHandler.registerCommand(new ViewLinkChatCommand());
-        // commandRegistry.register(new LinkInfoUserCommand());
+        interactionHandler.registerCommand(new StatusCommand());
+        // interactionHandler.registerCommand(new WhitelistCommand());
+        interactionHandler.registerCommand(new UserLinkInfoChatCommand());
+        interactionHandler.registerCommand(new ViewLinkUserCommand());
         // Buttons
         interactionHandler.registerButton(new RemoveLinkButton());
 
-        statusTracker.on(Task.FETCH_GUILD, () -> statusTracker.track(Task.INTERACTION_HANDLER, interactionHandler.postCommands(client, getGuild().getId().asLong())));
+        statusTracker.on(Task.FETCH_GUILD, () -> statusTracker.track(Task.INTERACTION_HANDLER, interactionHandler.createCommands(client, getGuild().getId().asLong())));
 
         if (statusTracker.isFailed()) {
             return;
@@ -343,8 +353,8 @@ public class DiscordClientHolder implements Runnable, Stoppable {
         }
 
         private void fail() {
-            if (isFailed()) throw new IllegalStateException("Bot thread is already crashed");
-            if (isClosed()) throw new IllegalStateException("Bot thread is closed");
+            if (isFailed()) throw new IllegalStateException("Can not fail, the thread is already in a failure state");
+            if (isClosed()) throw new IllegalStateException("Can not fail, the thread is closed");
 
             LOGGER.warn("Discord bot crashed, closing connection");
             status = Status.CRASHED;
@@ -352,8 +362,8 @@ public class DiscordClientHolder implements Runnable, Stoppable {
         }
 
         private void close() {
-            if (isFailed()) throw new IllegalStateException("Bot thread is crashed");
-            if (isClosed()) throw new IllegalStateException("Bot thread is already closed");
+            if (isFailed()) throw new IllegalStateException("Can not close, the thread is in a failure state");
+            if (isClosed()) throw new IllegalStateException("Can not close, the thread is already closed");
 
             status = Status.OFFLINE;
             clear();

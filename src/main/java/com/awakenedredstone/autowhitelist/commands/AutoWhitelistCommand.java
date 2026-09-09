@@ -103,7 +103,7 @@ public class AutoWhitelistCommand {
                     .executes(context -> {
                         CommandSourceStack source = context.getSource();
 
-                        if (DiscordClientHolder.hasTask() && !DiscordClientHolder.isInitialized()) {
+                        if (DiscordClientHolder.hasClient() && !DiscordClientHolder.isInitialized()) {
                             source.sendSystemMessage(Component.literal("Warning, it is unsafe to restart the bot before it completes initialization!").withStyle(ChatFormatting.RED));
                         }
                         source.sendSuccess(() -> Component.literal("Restarting discord client"), true);
@@ -150,29 +150,30 @@ public class AutoWhitelistCommand {
                     return 0;
                 })
             ).then(literal("rebuild-from-cache")
-              .then(argument("run actions", BoolArgumentType.bool())
-                .executes(context -> {
-                    CommandSourceStack source = context.getSource();
-                    boolean runActions = BoolArgumentType.getBool(context, "run actions");
+              .executes(context -> {
+                  CommandSourceStack source = context.getSource();
+                  boolean whitelistOnly = BoolArgumentType.getBool(context, "whitelist only");
 
-                    LinkingWhitelist whitelist = WhitelistHandler.getWhitelist();
-                    WhitelistCache cache = whitelist.getCache();
+                  LinkingWhitelist whitelist = WhitelistHandler.getWhitelist();
+                  WhitelistCache cache = whitelist.getCache();
 
-                    int entries = 0;
-                    for (WhitelistCacheEntry entry : cache.getEntries()) {
-                        if (whitelist.isWhiteListed(entry.getUser())) {
-                            entries++;
-                            whitelist.remove(entry.getUser());
+                  source.sendSuccess(() -> Component.literal("Updating whitelist from cache, this may take some time."), true);
+                  List<WhitelistCacheEntry> entries = new ArrayList<>();
+                  for (WhitelistCacheEntry entry : cache.getEntries()) {
+                      if (!whitelistOnly || whitelist.isWhiteListed(entry.getUser())) {
+                          entries.add(entry);
+                      }
+                  }
 
-                            if (!runActions) {
-                                whitelist.add(new LinkedWhitelistEntry(entry.getUser().withLockedUntil(AutoWhitelist.config().whitelist.lockTime())));
-                            }
-                        }
-                    }
+                  var task = CompletableFuture.runAsync(() -> {
+                      source.sendSuccess(() -> Component.literal("Starting async task, the remainder of this command will be executed async, meaning it will return before it is completed."), true);
 
-                    return entries;
-                })
-              )
+                  });
+
+                  task.whenComplete((_, _) -> source.sendSuccess(() -> Component.literal("Finished updating the whitelist"), true));
+
+                  return entries.size();
+              })
             ).then(
               literal("remove-all-guild-commands")
                 .then(literal("i-understand-this-will-also-delete-commands-that-are-not-related-to-the-mod")

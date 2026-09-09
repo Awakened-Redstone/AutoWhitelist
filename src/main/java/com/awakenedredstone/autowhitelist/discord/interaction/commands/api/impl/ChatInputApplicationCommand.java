@@ -6,7 +6,6 @@ import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommand;
 import discord4j.core.object.command.ApplicationCommandContexts;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
-import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.object.command.ApplicationCommandOption.Type;
 import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +44,7 @@ public abstract class ChatInputApplicationCommand extends AbstractApplicationCom
         }
     }
 
-    protected @NonNull Publisher<?> handleSubCommands(@NonNull ChatInputInteractionEvent event, @NonNull List<ApplicationCommandInteractionOption> options) {
+    protected @NonNull Publisher<?> executeSubCommand(@NonNull ChatInputInteractionEvent event, @NonNull List<ApplicationCommandInteractionOption> options) {
         // If there is no option there is no subcommand
         // subcommands only come as a single option
         if (options.size() == 1) {
@@ -58,6 +57,27 @@ public abstract class ChatInputApplicationCommand extends AbstractApplicationCom
                 }
 
                 return handler.execute(event, option.getOptions());
+            }
+        }
+
+        // Return mono empty if no handler or subcommand was found
+        return Mono.empty();
+    }
+
+    /// Forward the chat input event to the sub-command, if any
+    protected @NonNull Publisher<?> forwardChatInput(@NonNull ChatInputAutoCompleteEvent event, @NonNull List<ApplicationCommandInteractionOption> options) {
+        // If there is no option there is no subcommand
+        // subcommands only come as a single option
+        if (options.size() == 1) {
+            var option = options.getFirst();
+            var type = option.getType();
+            if (type == Type.SUB_COMMAND || type == Type.SUB_COMMAND_GROUP) {
+                var handler = subCommandMap.get(option.getName());
+                if (handler.type != type) {
+                    return Mono.error(new IllegalStateException("Handler type does not match the received type"));
+                }
+
+                return handler.onChatInput(event, option.getOptions());
             }
         }
 

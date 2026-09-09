@@ -7,6 +7,10 @@ discord.autowhitelist.response:
         _The interaction handler has crashed while attempting to respond_
         `%1$s`
         ### Check logs for the full stacktrace
+    invalid_input:
+      title: "# Failed to handle interaction"
+      description: |-
+        The provided input `%2$s` for %1$s is invalid
   info:
     user_unqualified:
       direct:
@@ -175,14 +179,32 @@ discord.autowhitelist.response:
       registered:
         title: "# Successfully registered"
         description: |-
-          You have been successfully registered
+          You have been successfully registered 
 
+
+# TODO: .autowhitelist
 discord.command.description:
-  link: "Link a Minecraft account for whitelisting"
-  link.argument/$:
-    username: "The account username"
-    edition: "The game edition [java/bedrock]"
+  link:
+    .: "Link a Minecraft account for whitelisting"
+    argument/$:
+      username: "The account username"
+      edition: "The game edition [java/bedrock]"
   linkinfo: "Show information about your link"
+  admin/$:
+    userlinkinfo:
+      user:
+        .: "Show information about a Discord user's link"
+        argument/user: "The Discord user to view the link of"
+      username:
+        .: "Show information about a username's link"
+        argument/username: "The username to view the link of"
+    status.argument/$:
+      minecraft: Show status about the game
+      networking: Show status about the game's networking [WIP]
+      whitelist: Show status about the game's whitelist
+      cache: Show status about the mod's whitelist cache
+      bot: Show status about the Discord bot
+      config: Show status about the mod's config
 
 # TODO: .autowhitelist
 discord.command.option:

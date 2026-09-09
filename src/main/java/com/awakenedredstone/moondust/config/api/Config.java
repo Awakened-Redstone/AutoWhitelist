@@ -70,8 +70,7 @@ public class Config<C extends ConfigValues, T extends ConfigSettings<C>> {
      * Load the config represented by this wrapper from
      * its associated file, or create it if it does not exist.
      * <br/>
-     * Any error that occurs during the processing will be forwarded under a wrapper and must be caught,
-     * this is for methods to know that the loading failed and why.
+     * Loading and data fixer errors that occur during the processing will be caught.
      *
      * @return If the config was loaded successfully
      */
