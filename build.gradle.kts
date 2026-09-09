@@ -240,7 +240,8 @@ stonecutter {
 
 fletchingTable {
     relocate.configure(sourceSets.main) {
-        matching("*.mixins.json5") {
+        matching("(*.mixins).json5") {
+            into("$1.json")
             with(Json5ToJson)
         }
     }
