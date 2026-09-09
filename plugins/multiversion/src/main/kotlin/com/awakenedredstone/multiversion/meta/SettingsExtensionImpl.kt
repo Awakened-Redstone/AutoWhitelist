@@ -19,8 +19,11 @@ internal abstract class SettingsExtensionImpl @Inject constructor(
 
     override fun setupStonecutter() {
         stonecutter.create(settings.rootProject) {
-            val versions = metadata.projectMeta.versions ?: return@create
-            it.versions(versions.filter { (_, version) -> version.enabled }.keys)
+            val allVersions = metadata.projectMeta.versions ?: return@create
+            val versions = allVersions.filter { (_, version) -> version.enabled }.keys
+            it.versions(versions)
+            // TODO: add config option for this
+            it.vcsVersion.set(versions.last())
         }
     }
 
