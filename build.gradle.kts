@@ -128,9 +128,7 @@ configurations.getByName("include") {
     dependencies.addAllLater(provider {
         val dependencies: MutableList<Dependency> = ArrayList()
         val libraries = serverLibraries
-        logger.lifecycle("===== WAFF =====")
 
-        libraries.map { it.mavenNotation() }.forEach { logger.lifecycle("Library: {}",it ) }
         for (artifact in includeTransitive.incoming.artifacts) {
             val identifier = artifact.id.componentIdentifier
 
