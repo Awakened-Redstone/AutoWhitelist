@@ -149,10 +149,6 @@ internal open class Metadata @Inject constructor(
         isDirty = true
     }
 
-    fun stonecutterTree() {
-        settings.rootProject.children
-    }
-
     internal inline fun <reified T> decode(file: File, default: () -> T): T {
         val fileContent = file.readOrNull() ?: return default()
         return jsonMapper.readValue(fileContent)
