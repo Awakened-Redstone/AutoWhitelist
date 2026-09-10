@@ -222,7 +222,7 @@ loom {
 
     runConfigs.getByName("server") {
         generateRunConfig = true
-        runDirectory.dir("$rootDir/run")
+        runDirectory = project.rootDir.resolve("run")
     }
 }
 
