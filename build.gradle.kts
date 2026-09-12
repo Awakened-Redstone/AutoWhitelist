@@ -1,6 +1,4 @@
 import com.awakenedredstone.multiversion.values.Repo
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import dev.kikugie.semver.data.Version
 import me.modmuss50.mpp.ReleaseType
 import net.fabricmc.loom.LoomGradleExtension
 import net.fabricmc.loom.configuration.providers.BundleMetadata
@@ -10,20 +8,19 @@ import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
     // Multiversion applies the right loom version for the current game version
+    id("com.awakenedredstone.commons")
     id("com.awakenedredstone.multiversion")
     id("maven-publish")
     id("com.modrinth.minotaur") version "2.9.+"
     id("me.modmuss50.mod-publish-plugin") version "0.8.4"
-    id("com.gradleup.shadow") version "9.3.+"
     alias(ft.plugins.default)
-    id("com.awakenedredstone.commons")
 }
 
 val changelogText: String = if (file("CHANGELOG.md").exists()) {
-        file("CHANGELOG.md").readText()
-    } else {
-        "No changelog provided"
-    }
+    file("CHANGELOG.md").readText()
+} else {
+    "No changelog provided"
+}
 val minecraftVersion: String = stonecutter.current.version
 val latestVersion: String = stonecutter.versions.last().version
 
@@ -41,12 +38,6 @@ var archivesBaseName: String = property("archives_base_name").toString()
 version = "$modVersion+$minecraftVersion"
 group = property("maven_group") as String
 
-configurations.configureEach {
-    resolutionStrategy {
-        force("net.fabricmc:fabric-loader:${property("loader_version")}")
-    }
-}
-
 @Override
 fun file(path: String): File {
     return rootProject.file(path)
@@ -55,49 +46,6 @@ fun file(path: String): File {
 @Override
 fun fileTree(path: String): ConfigurableFileTree {
     return rootProject.fileTree(path)
-}
-
-// val classTweaker = findClassTweaker()
-
-/*@Deprecated("Deprecated in favor of stonecutter")
-fun findClassTweakerFile(): File {
-    return file("src/main/resources/classtweakers/${classTweaker.second}")
-}*/
-
-@Deprecated("Deprecated in favor of stonecutter")
-fun findClassTweaker(): Pair<String, String> {
-    val wideners = fileTree("src/main/resources/classtweakers")
-    val versions: MutableSet<Version> = sortedSetOf()
-    val sampleFileName = wideners.first().name
-    val filePrefix = sampleFileName.substringBefore('.')
-    val fileSuffix = sampleFileName.substringAfterLast('.')
-
-    wideners.visit {
-        val version = file.name.substringAfter('.').substringBeforeLast('.')
-        versions += sc.parse(version)
-    }
-
-    var returnValue: Pair<String, String>? = null
-    for (version in versions.reversed()) {
-        if (sc.eval(sc.current.version, ">=${version.value}")) {
-            returnValue = Pair(version.value, "$filePrefix.${version.value}.$fileSuffix")
-            break
-        }
-    }
-
-    if (returnValue == null) {
-        throw MissingResourceException("No valid class tweaker for ${sc.current.version} found!")
-    }
-
-    logger.info("Excluding for $minecraftVersion")
-    for (version in versions) {
-        if (version.value != returnValue.first) {
-            logger.info("Excluding: ${version.value}")
-            tasks.processResources.get().exclude("**/$filePrefix.${version.value}.$fileSuffix")
-        }
-    }
-
-    return returnValue
 }
 
 @Suppress("UnstableApiUsage")
@@ -109,14 +57,6 @@ val serverLibraries: List<Library>
         val bundleMetadata: BundleMetadata = loom.minecraftProvider.serverBundleMetadata ?: throw NullPointerException("Server bundle metadata can not be null")
         return MinecraftLibraryHelper.getServerLibraries(bundleMetadata)
     }
-
-val shadeApi: Configuration by configurations.creating {
-    isCanBeResolved = true
-    isCanBeConsumed = false
-    isTransitive = true
-
-    project.configurations.getByName("api").extendsFrom(this)
-}
 
 val includeTransitive: Configuration by configurations.creating {
     isCanBeResolved = true
@@ -144,14 +84,6 @@ configurations.getByName("include") {
         return@provider dependencies
     })
 }
-
-// Make sure that we don't use other versions of libraries from Minecraft
-/*afterEvaluate {
-    for (dependency in configurations.getByName("minecraftServerRuntimeLibraries").incoming.dependencies) {
-        logger.lifecycle("Trying {}", dependency)
-        shadeApi.exclude(dependency.group, dependency.name)
-    }
-}*/
 
 fun DependencyHandlerScope.applyMappings() {
     if (!minecraftVersion.startsWith("1.")) return
@@ -184,8 +116,8 @@ dependencies {
 
     // Mod dependencies
     include(modApi("me.lucko:fabric-permissions-api:${property("permission_api_version")}")!!)
-    include(modApi("eu.pb4:placeholder-api:${property("placeholder_api_version")}")!!)
     include(modApi("xyz.nucleoid:server-translations-api:${property("translation_api_version")}")!!)
+    include(modApi("eu.pb4:placeholder-api:${property("placeholder_api_version")}")!!)
 
     // Libraries
     includeTransitive(api("com.discord4j:discord4j-core:${property("discord4j_version")}") {
@@ -202,9 +134,6 @@ dependencies {
     if (stonecutter.eval(stonecutter.current.version, "<1.21.11")) {
         include(api("org.jspecify:jspecify:1.0.0")!!)
     }
-
-    // Runtime only
-    // modRuntimeOnly("net.fabricmc:fabric-language-kotlin:${property("kotlin_version")}")
 
     // Compile only
     compileOnly("net.luckperms:api:5.4")
@@ -261,6 +190,11 @@ if (stonecutter.current.isActive) {
         group = "build"
         dependsOn(tasks.named("build"))
     }
+
+    rootProject.tasks.register("cleanActive") {
+        group = "build"
+        dependsOn(tasks.named("build"))
+    }
 }
 
 tasks {
@@ -281,24 +215,6 @@ tasks {
         }
     }
 
-    named<ShadowJar>("shadowJar") {
-        //archiveClassifier = null
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        configurations = listOf(shadeApi)
-        relocate("discord4j", "com.awakenedredstone.autowhitelist.lib.discord4j")
-        exclude("META-INF/maven/**/*", "META-INF/*.txt", "META-INF/proguard/*", "META-INF/LICENSE", "META-INF/license/*", "META-INF/NOTICE")
-
-        dependencies {
-            val libraries = serverLibraries
-
-            // Don't shadow dependencies used by Minecraft, there is no need and can even cause problems
-            exclude { resolved ->
-                val any = libraries.any { resolved.moduleGroup == it.group && resolved.moduleName == it.name }
-                return@exclude any
-            }
-        }
-    }
-
     // ensure that the encoding is set to UTF-8, no matter what the system default is
     // this fixes some edge cases with special characters not displaying correctly
     // see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
@@ -310,13 +226,6 @@ tasks {
         sourceCompatibility = "25" // TODO: Java 21?
         targetCompatibility = javaVer
         options.encoding = "UTF-8"
-    }
-
-    jar {
-        // archiveClassifier = "thin"
-        /*from("LICENSE") {
-            rename { "${it}_${archivesBaseName}" }
-        }*/
     }
 
     // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task if it is present.
@@ -334,7 +243,7 @@ tasks {
 
         named<RemapJarTask>("remapJar") {
             dependsOn(named("prepareRemapJar"))
-            inputFile.set(named<ShadowJar>("shadowJar").get().archiveFile.get().asFile)
+            inputFile.set(jar.get().archiveFile.get().asFile)
         }
 
         register<RemapJarTask>("remapMavenJar") {
@@ -371,7 +280,7 @@ if (projectVersion.contains("beta")) {
     projectVersionType = ReleaseType.BETA
 }
 
-fun <T> action(action: Action<T>) : Action<T> where T : Task {
+fun <T> action(action: Action<T>): Action<T> where T : Task {
     return action
 }
 
