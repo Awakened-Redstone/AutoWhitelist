@@ -190,6 +190,8 @@ dependencies {
     // Libraries
     includeTransitive(api("com.discord4j:discord4j-core:${property("discord4j_version")}") {
         // We don't need this
+        exclude("io.netty", "netty-codec-natives-quic")
+        exclude("com.google.crypto.tink", "tink")
         exclude("com.google.errorprone", "error_prone_annotations")
         exclude("com.austinv11.servicer", "Servicer")
         exclude("org.checkerframework", "checker-qual")
