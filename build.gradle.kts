@@ -266,9 +266,10 @@ tasks {
         val map = mapOf(
             "version" to version,
             "loader" to meta.property("loader_version"),
-            "fapi" to meta.property("fabric_api_version"),
-            "minecraft" to meta.property("predicate"),
-            // "classtweaker" to classTweaker.second
+            "fabric_api" to meta.property("fabric_api_version"),
+            "placeholder_api" to meta.property("placeholder_api_version"),
+            "translation_api" to meta.property("translation_api_version"),
+            "minecraft" to meta.property("predicate")
         )
 
         inputs.properties(map)

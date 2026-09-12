@@ -21,11 +21,11 @@
   ],
   "depends": {
     "fabricloader": ">=${loader}",
-    "fabric-api": ">=${fapi}",
+    "fabric-api": ">=${fabric_api}",
+
+    "placeholder-api": ">=${placeholder_api}",
+    "server_translations_api": ">=${translation_api}",
 
     "minecraft": "${minecraft}"
-  },
-  "suggests": {
-    "luckperms": "*"
   }
 }
