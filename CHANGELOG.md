@@ -12,6 +12,9 @@
   - instead it will say it expires in ~31k years. This is a temporary fix, it will be changed to say "never" in the future
 
 ## Changes
+- 26.2 support (petersv5)
+- 26.3 support
+- Reduced the mod jar size
 - Added the `/userlinkinfo` command
   - It allows an admin to view a specific user's link
   - The command requires the admin to have the kick member permission be default 
@@ -23,6 +26,8 @@
 - Updated the `autowhitelist rebuild-from-cache` in game command
   - The command now adds all qualifying cached entries, instead of just removing whitelist entries and letting the cache on login do the rest
   - The option to not run actions has been removed. The new implementation doesn't support not running the `add` actions.
+  - The command now runs asynchronously to avoid hanging the server thread for a long period, it will send a message when finished.
+  - It is a bad idea do run the reload while it is running, that can cause issues
 - Added the `/status` command
   - This command shows the status of several parts of the mod environment.
   - There are 6 sub-commands
