@@ -44,7 +44,6 @@ public class EventHandler {
 
     public static void handleEvents(GatewayDiscordClient client) {
         // Lifecycle events
-//        listen(client, ReadyEvent.class, EventHandler::handleConnect);
         listen(client, ReconnectEvent.class, EventHandler::handleReconnect);
 
         // Gateway events
