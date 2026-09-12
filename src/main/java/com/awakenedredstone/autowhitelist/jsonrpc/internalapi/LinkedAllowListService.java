@@ -22,7 +22,7 @@ public class LinkedAllowListService extends MinecraftAllowListServiceImpl {
     /*public LinkedAllowListService(DedicatedServer server, JsonRpcLogger jsonrpcLogger) {
         super(server, jsonrpcLogger);
     }
-    */ //? }
+     *///? }
 
     public boolean register(PlayerProfile profile, ClientInfo clientInfo) {
         if (profile.discordId() == null) return false;

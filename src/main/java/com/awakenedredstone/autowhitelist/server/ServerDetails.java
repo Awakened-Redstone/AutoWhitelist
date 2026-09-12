@@ -37,7 +37,15 @@ public record ServerDetails(MinecraftServer server) {
     }
 
     public CommandSourceStack createCommandSource(String name, /*? if <1.21.11 {*//*int*//*?} else {*/LevelBasedPermissionSet/*?}*/ permissionLevel) {
-        return new CommandSourceStack(server, Vec3.ZERO, Vec2.ZERO, spawnWorld(), permissionLevel, name, Component.literal(name), server, null);
+        return new CommandSourceStack(
+          server,
+          Vec3.ZERO, Vec2.ZERO,
+          spawnWorld(),
+          permissionLevel,
+          /*? if <26.3-rc-1 {*/ /*name, *//*?}*/
+          Component.literal(name),
+          server/*? if <26.3-rc-1 {*//*, null *//*?}*/
+        );
     }
 
     //? if <1.21.9 {

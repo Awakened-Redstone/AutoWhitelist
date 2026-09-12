@@ -7,4 +7,4 @@ stonecutter handlers {
     inherit("aw", "classtweaker")
 }
 
-stonecutter active "26.2" /* [SC] DO NOT EDIT */
+stonecutter active "26.3-rc-1" /* [SC] DO NOT EDIT */

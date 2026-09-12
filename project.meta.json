@@ -5,8 +5,8 @@
     "placeholder_api_version": "#modrinth placeholder-api fabric ${version}",
     "permission_api_version": "#modrinth fabric-permissions-api fabric ${version}",
 
-    "loader_version": "0.19.2",
-    "discord4j_version": "3.3.2"
+    "loader_version": "0.19.3",
+    "discord4j_version": "3.3.3"
   },
   "versions": {
     "1.21": {
@@ -73,6 +73,15 @@
       "predicate": "auto",
       "properties": {
         "translation_api_version": "3.1.0+26.2"
+      }
+    },
+    "26.3-rc-1": {
+      "predicate": "auto",
+      "properties": {
+        "placeholder_api_version": "3.2.0+26.3",
+        "translation_api_version": "3.2.0+26.3",
+        "permission_api_version": "0.7.0",
+        "fabric_api_version": "0.160.2+26.3"
       }
     }
   }

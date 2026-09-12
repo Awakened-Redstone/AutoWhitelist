@@ -75,11 +75,11 @@ public record PlayerProfile(@NotNull UUID id, @NotNull String name, String disco
         return profile.id();
     }
 
-    public static String name(com.mojang.authlib.yggdrasil.response.NameAndId profile) {
+    public static String name(/*$ AuthlibNameAndId >>*/com.mojang.authlib.services.response.NameAndId profile) {
         return profile.name();
     }
 
-    public static UUID id(com.mojang.authlib.yggdrasil.response.NameAndId profile) {
+    public static UUID id(/*$ AuthlibNameAndId >>*/com.mojang.authlib.services.response.NameAndId profile) {
         return profile.id();
     }
     //?}

@@ -20,9 +20,9 @@ public class MinecraftApiMixin {
         return new LinkedAllowListService(notificationManager, logger);
     }
     //? } else {
-    //@WrapOperation(method = "of", at = @At(value = "NEW", target = "(Lnet/minecraft/server/dedicated/DedicatedServer;Lnet/minecraft/server/jsonrpc/JsonRpcLogger;)Lnet/minecraft/server/jsonrpc/internalapi/MinecraftAllowListServiceImpl;"))
-    //private static MinecraftAllowListServiceImpl modifyWhitelist(DedicatedServer server, JsonRpcLogger logger, Operation<MinecraftAllowListServiceImpl> original) {
-    //    return new LinkedAllowListService(server, logger);
-    //}
-    //? }
+    /*@WrapOperation(method = "of", at = @At(value = "NEW", target = "(Lnet/minecraft/server/dedicated/DedicatedServer;Lnet/minecraft/server/jsonrpc/JsonRpcLogger;)Lnet/minecraft/server/jsonrpc/internalapi/MinecraftAllowListServiceImpl;"))
+    private static MinecraftAllowListServiceImpl modifyWhitelist(DedicatedServer server, JsonRpcLogger logger, Operation<MinecraftAllowListServiceImpl> original) {
+        return new LinkedAllowListService(server, logger);
+    }
+    *///? }
 }

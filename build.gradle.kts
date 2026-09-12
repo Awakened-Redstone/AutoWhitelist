@@ -232,7 +232,11 @@ stonecutter {
         }
     }
 
+    // Stonecutter recommends using snake_case as the naming convention, but I'm using something based of Java's conventions
+    // Tt should reflect the case format for what it targets, classes are PascalCase, fields, primitives and methods are camelCase, etc
     registerMacro("WhitelistProfile", ">=1.21.9", "net.minecraft.server.players.NameAndId", "com.mojang.authlib.GameProfile")
+    registerMacro("AuthlibNameAndId", "<26.3-rc-1", "com.mojang.authlib.yggdrasil.response.NameAndId", "com.mojang.authlib.services.response.NameAndId")
+    registerMacro("AuthlibHttpService", "<26.3-rc-1", "com.mojang.authlib.HttpAuthenticationService", "com.mojang.authlib.HttpDiscoveryService")
     registerMacro("entryPatchReturn", ">=1.21.9", "boolean", "void")
 }
 

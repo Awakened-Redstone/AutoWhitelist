@@ -90,9 +90,9 @@ internal open class Metadata @Inject constructor(
 
             for (version in fetch) {
                 logger.lifecycle("Getting version data for ${version.id}")
-                versionCache.versions[version.id] =  URI(version.url).toURL().openStream().use { stream ->
+                versionCache.versions[version.id] = URI(version.url).toURL().openStream().use { stream ->
                     // If there is no Java version details, it's probably an old version, so default to Java 8
-                    VersionCache.Version(jsonMapper.readTree(stream)?.get("javaVersion")?.get("majorVersion")?.asText() ?: "8")
+                    VersionCache.Version(jsonMapper.readTree(stream)?.get("javaVersion")?.get("majorVersion")?.asString() ?: "8")
                 }
             }
 
@@ -120,18 +120,18 @@ internal open class Metadata @Inject constructor(
         if (currentVersion.predicate == "auto") {
             logger.debug("Creating predicate from context")
             val versionIndex = projectGameVersions.indexOf(gameVersion)
+            val mcSemver = stonecutter.parse(gameVersion) as SemanticVersion
 
+            val endVersion: String
             if (versionIndex + 1 >= projectGameVersions.size) {
-                val mcSemver = stonecutter.parse(gameVersion) as SemanticVersion
                 // This is still valid for the new version system, as drops are breaking changes,
-                // and 27.1 is still higher than 26.5 and so saying it breaks on 26.5 is ok
-                val newSemver = SemanticVersion(listOf(mcSemver.components[0], mcSemver.components[1] + 1))
-
-                predicate = ">=$gameVersion <${newSemver.value}"
+                // and 27.1 is still higher than 26.5, so saying it breaks on 26.5 is ok
+                endVersion = SemanticVersion(listOf(mcSemver.components[0], mcSemver.components[1] + 1)).fabricSemver
             } else {
-                val nextVersion = projectGameVersions[versionIndex + 1]
-                predicate = ">=$gameVersion <${nextVersion}"
+                endVersion = projectGameVersions[versionIndex + 1]
             }
+
+            predicate = ">=${mcSemver.fabricSemver} <${endVersion}"
         } else {
             predicate = currentVersion.predicate
         }
@@ -152,6 +152,21 @@ internal open class Metadata @Inject constructor(
     internal inline fun <reified T> decode(file: File, default: () -> T): T {
         val fileContent = file.readOrNull() ?: return default()
         return jsonMapper.readValue(fileContent)
+    }
+
+    internal val SemanticVersion.fabricSemver: String get() = buildString {
+        append(components.joinToString("."))
+        if (preRelease.isNotEmpty()) {
+            append("-${preRelease.replaceLast('-', ".")}")
+        }
+        if (buildMetadata.isNotEmpty()) {
+            append("+$buildMetadata")
+        }
+    }
+
+    internal fun String.replaceLast(delimiter: Char, replacement: String, ignoreCase: Boolean = false): String {
+        val index = lastIndexOf(delimiter, ignoreCase = ignoreCase)
+        return if (index == -1) this else replaceRange(index, index + 1, replacement)
     }
 
     data class ParsedVersion(val predicate: String, val versions: List<String>, val java: String)

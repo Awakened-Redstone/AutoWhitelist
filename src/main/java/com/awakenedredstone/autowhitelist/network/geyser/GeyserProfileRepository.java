@@ -1,9 +1,10 @@
 package com.awakenedredstone.autowhitelist.network.geyser;
 
 import com.awakenedredstone.autowhitelist.Constants;
-import com.mojang.authlib.*;
+import com.mojang.authlib.GameProfileRepository;
+import com.mojang.authlib.ProfileLookupCallback;
 import com.mojang.authlib.exceptions.MinecraftClientException;
-/*? if >=1.21.9 {*/ import com.mojang.authlib.yggdrasil.response.NameAndId; /*?}*/
+/*? if >=1.21.9 {*/ import /*$ AuthlibNameAndId >> ';'*/com.mojang.authlib.services.response.NameAndId;/*?}*/
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +53,7 @@ public class GeyserProfileRepository implements GameProfileRepository {
     }
 
     public long findXuidByGamertag(String name) throws GeyserAPIException {
-        final GeyserApiXuidResponse response = client.get(HttpAuthenticationService.constantURL(geyserXuidApi + normalizeName(name)), GeyserApiXuidResponse.class);
+        final GeyserApiXuidResponse response = client.get(/*$ AuthlibHttpService >> '.constantURL'*/com.mojang.authlib.HttpDiscoveryService.constantURL(geyserXuidApi + normalizeName(name)), GeyserApiXuidResponse.class);
 
         if (response != null) {
             return response.xuid;
