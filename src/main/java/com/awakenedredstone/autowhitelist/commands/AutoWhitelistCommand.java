@@ -7,7 +7,6 @@ import com.awakenedredstone.autowhitelist.server.profile.PlayerProfile;
 import com.awakenedredstone.autowhitelist.server.whitelist.WhitelistHandler;
 import com.awakenedredstone.autowhitelist.server.whitelist.cache.WhitelistCache;
 import com.awakenedredstone.autowhitelist.server.whitelist.cache.WhitelistCacheEntry;
-import com.awakenedredstone.autowhitelist.server.whitelist.link.LinkedWhitelistEntry;
 import com.awakenedredstone.autowhitelist.data.DefaultTranslationsDataProvider;
 import com.awakenedredstone.autowhitelist.discord.DiscordClientHolder;
 import com.awakenedredstone.autowhitelist.server.ServerDetails;
@@ -17,7 +16,6 @@ import com.awakenedredstone.autowhitelist.util.string.TimeParser;
 import com.awakenedredstone.autowhitelist.server.profile.LinkedNameAndId;
 import com.awakenedredstone.autowhitelist.server.whitelist.link.LinkingWhitelist;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.serialization.DataResult;
 import discord4j.common.util.Snowflake;
@@ -26,6 +24,7 @@ import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Role;
 import discord4j.discordjson.json.ApplicationCommandData;
+import it.unimi.dsi.fastutil.Pair;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
@@ -43,6 +42,8 @@ import net.minecraft.server.players.UserWhiteListEntry;
 import net.minecraft.world.level.storage.LevelResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -50,7 +51,6 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
 // TODO: cleanup
@@ -152,25 +152,40 @@ public class AutoWhitelistCommand {
             ).then(literal("rebuild-from-cache")
               .executes(context -> {
                   CommandSourceStack source = context.getSource();
-                  boolean whitelistOnly = BoolArgumentType.getBool(context, "whitelist only");
 
                   LinkingWhitelist whitelist = WhitelistHandler.getWhitelist();
                   WhitelistCache cache = whitelist.getCache();
 
-                  source.sendSuccess(() -> Component.literal("Updating whitelist from cache, this may take some time."), true);
-                  List<WhitelistCacheEntry> entries = new ArrayList<>();
-                  for (WhitelistCacheEntry entry : cache.getEntries()) {
-                      if (!whitelistOnly || whitelist.isWhiteListed(entry.getUser())) {
-                          entries.add(entry);
-                      }
+                  if (!DiscordClientHolder.hasClient()) {
+                      source.sendFailure(Component.literal("No discord client found"));
+                      return 0;
                   }
 
-                  var task = CompletableFuture.runAsync(() -> {
-                      source.sendSuccess(() -> Component.literal("Starting async task, the remainder of this command will be executed async, meaning it will return before it is completed."), true);
+                  if (!DiscordClientHolder.hasGuild()) {
+                      source.sendFailure(Component.literal("Discord guild isn't loaded yet"));
+                      return 0;
+                  }
 
-                  });
+                  var discord = DiscordClientHolder.getCurrent();
+                  var guild = discord.getGuild();
 
-                  task.whenComplete((_, _) -> source.sendSuccess(() -> Component.literal("Finished updating the whitelist"), true));
+                  source.sendSuccess(() -> Component.literal("Updating whitelist from cache, this may take some time."), true);
+                  List<WhitelistCacheEntry> entries = new ArrayList<>(cache.getEntries());
+
+                  Flux.fromIterable(entries)
+                    .doOnSubscribe(_ -> source.sendSuccess(() -> Component.literal("Starting async task, the remainder of this command will be executed async, meaning it will return before it is completed."), true))
+                    .mapNotNull(WhitelistCacheEntry::getUser)
+                    .map(PlayerProfile::from)
+                    .flatMap(entry -> guild.getMemberById(Snowflake.of(entry.discordId())).flatMap(member -> Mono.just(Pair.of(entry, member))))
+                    .flatMap(res -> WhitelistHandler.register(res.second(), () -> Optional.of(res.first()), true))
+                    .filter(WhitelistHandler.Response::success)
+                    .collectList()
+                    .doOnError(e -> {
+                        source.sendFailure(Component.literal("Failed to rebuild the whitelist, check the logs for details!"));
+                        AutoWhitelist.LOGGER.error("Failed to fully update whitelist from cache", e);
+                    })
+                    .doOnSuccess(responses -> source.sendSuccess(() -> Component.literal("Finished updating the whitelist, updated %d entries".formatted(responses.size())), true))
+                    .subscribe();
 
                   return entries.size();
               })

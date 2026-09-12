@@ -4,17 +4,18 @@ import com.awakenedredstone.autowhitelist.LazyConstants;
 import com.awakenedredstone.autowhitelist.server.ServerDetails;
 import com.awakenedredstone.autowhitelist.util.data.UUIDUtil;
 import net.minecraft.util.StringUtil;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Optional;
 import java.util.UUID;
 
+@NullMarked
 @FunctionalInterface
 public interface ProfileFetcher {
     // TODO: error messages
     Optional<PlayerProfile> fetch();
 
-    static @NotNull ProfileFetcher javaFetcher(String input) {
+    static ProfileFetcher javaFetcher(String input) {
         if (UUIDUtil.isValidUuid(input)) {
             return () -> ServerDetails.getUserCache().get(UUIDUtil.parseUuid(input)).map(PlayerProfile::from);
         }
@@ -22,7 +23,7 @@ public interface ProfileFetcher {
         return () -> ServerDetails.getUserCache().get(input).map(PlayerProfile::from);
     }
 
-    static @NotNull ProfileFetcher bedrockFetcher(String input) {
+    static ProfileFetcher bedrockFetcher(String input) {
         if (UUIDUtil.isValidUuid(input)) {
             return () -> {
                 UUID uuid = UUIDUtil.parseUuid(input);
