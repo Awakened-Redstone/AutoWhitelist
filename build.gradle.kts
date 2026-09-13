@@ -12,7 +12,7 @@ plugins {
     id("com.awakenedredstone.multiversion")
     id("maven-publish")
     id("com.modrinth.minotaur") version "2.9.+"
-    id("me.modmuss50.mod-publish-plugin") version "0.8.4"
+    id("me.modmuss50.mod-publish-plugin") version "2.2.0"
     alias(ft.plugins.default)
 }
 
@@ -313,6 +313,7 @@ publishMods {
         accessToken = providers.gradleProperty("MODRINTH_TOKEN")
         minecraftVersions = modVersions
         changelog = changelogText
+
         requires("fabric-api")
         embeds("placeholder-api")
         optional("luckperms")
@@ -324,6 +325,8 @@ publishMods {
         projectSlug = "autowhitelist" // Required for discord webhook
         accessToken = providers.gradleProperty("CURSEFORGE_TOKEN")
         minecraftVersions = modVersions
+        server.set(true)
+
         changelog = changelogText
         requires("fabric-api")
         embeds("text-placeholder-api")
