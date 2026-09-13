@@ -41,7 +41,7 @@ public class AutoWhitelistConfig extends ConfigValues.Codec {
     }
 
     public enum GuyserMode implements StringRepresentable {
-        AUTO(isModLoaded("geyser-fabric") && isModLoaded("floodgate")),
+        AUTO(isModLoaded("floodgate")),
         DISABLED(false),
         ENABLED(true);
 
